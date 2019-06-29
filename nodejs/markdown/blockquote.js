@@ -1,13 +1,13 @@
 
 // a block quote tag
 
-module.exports = function(lineSet, tokenizer, render_context=null) {
+module.exports = function(lineSet, tokenizer, render_context) {
   if (!(this instanceof module.exports)) return new module.exports(lineSet, tokenizer, render_context);
 
   this.html = false;
   this.tokenSet = [];
   for (var i = 0; i < lineSet.length; i++) {
-    this.tokenSet.push(tokenizer(lineSet[i], render_context=render_context));
+    this.tokenSet.push(tokenizer(lineSet[i], true, false, render_context=render_context));
   }
 }
 

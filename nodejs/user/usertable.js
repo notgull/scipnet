@@ -43,10 +43,10 @@ module.exports.prototype.register = function(user, ip_addr, expiry, change_ip) {
 
 // check to make sure a session conforms to the ip address
 module.exports.prototype.check_session = function(session, ip_addr) {
-  // console.log("Checking for id " + session);
+  //console.log("Checking for id " + session);
   for (var i = 0; i < this.userset.length; i++) {
     var chckUser = this.userset[i];
-    // console.log("Comparing to id " + chckUser.id);
+    //console.log("Comparing to id " + chckUser.id);
     if (chckUser.id === session) {
      if (chckUser.ip_addrs.indexOf(ip_addr) !== -1) {
        // console.log("Found user!");
@@ -70,5 +70,12 @@ module.exports.prototype.check_expiry = function() {
     if (now > chckUser.expiry) {
       this.userset.splice(1, i);
     } 
+  }
+}
+
+// debug function
+module.exports.prototype._printUsers = function() {
+  for (var i = 0; i < this.userset.length; i++) {
+    console.log(JSON.stringify(this.userset[i]));
   }
 }

@@ -78,7 +78,7 @@ var voteOnPage = function(username, args, next) {
 
   // TODO: add username check
   var mObj = metadata(args.pagename); 
-  mObj.rating += args.rating;
+  mObj.rating += Number(args.rating);
   mObj.save();
 
   returnVal.result = true;
@@ -102,7 +102,7 @@ exports.request = function(name, username, args, next) {
 
   // slight modification to pagename
   if ('pagename' in args)
-    args[pagename] = path.basename(args[pagename]);
+    args['pagename'] = path.basename(args['pagename']);
 
   if (!username)
     next({result: false, errorCode: -1});

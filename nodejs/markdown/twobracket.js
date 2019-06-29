@@ -32,7 +32,7 @@ exports.processAttrs = function(elems, isModule) {
       var attrData = result.elemSet.join(" ");
       attrsObj[attrName] = attrData;
       i = result.newPos;
-    } else if (isModule && i === 0) {
+    } else if (isModule && (i === 0 || i === 1)) {
       attrsObj.moduleType = elems[i];
     } else console.log("Elem \"" + elems[i] + "\" is not a valid elem");
   }
@@ -40,7 +40,7 @@ exports.processAttrs = function(elems, isModule) {
   return attrsObj;
 }
 
-exports.htmlElem = function(begin, end, elemSet, tokenize, render_context=null) {
+exports.htmlElem = function(begin, end, elemSet, tokenize, render_context) {
   if (!(this instanceof exports.htmlElem)) return new exports.htmlElem(begin, end, elemSet, tokenize, render_context);
 
   this.begin = begin;
@@ -55,7 +55,7 @@ exports.htmlElem = function(begin, end, elemSet, tokenize, render_context=null) 
 
   //console.log("- ElemSet is " + JSON.stringify(elemSet));
 
-  this.elemSet = tokenize(elemSet, render_context=render_context);  
+  this.elemSet = tokenize(elemSet, true, false, render_context=render_context);  
 
   this.html = true;
 }
@@ -72,9 +72,10 @@ exports.htmlElem.prototype.flatten = function() {
   return contents;
 }
 
-exports.createElem = function(tokenize, name, attrs, elemSet = [], render_context=null) {
+exports.createElem = function(tokenize, name, attrs, elemSet = [], render_context) {
   name = name.toLowerCase();
-  // console.log("> Attrs is " + JSON.stringify(attrs));
+  // console.log("> Attrs is " + JSON.stringify(attrs))
+  console.log("Twobracket: render_context is " + render_context);
 
   if (name === "div" || name === "span") {
     var begin = "<" + name;

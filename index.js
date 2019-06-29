@@ -31,6 +31,8 @@ var s_port = process.env.PORT || 8443;
 var app = express();
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true, }));
+//app.use(express.json());
+//app.use(express.urlencoded());
 app.use(cookie_parser());
 
 // load ssl certs
@@ -115,8 +117,11 @@ app.post("/process-login", function(req, res) {
 app.post("/prs", function(req, res) {
   var ip_addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
 
+  console.log("PRS Request: " + JSON.stringify(req.body));
+
   // get username
-  var username = ut.check_session(Number(req.body.sessionId), ip_addr);
+  var username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
+  console.log(username);
   if (username) {
     // pull all parameters from req.body and put them in args
     var args = {};
@@ -126,7 +131,7 @@ app.post("/prs", function(req, res) {
       res.send(JSON.stringify(result));
     });
   } else {
-    res.send(JSON.stringify({not_logged_in: true}));
+    res.send(JSON.stringify({not_logged_in: true, result: false}));
   }
 });
 

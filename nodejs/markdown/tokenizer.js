@@ -24,7 +24,7 @@ var strecmp = function(str1, str2, n) {
 // get all tokens in between two delimiters
 var create_token_set = require("./tokenset");
 
-var catalogue_tokens = function(tokens, i, boldness, render_context=null) {
+var catalogue_tokens = function(tokens, i, boldness, render_context) {
     var result = create_token_set(tokens, i, boldness, boldness, true, tokenizer, render_context=render_context);
     var elemSet = [];
     var last_elem_split = result.last_elem_split;
@@ -45,14 +45,14 @@ var catalogue_tokens = function(tokens, i, boldness, render_context=null) {
   //}
 }
 	
-var search_for_elem = function(tokens, i, boldness) {
+var search_for_elem = function(tokens, i, boldness, render_context) {
   var elemSet = [];
   var token = tokens[i];
 
   if (token.indexOf(boldness) !== -1) {
       //console.log("> Found boldness!");
       // split token into two, if necessary
-      return catalogue_tokens(tokens, i, boldness);
+      return catalogue_tokens(tokens, i, boldness, render_context);
     } else {
       elemSet = [-1];
       return {elemSet: elemSet, newIndex: i};
@@ -117,7 +117,11 @@ var find_line = function(tokens, i) {
 var isBQQualifyingToken = (splitByNL) => { return splitByNL[splitByNL.length - 2] === ">" || splitByNL[splitByNL.length - 1] === ">"; }
 
 // convert tokens into markdown elements - involves recursion
-var tokenizer = function(tokens, put_space_after_ltoken=false, top_level=false, render_context=null) {
+var tokenizer = function(tokens, put_space_after_ltoken=false, top_level=false, render_context) {
+  console.log('Tokenizer: render_context is ' + render_context + ', top_level is ' + top_level);
+  if (!render_context)
+    throw new Error("Tokenizer: render_context should not be null");
+
   var elemSet = [];
   if (!tokens || tokens.length === 0) return elemSet;
 
@@ -180,7 +184,7 @@ var tokenizer = function(tokens, put_space_after_ltoken=false, top_level=false, 
 	// test for a twobrackets element
         var tokenparts = token.split("[[", 2);
         var name = tokenparts[1].split("]]", 2)[0];
-	if (tokenparts[0] !== "") elemSet.pushArray(tokenizer([tokenparts[0]], render_context=render_context));
+	if (tokenparts[0] !== "") elemSet.pushArray(tokenizer([tokenparts[0]], true, false, render_context=render_context));
         
 	if (twobrackets.isValid(name)) {
 	  // get attributes - all tokens between i + 1 and the token with ]]
@@ -209,13 +213,13 @@ var tokenizer = function(tokens, put_space_after_ltoken=false, top_level=false, 
 	  if (ending_result.found) {
             var divElems = [];
             divElems.pushArray(ending_result.elemSet);
-	    elemSet.push(twobrackets.createElem(tokenizer, name, attrs, divElems, render_context=render_context));
+	    elemSet.push(twobrackets.createElem(tokenizer, name, attrs, divElems, render_context));
 	    if (ending_result.endToken === "") ending_result.endToken = " ";
-	    elemSet.pushArray(tokenizer([ending_result.endToken], render_context));
+	    elemSet.pushArray(tokenizer([ending_result.endToken], true, false, render_context));
 	    i = ending_result.newPos;
 	  } else {
-            elemSet.push(twobrackets.createElem(tokenizer, name, attrs, render_context=render_context));
-	    elemSet.pushArray(tokenizer([endingElems], render_context=render_context));
+            elemSet.push(twobrackets.createElem(tokenizer, name, attrs, [], render_context));
+	    elemSet.pushArray(tokenizer([endingElems], true, false, render_context=render_context));
 	  }
 	} else {
           elemSet.push(plaintext("[[" + name, true));
@@ -270,17 +274,17 @@ var tokenizer = function(tokens, put_space_after_ltoken=false, top_level=false, 
       }
       console.log("Final set is " + JSON.stringify(lineSet));
       elemSet.push(blockquote(lineSet, tokenizer, render_context=render_context));
-    } else if ((elSet = search_for_elem(tokens, i, boldness)).elemSet[0] !== -1) {
+    } else if ((elSet = search_for_elem(tokens, i, boldness, render_context)).elemSet[0] !== -1) {
       //console.log("First elem is not -1");
       i = elSet.newIndex;
       for (var j = 0; j < elSet.elemSet.length; j++) elemSet.push(elSet.elemSet[j]);
-    } else if ((elSet = search_for_elem(tokens, i, italics)).elemSet[0] !== -1) {
+    } else if ((elSet = search_for_elem(tokens, i, italics, render_context)).elemSet[0] !== -1) {
       i = elSet.newIndex;
       for (var j = 0; j < elSet.elemSet.length; j++) elemSet.push(elSet.elemSet[j]);
-    } else if ((elSet = search_for_elem(tokens, i, underline)).elemSet[0] !== -1) {
+    } else if ((elSet = search_for_elem(tokens, i, underline, render_context)).elemSet[0] !== -1) {
       i = elSet.newIndex;
       for (var j = 0; j < elSet.elemSet.length; j++) elemSet.push(elSet.elemSet[j]);
-    } else if ((elSet = search_for_elem(tokens, i, "--")).elemSet[0] !== -1) {
+    } else if ((elSet = search_for_elem(tokens, i, "--", render_context)).elemSet[0] !== -1) {
       i = elSet.newIndex;
       for (var j = 0; j < elSet.elemSet.length; j++) elemSet.push(elSet.elemSet[j]);
     } else {

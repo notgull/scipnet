@@ -3,11 +3,11 @@ var fs = require('fs');
 var metadata = require('./../metadata/metadata');
 var path = require('path');
 
-var rate_html = fs.readFileSync(path.join(__dirname, 'Rate.html'));
+var rate_html = "" + fs.readFileSync(path.join(__dirname, 'Rate.html'));
 
-exports.run = function(args, content, tokenizer, render_context=null) {
+exports.run = function(args, content, tokenizer, render_context) {
   if (!(render_context)) {
-    throw "Error: Rating module passed with null render context";
+    throw new Error("Error: Rating module passed with null render context");
   }
 
   // get the current rating

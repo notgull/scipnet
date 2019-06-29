@@ -62,7 +62,7 @@ module.exports = function(url) {
 };
 
 // save metadata to a file
-module.exports.save = function() {
+module.exports.prototype.save = function() {
   mObj = {};
   
   mObj.title = this.title;
@@ -77,6 +77,6 @@ module.exports.save = function() {
   mObj.locked = this.locked;
   mObj.parentPage = this.parentPage;
 
-  filePath = path.join(metadata_dir, self.url);
-  fs.saveFileSync(filepath, JSON.stringify(mObj));
+  filePath = path.join(metadata_dir, this.url);
+  fs.writeFileSync(filePath, JSON.stringify(mObj));
 };

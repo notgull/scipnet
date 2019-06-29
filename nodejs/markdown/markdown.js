@@ -23,7 +23,8 @@ module.exports = function(filename) {
   for (var i = 0; i < raw_paragraphs.length; i++) {
     if (i === raw_paragraphs.length - 1)
       raw_paragraphs[i] = raw_paragraphs[i].slice(0,-1);
-    this.paragraphs.push(paragraph(raw_paragraphs[i]));
+    console.log("Processing paragraph #" + i);
+    this.paragraphs.push(paragraph(raw_paragraphs[i], render_context=this.render_context));
   }
 };
 
@@ -37,7 +38,7 @@ module.exports.prototype.flatten = function(username) {
   var content = "";
   for (var i = 0; i < this.paragraphs.length; i++) {
     content += "<!-- paragraph unit #" + i + " -->\n";
-    content += this.paragraphs[i].flatten(render_context=this.render_context);
+    content += this.paragraphs[i].flatten();
     content += "\n";
   }
 

@@ -2,11 +2,11 @@
 // text decoration markdown elements
 
 var defineElem = function(name, tag, endTag) {
-  module.exports[name] = function(tokens, lastElemSplit, tokenizer, render_context=null) {
+  module.exports[name] = function(tokens, lastElemSplit, tokenizer, render_context) {
     if (!(this instanceof module.exports[name])) return new module.exports[name](tokens, lastElemSplit, tokenizer, render_context);
 
     // tokenize all of the inner elements
-    this.elemSet = tokenizer(tokens, false, render_context=render_context);
+    this.elemSet = tokenizer(tokens, false, false, render_context);
     this.lastElemSplit = lastElemSplit;
     this.html = false;
   }

@@ -1,8 +1,27 @@
 <!-- rating module -->
+<script type="text/javascript">
+var scpvote = function(rate) {
+  prsRequest('voteOnPage', {pagename: window.location.href, rating: rate}, (d)=>{
+    if ('not_logged_in' in d && d.not_logged_in) {
+      createDialog("You must be logged in to vote on pages.");
+      return;
+    }
+
+    if ('result' in d && !d.result) {
+      createDialog("Failed to vote on page.");
+      return;
+    }
+
+    var prList = document.getElementsByClassName("page-rating");
+    for (var i = 0; i < prList.length; i++)
+      prList[i].innerHTML = d.newRating;
+  });
+};
+</script>
 <span class="rating-module">
 <div>
-Rating: [INSERT_RATING_HERE]
-<a onclick="prsRequest('voteOnPage', {pagename: window.location.href, rating: 1}, (d)=>{});">Upvote</a>
-<a onclick="prsRequest('voteOnPage', {pagename: window.location.href, rating: -1}, (d)=>{});">Downvote</a>
+Rating: <span class="page-rating">[INSERT_RATING_HERE]</span>
+<a onclick="scpvote(1)">Upvote</a>
+<a onclick="scpvote(-1)">Downvote</a>
 </div>
 </span>

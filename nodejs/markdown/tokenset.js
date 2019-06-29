@@ -10,6 +10,8 @@ var strecmp = function(str1, str2, n) {
 module.exports = function(tokens, i, delimiter1, delimiter2 = delimiter1, autoresolve_ends = true, tokenizer = null, render_context=null) {
   var token = tokens[i];
   var elemSet = [];
+
+  console.log('tokenset: render_context is ' + render_context);
  
   var beginToken, endToken = "";
 
@@ -65,7 +67,7 @@ module.exports = function(tokens, i, delimiter1, delimiter2 = delimiter1, autore
   if (!found) {
     elemSet.splice(0, 0, beginToken);
     elemSet.push(endToken);
-    return {found: false, elemSet: tokenizer(elemSet, render_context=render_context)};
+    return {found: false, elemSet: tokenizer(elemSet, true, false, render_context=render_context)};
   } else {
     var result = {
       found: true,
@@ -84,8 +86,8 @@ module.exports = function(tokens, i, delimiter1, delimiter2 = delimiter1, autore
 
     // tokenize the ends if necessary
     if (autoresolve_ends) {
-      result.beginElems = tokenizer([beginToken], false, render_context=render_context);
-      result.endElems = tokenizer([endToken], render_context=render_context);
+      result.beginElems = tokenizer([beginToken], false, false, render_context=render_context);
+      result.endElems = tokenizer([endToken], true, false, render_context=render_context);
     }
 
     return result;

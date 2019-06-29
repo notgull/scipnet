@@ -4,8 +4,8 @@ var helpers = require('./../helpers');
 var plaintext = require('./text');
 var tokenize = require('./tokenizer');
 
-module.exports = function(source) {
-  if (!(this instanceof module.exports)) return new module.exports(source);
+module.exports = function(source, render_context) {
+  if (!(this instanceof module.exports)) return new module.exports(source, render_context);
 
   //this.elements = [];
   
@@ -13,7 +13,8 @@ module.exports = function(source) {
   
   // split into tokens
   var tokens = source.split(' ');
-  this.elements = tokenize(tokens, true, true);
+  //console.log('render_context is ' + JSON.stringify(render_context));
+  this.elements = tokenize(tokens, true, true, render_context=render_context);
 }
 
 module.exports.prototype.push_elem = function(elem) {
