@@ -1,0 +1,6 @@
+{
+  "sql_db_location": "db/shadow.db",
+  "sql_db_backup": "db/shadow-backup.db",
+  "scp_cont_location": "/var/scp-content",
+  "scp_meta_location": "/var/scp-metadata"
+}

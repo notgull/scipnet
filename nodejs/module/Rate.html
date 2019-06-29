@@ -1,0 +1,8 @@
+<!-- rating module -->
+<span class="rating-module">
+<div>
+Rating: [INSERT_RATING_HERE]
+<a onclick="prsRequest('voteOnPage', {pagename: window.location.href, rating: 1}, (d)=>{});">Upvote</a>
+<a onclick="prsRequest('voteOnPage', {pagename: window.location.href, rating: -1}, (d)=>{});">Downvote</a>
+</div>
+</span>

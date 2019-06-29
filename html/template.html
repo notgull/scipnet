@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<!-- meta information -->
+<head>
+<title>[INSERT_META_TITLE_HERE]SCP Wiki</title>
+<meta charset="UTF-8">
+<style type="text/css">
+/*@import "localhost:8000/special/css";*/
+/*@import url("special/font-bauhaus.css");*/
+
+@font-face {
+    font-family: BauhausLTDemi;
+    src: url('/special/itc-bauhaus-lt-demi.ttf');
+}
+
+body {
+  background-color: #fff;
+  background: url(special/background.png) top left repeat-x;
+  font-size: 0.80em;
+  color: #333;
+  font-family: verdana,arial,helvetica,sans-serif;
+  font-size: 0.82em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Trebuchet MS", Trebuchet, Verdana, Arial, Helvetica;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+}
+
+.top-header {
+  height: 140px;
+  position: relative;
+  z-index: 10;
+  padding-bottom: 22px;
+  background: url(http://www.scp-wiki.net/local--files/component:theme/logo.png) 10px 32px no-repeat;
+  max-width: 980px;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.top-header a {
+  
+}
+
+.vanished {
+  display: none;
+}
+
+.page-error {
+  color: red;
+  border: 1px solid red;
+}
+
+.user-content-container {
+  position: relative;
+  margin: 2em auto 0;
+  max-width: 1040px;
+  min-height: 1300px;
+  height: auto !important;
+  height: 1500px;
+  padding: 1em;
+}
+
+.scp-logo-text {
+  display: block;
+  margin: 0;
+  margin-left: 120px;
+  padding: 70px 0 25px;
+  line-height: 0px;
+  max-height: 0px;
+  color: #eee;
+  background: transparent;
+  font-family: 'BauhausLTDemi', 'Nanum Gothic', Arial, sans-serif;
+  font-size: 330%;
+  font-weight: bold;
+  text-decoration: none;
+  text-shadow: 3px 3px 5px #000;
+  letter-spacing: 0.9px; 
+}
+
+.scp-logo-subtext {
+  margin: 0;
+  margin-left: 120px;
+  padding: 12px 0;
+  clear: left;
+  float: left;
+  font-size: 105%;
+  max-height: 38px;
+  display: block;
+  line-height: 0px;
+  max-height: 0px;
+  font-weight: bold;
+  color: #f0f0c0;
+  text-shadow: 1px 1px 1px #000;
+  text-shadow: 1px 1px 1px rgba(0,0,0,.8);
+  letter-spacing: 0.9px;
+}
+
+.main-body {
+  position: relative;
+  margin: 2em auto 0;
+  max-width: 1040px;
+  min-height: 1300px;
+  height: auto !important;
+  height: 1500px;
+}
+
+#side-bar {
+  clear: none;
+  float: none;
+  position: absolute;
+  top: 0.5em;
+  left: 2em;
+  width: 17em;
+  padding: 0;
+  border: none;
+  display: block;
+}
+
+#side-bar a:visited {
+  color: #824;
+}
+
+#side-bar .side-block {
+  padding: 10px;
+  border: 1px solid #660000;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(102,0,0,.5);
+  background: #fff;
+  margin-bottom: 15px;
+}
+
+.user-content {
+  margin: 0 2em 0 22em;
+  padding: 1em;
+  position: relative;
+}
+
+#top-bar {
+  position: absolute;
+  z-index: 50;
+  top: 123px;
+  height: 21px;
+  line-height: 18px;
+  padding: 0;
+  z-index: 20;
+  font-size: 90%;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 980px;
+  color: #fff;
+  right: 1em;
+  bottom: 0px;
+}
+
+#top-bar p {
+  float: right;
+  padding: 0 10px;
+}
+
+h1, .page-title {
+  color: #901;
+  padding: 0 0 0.25em;
+  margin: 0 0 0.6em;
+  font-weight: normal;
+  font-size: 200%;
+}
+
+.page-title {
+  border-bottom: 1px solid #666;
+  border-bottom-color: rgb(102, 102, 102);
+}
+
+blockquote {
+  border: 1px dashed #999;
+  padding: 0 1em;
+  background-color: #f4f4f4;
+}
+
+.alignment {
+  display: inline;
+  margin: 0 auto;
+}
+
+.left-align {
+  text-align: left;
+}
+
+.center-align {
+  text-align: center;
+}
+
+.right-align {
+  text-align: right;
+}
+
+#login-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  overflow: visible;
+  color: #ddd;
+  font-size: 90%;
+  z-index: 30;
+}
+
+#login-bar a {
+  color: #ddd;
+}
+
+a {
+  color: #b01;
+  text-decoration: none;
+  background: transparent;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+   #824
+}
+</style>
+</head>
+
+<body>
+<div class="top-header">
+<h1 class="scp-logo-text"><a style="color: #eee; text-decoration: initial;" href="/">SCP Foundation</a></h1>
+<h2 class="scp-logo-subtext">Secure, Contant, Protect</h2>
+<div id="top-bar">
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+<p>Hello!</p>
+</div>
+<div id="login-bar">
+[INSERT_LOGINBAR_HERE]
+</div>
+</div>
+<div class="main-body">
+<div id="side-bar">
+<div class="side-block">
+<p>Test</p>
+</div>
+</div>
+<div class="user-content">
+<div class="page-title">[INSERT_TITLE_HERE]</div>
+<div class="generated-markdown">
+[INSERT_CONTENT_HERE]
+</div>
+</div>
+</div>
+</body>
+</html>

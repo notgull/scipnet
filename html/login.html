@@ -1,0 +1,50 @@
+<!-- login code -->
+<script type="text/javascript" src="/js/pbkdf2.js"></script>
+<script type="text/javascript" src="/js/post.js"></script>
+<script type="text/javascript" src="/js/get_param.js"></script>
+<script type="text/javascript">
+var setError = function(error) {
+  document.getElementById('errorMsg').innerHTML = "<p>" + error + "</p>";
+};
+
+window.onload = function() {
+  var errorId = get_parameter("errorCode")
+  if (errorId === '3') setError("An internal server error occured. Please contact a site administrator.");
+  else if (errorId === '5' || errorId === '7') setError("Username and password combination were not found in database");
+}
+
+// hash text via pbkdf2
+var process_details = function() {
+  var data = document.getElementById('login_form');
+  var newUrl = get_parameter('new_url');
+
+  var username = data.username.value;
+  var remember = data.remember.checked;
+  var change_ip = data.change_ip.checked;
+
+  hash_password(data.password.value, username, function(pwHash) {
+    // send post data to the login page, i.e. this url
+    var url = "/process-login";   
+    var params = { username: username,
+	           pwHash: pwHash,
+	           remember: remember.toString(),
+	           change_ip: change_ip.toString(), 
+                   new_url: newUrl};
+
+    send_post_data(url, params);
+  });
+};
+</script>
+
+<!-- error message -->
+<div id="errorMsg" style="color: red;"></div>
+
+<!-- login form -->
+<form id="login_form">
+<p>Username: <input type="text" id="username" name="username" /></p>
+<p>Password: <input type="password" id="password" name="password" /></p>
+<p><input type="checkbox" name="remember" value="Remember" /> Remember Me?</p>
+<p><input type="checkbox" name="change_ip" value="Change_ip" /> Sign out if I change IP</p>
+<input type="button" onclick="process_details();" value="Log in" />
+</form>
+

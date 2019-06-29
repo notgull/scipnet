@@ -1,0 +1,110 @@
+<!-- registration code -->
+<script type="text/javascript" src="/js/pbkdf2.js"></script>
+<script type="text/javascript" src="/js/post.js"></script>
+<script type="text/javascript" src="/js/get_param.js"></script>
+<script type="text/javascript">
+var check_field_empty = function(field) {
+  return field.value.trim().length > 0;
+}
+
+var check_password_compat = function(pw) {
+  var ch, code;
+  var specialChars = ['-', '_', '?', '!'];
+  for (var i = 0; i < pw.length; i++) {
+    ch = pw[i];
+    code = ch.charCodeAt(ch);
+    var isUppercaseLetter = 65 <= code && code <= 90;
+    var isLowercaseLetter = 97 <= code && code <= 122;
+    var isNumber = 48 <= code && code <= 57;
+    var isSpecialChar = specialChars.indexOf(ch) !== -1;
+
+    if (!(isUppercaseLetter || isLowercaseLetter || isNumber || isSpecialChar)) return false;
+  }
+
+  return true;
+}
+
+var addError = function(error) {
+  var errorList = document.getElementById("errorMsg");
+  errorList.innerHTML += "<li>" + error + "</li>";
+}
+
+window.onload = function() {
+  var errorId = get_parameter("errors");
+  if (errorId) {
+    var errorList = document.getElementById("errorMsg");
+    errorList.innerHTML += "<p>Unable to register account due to the following errors: </p>\n";
+    errorList.innerHTML += "<ul>";
+    if (errorId & 1)
+      addError("\"Email\" and \"Confirm Email\" fields are not identical.");
+    if (errorId & 2)
+      addError("\"Password\" and \"Confirm Password\" fields are not identical.");
+    if (errorId & 4)
+      addError("\"Username\" field is blank.");
+    if (errorId & 8)
+      addError("\"Email\" field is blank.");
+    if (errorId & 16)
+      addError("\"Password\" field is blank.");
+    if (errorId & 32 && !(errorId & 16))
+      addError("Password is too short. It must be at least eight characters in length.");
+    if (errorId & 64)
+      addError('Password can only be composed of alphanumeric characters or "_", "-", "!" and "?"');
+    if (errorId & 128)
+      addError('Username already exists within the database, please choose another');
+    if (errorId & 256)
+      addError('Email address already exists within the database, please choose another');
+    if (errorId === 512)
+      addError('An internal error occurred. Please contact a site administrator.');
+
+    errorList.innerHTML += "</ul>\n";
+    errorList.innerHTML += "<p>Please correct these errors, then resubmit.</p>";
+  }
+}
+
+var process_details = function() {
+  var data = document.getElementById('registration_form');
+  
+  var errCode = 0;
+  if (data.email.value !== data.c_email.value)
+    errCode = errCode & 1;
+  if (data.password.value !== data.c_password.value)
+    errCode = errCode & 2;
+  if (check_field_empty(data.username))
+    errCode = errCode & 4;
+  if (check_field_empty(data.email))
+    errCode = errCode & 8;
+  if (check_field_empty(data.password))
+    errCode = errCode & 16;
+  if (data.password.value.length > 8)
+    errCode = errCode & 32;
+  if (!check_password_compat(data.password.value))
+    errCode = errCode & 64;
+  
+  if (errCode !== 0) {
+    var errUrl = window.location.href + "?errors=" + errCode;
+    window.location.href = errUrl;
+  } else {
+    hash_password(data.password.value, data.username.value, function(pwHash) {
+      var url = "/process-register";
+      var params = { username: data.username.value,
+	             pwHash: pwHash,
+	             email: data.email.value };
+      send_post_data(url, params);
+    });
+  }
+}
+</script>
+
+<!-- error message -->
+<div id="errorMsg" style="color: red;">
+</div>
+
+<!-- registration form -->
+<form id="registration_form">
+<p>Username: <input type="text" id="username" name="username" /></p>
+<p>Email Address: <input type="text" id="email" name="email" /></p>
+<p>Confirm Email Address: <input type="text" id="c_email" name="c_email" /></p>
+<p>Password: <input type="password" id="password" value="password" name-/></p>
+<p>Confirm Password: <input type="password" id="c_password" name='c_password' value="password" /></p>
+<input type="button" onclick="process_details();" value="Submit" /></p>
+</form>
