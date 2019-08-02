@@ -1,7 +1,30 @@
-
+/*
+ * renderer.js
+ *
+ * scipnet - SCP Hosting Platform
+ * Copyright (C) 2019 not_a_seagull
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
 // this file renders html from markdown stored in data files
-var markdown = require('./markdown/markdown');
+//var markdown = require('./markdown/markdown');
+var config = require('./../config.json');
+var markdown = require('./ftml/markdown');
+var metadata = require('./metadata/metadata');
 var fs = require('fs');
+var path = require('path');
 
 exports.render = function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false) {
   var template = fs.readFileSync('html/template.html');
@@ -19,8 +42,11 @@ exports.render = function(modName, htmlFileName = '', title = 'Testing Page', lo
 
   var content;
   if (!htmlFileName || htmlFileName.length === 0) {
-    var markdown_tree = markdown(modName);
-    content = markdown_tree.flatten(username);
+    //var markdown_tree = markdown(modName);
+    //content = markdown_tree.flatten(username);
+	
+    var src = fs.readFileSync(path.join(config.scp_cont_location, modName));
+    content = markdown.get_markdown(modName, src);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
   }
@@ -29,17 +55,24 @@ exports.render = function(modName, htmlFileName = '', title = 'Testing Page', lo
 
   const mt_replacement_string = "[INSERT_META_TITLE_HERE]";
   var meta_title;
-  if (modName === "main") meta_title = '';
-  else meta_title = title + " - ";
+  if (modName === "main") {
+    meta_title = '';
+    title = '';
+  } else meta_title = title + " - ";
 
   const t_replacement_string = "[INSERT_TITLE_HERE]";
   const u_replacement_string = "[INSERT_USERNAME_HERE]";
+  const ulv_replacement_string = "[INSERT_UL_VANISHING_HERE]";
+  var ulv_replacement = "";
+  if (htmlFileName !== '')
+    ulv_replacement = "display: none;"
   
   var page = template.split(replacement_string).join(content);
   page = page.split(mt_replacement_string).join(meta_title);
   page = page.split(t_replacement_string).join(title);
   page = page.split(lb_replacement_string).join(loginBar);
   page = page.split(u_replacement_string).join(username);
+  page = page.split(ulv_replacement_string).join(ulv_replacement);
 
   return page;
 }

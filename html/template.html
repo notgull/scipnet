@@ -1,5 +1,26 @@
 <!DOCTYPE html>
 <html>
+<!--
+/*
+ * template.html
+ *
+ * scipnet - SCP Hosting Platform
+ * Copyright (C) 2019 not_a_seagull
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+-->
 
 <!-- meta information -->
 <head>
@@ -59,9 +80,8 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   margin: 2em auto 0;
   max-width: 1040px;
-  min-height: 1300px;
   height: auto !important;
-  height: 1500px;
+  height: 1300px;  
   padding: 1em;
 }
 
@@ -223,12 +243,27 @@ a:hover {
 }
 
 a:visited {
-   #824
+  color: #824;
+}
+
+#utility-links {
+  margin: 4px 0;
+  text-align: right;
+  height: 1%;
+  line-height: 150%;
+  [INSERT_UL_VANISHING_HERE]
+}
+
+#utility-links a {
+  margin: 2px 2px;
+  font-size: 95%;
+  padding: 0 8px;
 }
 </style>
 <script type="text/javascript" src="/js/messagebox.js"></script>
 <script type="text/javascript" src="/js/cookie.js"></script>
 <script type="text/javascript" src="/js/prs.js"></script>
+<script type="text/javascript" src="/js/page_utils.js"></script>
 </head>
 
 <body>
@@ -256,11 +291,43 @@ a:visited {
 <p>Test</p>
 </div>
 </div>
+<div class="user-content-container">
 <div class="user-content">
 <div class="page-title">[INSERT_TITLE_HERE]</div>
 <div class="generated-markdown">
 [INSERT_CONTENT_HERE]
 </div>
+</div>
+<div id="utility-links"> <!-- begin utility block -->
+<a onclick="editpage()">Edit</a>
+</div>
+<div id="utility-block">
+<div id="editor" class="vanished">
+<form>
+<p>
+<!-- table for titlebox -->
+<table style="width: 100%">
+<tr>
+<td style="width: 30%">
+<p>Page Title:</p>
+</td>
+<td style="width: 60%">
+<input id="titlebox" style="width: 100%; text-align: left;" name="titlebox" /><br />
+</td>
+</tr>
+</table>
+</p>
+<p>
+<textarea name="srcbox" id="srcbox" style="width: 95%; height: 400px;" cols="50" rows="10"></textarea><br />
+</p>
+<div id="edit-buttons">
+<input type="button" id="cancel_button" name="cancel" value="Cancel" onclick="canceleditpage();" />
+<input type="button" id="sac_button" name="sac" value="Save and Continue" onclick="savepage(false);"/>
+<input type="button" id="save_button" name="save" value="Save" onclick="savepage(true);"/>
+</div>
+</form>
+</div>
+</div> <!-- end utility block -->
 </div>
 </div>
 </body>

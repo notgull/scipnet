@@ -7,12 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "not_a_seagull",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "dependencies": {
     "argon2": "^0.23.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "express": "^4.17.1",
+    "ffi": "^2.3.0",
     "node-srp": "0.0.1",
     "nodemailer": "^6.2.1",
     "pug": "^2.0.3",

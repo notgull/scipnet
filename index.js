@@ -1,3 +1,23 @@
+/*
+ * index.js
+ *
+ * scipnet - SCP Hosting Platform
+ * Copyright (C) 2019 not_a_seagull
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var body_parser = require('body-parser');
 var cookie_parser = require('cookie-parser');
 var express = require('express');
@@ -49,9 +69,9 @@ function loginInfo(req) {
 }
 
 // if the css theme is requested, return it
-app.get("/special/css", function(req, res) {
-  res.send(fs.readFileSync("css/scp-sigma-9.css"));
-});
+//app.get("/special/css", function(req, res) {
+//  res.send(fs.readFileSync("css/scp-sigma-9.css"));
+//});
 
 // special files
 app.get("/favicon.ico", function(req, res) {
@@ -117,11 +137,11 @@ app.post("/process-login", function(req, res) {
 app.post("/prs", function(req, res) {
   var ip_addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
 
-  console.log("PRS Request: " + JSON.stringify(req.body));
+  //console.log("PRS Request: " + JSON.stringify(req.body));
 
   // get username
   var username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
-  console.log(username);
+  //console.log(username);
   if (username) {
     // pull all parameters from req.body and put them in args
     var args = {};
@@ -179,7 +199,7 @@ app.post("/process-register", function(req, res) {
 app.get("/:pageid", function(req, res) {
   // TODO: render username
   var pageid = req.params.pageid;
-  console.log("logininfo is " + loginInfo);
+  //console.log("logininfo is " + loginInfo);
   res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req)));
 });
 

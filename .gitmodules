@@ -1,0 +1,3 @@
+[submodule "ftml"]
+	path = ftml
+	url = https://github.com/not-a-seagull/ftml.git
