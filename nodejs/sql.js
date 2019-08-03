@@ -1,5 +1,5 @@
 /*
- * markdown.js
+ * sql.js
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,25 +18,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var ffi = require('ffi');
-var path = require('path');
+// exposes basic SQL functionality
+const { Pool } = require('pg');
+var config = require("./../config.json");
 
-var ftml_path = path.join(__dirname, "./../../rust/target/release/libscipnetrust.so");
-var ftml = ffi.Library(ftml_path, {
-  scipnet_transform: ['char *', ['char *', 'char *']]
-});
+const pool = new Pool({
+  user: config.postgres_username,
+  host: "localhost",
+  database: config.postgres_database,
+  password: config.postgres_password,
+}); // TODO: set up port?
 
-var str_to_buffer = function(val) {
-  var buffer = Buffer.from(val);
-  var ending = Buffer.from([0x00]);
-  return Buffer.concat([buffer, ending]);
-}
-
-exports.get_markdown = function(url, src) {
-  //console.log("URL: " + url);
-  //console.log("SRC: " + src);
-
-  var url_buffer = str_to_buffer(url);
-  var src_buffer = str_to_buffer(src);
-  return ftml.scipnet_transform(url_buffer, src_buffer).readCString();
+module.exports.query = function(query, callback) {
+  pool.query(query, callback);
 }

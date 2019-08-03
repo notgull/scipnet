@@ -70,9 +70,9 @@ pub extern fn scipnet_transform(url: *const c_char, src: *const c_char) -> *cons
   //println!("{}", url);
 
   //let arc_string = c_char_to_string(arc).unwrap();
-  println!("Converting url");
+  //println!("Converting url");
   let url = c_char_to_string(url).unwrap();
-  println!("Converting src");
+  //println!("Converting src");
   let mut src = c_char_to_string(src).unwrap();
   //let mut article_json: Value = serde_json::from_str(arc_string).expect("Could not process;
   let metadata_object = get_metadata_properties(&url).expect("Unable to fetch metadata");

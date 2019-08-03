@@ -1,5 +1,7 @@
+#!/usr/bin/env node
+
 /*
- * markdown.js
+ * setup_db.js
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,25 +20,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var ffi = require('ffi');
-var path = require('path');
-
-var ftml_path = path.join(__dirname, "./../../rust/target/release/libscipnetrust.so");
-var ftml = ffi.Library(ftml_path, {
-  scipnet_transform: ['char *', ['char *', 'char *']]
-});
-
-var str_to_buffer = function(val) {
-  var buffer = Buffer.from(val);
-  var ending = Buffer.from([0x00]);
-  return Buffer.concat([buffer, ending]);
+// attempt to load configuration
+var config;
+try {
+  config = require("config.json");
+} catch(_e) {
+  config = require("../config.json");
 }
 
-exports.get_markdown = function(url, src) {
-  //console.log("URL: " + url);
-  //console.log("SRC: " + src);
+var username = config.postgres_username;
+var password = config.postgres_password;
+var database = config.postgres_database;
 
-  var url_buffer = str_to_buffer(url);
-  var src_buffer = str_to_buffer(src);
-  return ftml.scipnet_transform(url_buffer, src_buffer).readCString();
-}
+console.log("CREATE USER " + username + " PASSWORD '" + password + "';");
+console.log("CREATE DATABASE " + database + " OWNER = " + username + ";");

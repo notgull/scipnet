@@ -24,11 +24,13 @@ var express = require('express');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
+var util = require('util');
 
+var ut_initializer = require("./nodejs/user/initialize_database");
+var prs = require('./nodejs/metadata/prs');
 var renderer = require('./nodejs/renderer');
 var usertable = require('./nodejs/user/usertable');
 var validate = require('./nodejs/user/validate');
-var prs = require('./nodejs/metadata/prs');
 
 // get version
 var version = require('./package.json').version;
@@ -46,6 +48,9 @@ if (process.geteuid) {
 require('./config.json');
 
 var s_port = process.env.PORT || 8443;
+
+// load up the SQL before we start up
+ut_initializer((_o) => {});
 
 // initialize node.js app
 var app = express();
@@ -162,7 +167,9 @@ app.get("/register", function(req, res) {
 });
 
 var onEmailVerify = function(username, pwHash, email) {
-  validate.add_new_user(username, email, pwHash, (i) => {});
+  validate.add_new_user(username, email, pwHash, (i, err) => {
+    console.log("Err: " + i + "\n" + err);
+  });
 };
 
 // process registration
@@ -173,6 +180,7 @@ app.post("/process-register", function(req, res) {
 
   // make sure neither the username nor the email exist
   validate.check_user_existence(username, function(result, err) {
+    //console.log(err);
     if (result == validate.INTERNAL_ERROR) {
       console.log(err);
       res.redirect('/register?errors=512');
@@ -181,7 +189,7 @@ app.post("/process-register", function(req, res) {
     } else {
       validate.check_email_usage(email, function(result, err) {
         if (result === validate.INTERNAL_ERROR) {
-          console.log(err);
+          //console.log(err);
           res.redirect('/register?errors=512');
 	} else if (result !== validate.EMAIL_NOT_FOUND)
 	  res.redirect('/register?errors=256');

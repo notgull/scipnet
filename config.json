@@ -1,8 +1,8 @@
 {
-  "sql_db_location": "db/shadow.db",
-  "sql_db_backup": "db/shadow-backup.db",
-  "sql_meta_location": "db/metadata.db",
-  "sql_meta_backup": "db/metadata-backup.db",
   "scp_cont_location": "/var/scp-content/",
-  "scp_meta_location": "/var/scp-metadata/"
+  "scp_meta_location": "/var/scp-metadata/",
+
+  "postgres_username": "scipnet",
+  "postgres_password": "GoodPassword222",
+  "postgres_database": "scipnet"
 }
