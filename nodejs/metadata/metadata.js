@@ -35,102 +35,153 @@
 // parent page
 
 var config = require('./../../config.json');
+var { error_codes, getFormattedDate } = require('./../user/validate');
 var metadata_dir = config.scp_meta_location;
 
 var fs = require('fs');
 var path = require('path');
-var sqlite3 = require('sqlite3').verbose();
+var { query } = require("./../sql");
 
-// var initialize_table = require('initialize_table');
+var check_metadata_existence = function(url, next) {
+  var check_existence_query = "SELECT article_id FROM Pages WEHRE url='" + url + "';";
+  query(check_existence_query, (err, res) => {
+    if (err) next(error_codes[0], err);
+    else if (res.rowCount == 0) next(error_codes[1]);
+    else next(0);
+  });
+};
 
-/*// connect to database
-var connect_to_meta_db = function(next) {
-  var create_connection = function() {
-    var db = new sqlite3.Database(config.sql_meta_location, (err) => {
-      if (err) next(false, err);
-      else next(db);
-    });
-  };
 
-  if (!(fs.existsSync(config.sql_meta_location)))
-    initialize_table(create_connection);
-  else
-    create_connection();
+// note: ratings are dicts, such that
+// {user: "[username]", rating: +-1}
+var aggregate_rating = function(ratings) {
+  var total = 0;
+  for (var i = 0; i < ratings.length; i++) {
+    total += ratings[i].rating;
+  }
+  return total;
+};
+
+// edit locks
+var editlock = function(url, username, id=-1, created_at=null) {
+  if (!(this instanceof editlock)) return new editlock(url, username, id, created_at);
+
+  this.url = url;
+  this.username = username;
+  this.created_at = created_at;
+  this.id = id;
+  if (!created_at)
+    this.created_at = new Date();
+};
+
+// get editlock from id
+var editlock.get = function(id, next) {
+  var get_editlock_query = "SELECT url, username, created FROM Editlocks WHERE editlock_id = " + id + ";";
+  query(get_editlock_query, (err, res) => {
+    if (err) next(error_codes[0], err);
+
+    var row = res.rows[0];
+    next(editlock(row.url, row.username, id, row.created);
+  });
+};
+
+// get editlock from url
+//var editlock.get_by_url = function(url, next) {
+//
+//};
+
+// remove editlock from database
+var editlock.prototype.remove = function(next) {
+  // if the id is -1, we don't need anything, go next
+  if (this.id === -1) {
+    next(0);
+    return;
+  }
+
+  var delete_el_query = "DELETE FROM Editlocks WHERE editlock_id = " + this.id + ";";
+  query(delete_el_query, (err, res) => {
+    if (err) next(error_codes[0], err);
+    else next(0);
+  });
 }
 
-// check for the existence of a page/number
-var check_metadata_existence = function(id, next) {
-  connect_to_meta_db((db, err) => {
-    if (err) { next(42, err); return; }
+var editlock.prototype.save = function(next) {
+  // NOTE: this function should only be used for saving stuff that doesn't exist yet
+  // so just delete it first
+  this.remove((res, err) => {
+    if (res) next(res, err);
+    else {
+      var add_el_query = "INSERT INTO Editlocks (url, username, created) VALUES (" +
+		           "'" + this.url + "'," +
+		           "'" + this.username + "'," +
+		           "'" + getFormattedDate(this.created_at) + "'" +
+		         ");";
+      query(add_el_query, (err, res) => {
+        if (err) next(error_codes[0], err);
+	
+	// glob the id from the database
+	var get_id_query = "SELECT editlock_id FROM Editlocks WHERE url='" + this.url + "';";
+	query(get_id_query, (err, res) => {
+          if (err) next(error_codes[0], err);
+          this.id = res.rows[0].editlock_id;
 
-    var isString = typeof id === 'string';
-    var check_exist_sql = "SELECT article_id FROM Metadata WHERE " +
-		(isString ? "url" : "article_id") +
-		" = " +
-                (isString ? "'" : "") + id + 
-		(isString ? "'" : "") +
-		";";
-    db.get(check_exist_sql, (err, row) => {
-      db.close();
-
-      if (err) next(42, err);
-      else if (!row) next(false);
-      else next(true);
-    });
+          next(0);
+	});
+      });
+    }
   });
 };
 
-// get a row representing a metadata object
-var get_metadata_row = function(url, next) {
-  connect_to_meta_db((db, err) => {
-    if (err) { next(42, err); return; }
-
-    var get_row_sql = "SELECT * FROM Metadata WHERE url='" + url + "';";
-    db.get(get_row_sql, (err, row) => {
-      db.close();
-      if (err) next(42, err);
-      else if (!row) next(42, "Unable to find metadata");
-      else next(row);
-    });
-  });
-};
-
-// insert a row for metadata
-var create_metadata_row = function(metadata, next) {
-  connect_to_meta_db((db, err) => {
-    if (err) { next(42, err); return; }
-
-    var new_page_sql = "INSERT INTO Metadata (url, title, rating, author, revisions, tags, editlock, editdate, attached_files, locked, parent) VALUES (" +
-		         "'" + metadata.url + "'," +
-		         "'" + metadata.title + "'," +
-		         "'" + metadata.rating + "'," +
-  });
-};*/
-
-module.exports = function(url) {
+module.exports = function(url, next) {
   if (!(this instanceof module.exports)) {
     metadata_path = path.join(metadata_dir, url);
     if (!(fs.existsSync(metadata_path)))
       return null;
 
     // return an instance of metadata loaded from a file 
-    metadata_text = fs.readFileSync(metadata_path);
-    metadata = JSON.parse(metadata_text);
+    var get_metadata_query = "SELECT title, author, raters, revisions, tags, editlock, discuss_page, locked, files, parent FROM Pages WHERE url = '" + url + "';";
+    query(get_metadata_query, (err, res) => {
+      if (err) next(error_codes[0], err);
+      else if (res.rowCount === 0) next(null);
+      else {
+        metadata = res.rows[0];
 
-    mObj = new module.exports(url);
-    mObj.title = metadata.title;
-    mObj.rating = metadata.rating;
-    mObj.raters = metadata.raters;
-    mObj.author = metadata.author;
-    mObj.revisions = metadata.revisions; // TODO: put revision diffs in here 
-    mObj.tags = metadata.tags;
-    mObj.editlock = metadata.editlock;
-    mObj.discuss_link = metadata.discuss_link;
-    mObj.attached_files = metadata.attached_files;
-    mObj.locked = metadata.locked;
-    mObj.parentPage = metadata.parentPage;
+        mObj = new module.exports(url);
+        mObj.title = metadata.title;
+        //mObj.rating = metadata.rating;
+        mObj.raters = metadata.raters;
+	mObj.rating = aggregate_rating(mObj.raters);
+        mObj.author = metadata.author;
+        mObj.revisions = metadata.revisions; // TODO: put revision diffs in here 
+        mObj.tags = metadata.tags;
+        //mObj.editlock = metadata.editlock;
+        mObj.discuss_link = metadata.discuss_link;
+        mObj.attached_files = metadata.attached_files;
+        mObj.locked = metadata.locked;
+        mObj.parentPage = metadata.parentPage;
 
-    return mObj;
+        var after_editlock_check = function() {
+          // now get revisions 
+          // TODO: get revisions
+	  mObj.revisions = metadata.revisions;
+          next(mObj);
+	};
+
+	// get the editlock, if any
+	if (metadata.editlock !== -1) {
+          editlock.get(metadata.editlock, (res, err) => {
+            if (res === error_codes[0]) next(res, err);
+            else {
+	      mObj.editlock = res;  
+              after_editlock_check();
+	    }
+	  });
+	} else {
+          mObj.editlock = null;
+          after_editlock_check();
+	}
+      }
+    });
   } else {
     // create a new metadata instance
     this.url = url;
@@ -138,7 +189,7 @@ module.exports = function(url) {
     this.rating = 0;
     this.raters = [];
     this.author = "";
-    this.editlock = "";
+    this.editlock = -1;
     this.tags = [];
     this.revisions = [];
     this.discuss_link = "";
@@ -152,6 +203,7 @@ module.exports = function(url) {
 module.exports.prototype.save = function(next) {
   mObj = {};
   
+  /*mObj.
   mObj.title = this.title;
   mObj.rating = this.rating;
   mObj.raters = this.raters;
@@ -162,8 +214,50 @@ module.exports.prototype.save = function(next) {
   mObj.discuss_link = this.discuss_link;
   mObj.attached_files = this.attached_files;
   mObj.locked = this.locked;
-  mObj.parentPage = this.parentPage;
+  mObj.parentPage = this.parentPage;*/
 
-  filePath = path.join(metadata_dir, this.url);
-  fs.writeFileSync(filePath, JSON.stringify(mObj));
+  // save the metadata to the database
+  check_metadata_existence((res, err) => {
+    if (res == error_codes[1]) next(res, err);
+    else if (res) {
+      // item was not found, create a new item
+      var create_newmd_query = "INSERT INTO Pages (url, title, author, raters, revisions, tags, editlock, discuss_page, locked, files, parent) " +
+		                 "VALUES (" +
+		                   "'" + this.url + "'," +
+		                   "'" + this.title + "'," +
+		                   "'" + this.author + "'," +
+		                   "'" + JSON.stringify(this.raters).replace("'", '"') + "'," +
+		                   "[" + this.revisions.toString() + "]," +	
+		                   JSON.stringify(this.tags).replace("'", '"') + "," +
+		                   this.editlock + "," +
+		                   "'" + this.discuss_link + "'," +
+		                   this.locked + "," +
+		                   JSON.stringify(this.attached_files).replace("'", '"') + "," +
+		                   "'" + this.parentPage + "'" +
+		               ");";
+      query(create_newmd_query, (err, res) => {
+        if (err) next(error_codes[0], err);
+	else next(0);
+      });
+    } else {
+      var update_newmd_query = "UPDATE Pages SET " +
+		                 "title = '" + this.title + "'," +
+		                 "author = '" + this.author + "'," +
+		                 "raters = '" + JSON.stringify(this.raters).replace("'", '"') + "'," +
+		                 "revisions = [" this.revisisions.toString() + "]," + 
+		                 "tags = " + JSON.stringify(this.tags).replace("'", '"') + "," +
+		                 "editlock = " + this.editlock + "," +
+		                 "discuss_page = " + this.discuss_link + "'," +
+		                 "locked = " + this.locked + "," +
+		                 "files = " + JSON.stringify(this.attached_files).replace("'", '"') + "," +
+		                 "parent = " + this.parentPage + "' " +
+		               "WHERE url = '" + this.url + "';";
+      query(update_newmd_query, (err, res) => {
+        if (err) next(error_codes[0], err);
+	else next(0);
+      });
+    }
+  });
 };
+
+module.exports.editlock = editlock;

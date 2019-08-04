@@ -78,6 +78,30 @@ var canceleditpage = function() {
   });
 };
 
+var scpvote = function(rate) {
+  if (rate > 1 || rate < -1) return;
+
+  prsRequest('voteOnPage', {pagename: window.location.href, rating: rate}, (d)=>{
+    if ('not_logged_in' in d && d.not_logged_in) {
+      createDialog("You must be logged in to vote on pages.");
+      return;
+    }
+
+    if ('result' in d && !d.result) {
+      createDialog("Failed to vote on page.");
+      return;
+    }
+
+    var prList = document.getElementsByClassName("page-rating");
+    for (var i = 0; i < prList.length; i++) {
+      if (d.newRating > 0)
+        prList[i].innerHTML = "+" + d.newRating;
+      else
+	prList[i].innerHTML = d.newRating;
+    }
+  });
+};
+
 var ratepage = function() {
 
 };

@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 'use strict';
+
 // this file renders html from markdown stored in data files
 //var markdown = require('./markdown/markdown');
 var config = require('./../config.json');
@@ -44,8 +45,13 @@ exports.render = function(modName, htmlFileName = '', title = 'Testing Page', lo
   if (!htmlFileName || htmlFileName.length === 0) {
     //var markdown_tree = markdown(modName);
     //content = markdown_tree.flatten(username);
+	 
+    // test for existence first
+    var filepath = path.join(config.scp_cont_location, modName);
+    if (!fs.existsSync(filepath))
+      return exports.render("_404", '', "404", loginInfo);
 	
-    var src = fs.readFileSync(path.join(config.scp_cont_location, modName));
+    var src = fs.readFileSync(filepath);
     content = markdown.get_markdown(modName, src);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
@@ -64,7 +70,7 @@ exports.render = function(modName, htmlFileName = '', title = 'Testing Page', lo
   const u_replacement_string = "[INSERT_USERNAME_HERE]";
   const ulv_replacement_string = "[INSERT_UL_VANISHING_HERE]";
   var ulv_replacement = "";
-  if (htmlFileName !== '')
+  if (htmlFileName !== '' || modName === "_404")
     ulv_replacement = "display: none;"
   
   var page = template.split(replacement_string).join(content);

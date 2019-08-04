@@ -33,48 +33,41 @@ var meta_dir = config.scp_meta_location;
 // request an edit for the page
 var beginEditPage = function(username, args, next) {
   var returnVal = {result: false};
-
-  console.log(args.pagename);
-  var pMeta = metadata(args.pagename);
-  if (!pMeta) {
-    // check for an edit lock file
-    var editlockPath = path.join(meta_dir, args.pagename + ".editlock");
-    if (fs.existsSync(editlockPath)) {
-      var editlockObj = JSON.parse("" + fs.readFileSync(editlockPath));
-      if (editlocObj.name !== username) {
-        returnVal.error = "Page is locked by " + editlockObj.name;
-        returnVal.errorCode = 1;
-        next(returnVal);
-        return;
-      }
+  
+  // fetch the metadata
+  metadata(args.pagename, (pMeta, err) => {
+    if (pMeta === 3) {
+      next(pMeta, err);
+      return;
     }
 
-    var editlockObj = {"name": username, "editstart": new Date()};
-    fs.writeFileSync(editlockPath, JSON.stringify(editlockObj));
-  } else if (pMeta.editlock.length > 0) {
-    returnVal.error = "Page is locked by " + pMeta.editlock;
-    returnVal.errorCode = 1;
-    next(returnVal);
-    return;
-  }
+    // check for an edit lock
+    if (pMeta && pMeta.editlock !== -1) {
+      returnVal.error = "Page is locked by " + pMeta.editlock.username;
+      returnVal.errorCode = 1;
+      next(returnVal);
+      return;
+    }
+ 
+    // set an edit lock, if possible
+    var el = metadata.editlock(args.pagename, username);
+    el.save((res, err) => {
+      if (res) { next(res, err); return; }
+ 
+      // if necessary, set the editlock in the metadata to it
+      if (pMeta) {
+        pMeta.editlock = el;
 
-  // set edit lock
-  if (pMeta) {
-    pMeta.editlock = username;
-    pMeta.editstart = new Date();
-    pMeta.save();
-  }
+        var dataLoc = path.join(data_dir, args.pagename);
+	var data = "" + fs.readFileSync(dataLoc);
+	returnVal.src = data;
+	returnVal.title = pMeta.title;
+      }
 
-  // send over page source
-  if (pMeta) {
-    console.log("data_dir is " + data_dir + ", pagename is " + args.pagename);
-    var dataLoc = path.join(data_dir, args.pagename);
-    var data = "" + fs.readFileSync(dataLoc);
-    returnVal.src = data;
-    returnVal.title = pMeta.title;
-  }
-  returnVal.result = true;
-  next(returnVal);
+      returnVal.result = true;
+      next(returnVal);
+    });
+  });
 };
 
 // cancel an edit lock

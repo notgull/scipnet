@@ -57,9 +57,20 @@ function getFormattedDate(date) {
 
   var day = date.getDate().toString();
   day = day.length > 1 ? day : '0' + day;
+
+  var hour = date.getHours().toString();
+  hour = hour.length > 1 ? hour : '0' + hour;
+
+  var minute = date.getMinutes().toString();
+  minutes = minute.length > 1 ? minute : '0' : minute;
+
+  var seconds = date.getSeconds().toString(); 
+  seconds = seconds.length > 1 ? seconds : '0' + seconds;
   
-  return month + '-' + day + '-' + year;
+  return year + '-' + month + '-' + day + ' ' + hour + ':' + minutes + ':' + seconds;
 }
+
+module.exports.getFormattedDate = getFormattedDate;
 
 const options = {
   timeCost: 1,

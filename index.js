@@ -27,6 +27,8 @@ var https = require('https');
 var util = require('util');
 
 var ut_initializer = require("./nodejs/user/initialize_database");
+var mt_initializer = require("./nodejs/metadata/initialize_database");
+
 var prs = require('./nodejs/metadata/prs');
 var renderer = require('./nodejs/renderer');
 var usertable = require('./nodejs/user/usertable');
@@ -51,6 +53,7 @@ var s_port = process.env.PORT || 8443;
 
 // load up the SQL before we start up
 ut_initializer((_o) => {});
+mt_initializer((_o) => {});
 
 // initialize node.js app
 var app = express();
