@@ -23,7 +23,7 @@ var path = require('path');
 
 var ftml_path = path.join(__dirname, "./../../rust/target/release/libscipnetrust.so");
 var ftml = ffi.Library(ftml_path, {
-  scipnet_transform: ['char *', ['char *', 'char *']]
+  scipnet_transform: ['char *', ['char *', 'char *', 'int', 'char *', 'char *']]
 });
 
 var str_to_buffer = function(val) {
@@ -32,11 +32,12 @@ var str_to_buffer = function(val) {
   return Buffer.concat([buffer, ending]);
 }
 
-exports.get_markdown = function(url, src) {
+exports.get_markdown = function(url, src, metadata) {
   //console.log("URL: " + url);
   //console.log("SRC: " + src);
 
   var url_buffer = str_to_buffer(url);
   var src_buffer = str_to_buffer(src);
-  return ftml.scipnet_transform(url_buffer, src_buffer).readCString();
+  return ftml.scipnet_transform(url_buffer, src_buffer, metadata.rating,
+	                        str_to_buffer(metadata.title), str_to_buffer("stuff;two")).readCString();
 }

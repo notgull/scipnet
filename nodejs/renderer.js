@@ -27,7 +27,7 @@ var metadata = require('./metadata/metadata');
 var fs = require('fs');
 var path = require('path');
 
-exports.render = function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false) {
+exports.render = async function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false, metadata=null) {
   var template = fs.readFileSync('html/template.html');
   template = template + ''; // ensure template is a string
   const replacement_string = "[INSERT_CONTENT_HERE]";
@@ -51,6 +51,8 @@ exports.render = function(modName, htmlFileName = '', title = 'Testing Page', lo
     if (!fs.existsSync(filepath))
       return exports.render("_404", '', "404", loginInfo);
 	
+    
+
     var src = fs.readFileSync(filepath);
     content = markdown.get_markdown(modName, src);
   } else {

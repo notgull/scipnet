@@ -62,6 +62,13 @@ var beginEditPage = function(username, args, next) {
 	var data = "" + fs.readFileSync(dataLoc);
 	returnVal.src = data;
 	returnVal.title = pMeta.title;
+
+	pMeta.save((res, err) => {
+          if (res) { next(res, err); return; }
+
+          returnVal.result = true;
+          next(returnVal);
+	});
       }
 
       returnVal.result = true;
@@ -73,37 +80,58 @@ var beginEditPage = function(username, args, next) {
 // cancel an edit lock
 var removeEditLock = function(username, args, next) {
   var returnVal = {result: false};
-
-  var pMeta = metadata(args.pagename);
-  if (!pMeta) {
-    // check for edit lock file
-    var editlockPath = path.join(meta_dir, args.pagename + ".editlock");
-    if (fs.existsSync(editlockPath)) {
-      var editlockObj = JSON.parse("" + fs.readFileSync(editlockPath));
-      if (editlockObj.name !== username) {
-        returnVal.error = "Attempted to remove edit lock that is not yours";
-        returnVal.errorCode = 2;
-        next(returnVal);
-        return;
-      } else {
-        fs.unlinkSync(editlockPath);
-      }
-    }
-  } else {
-    if (pMeta.editlock !== username) {
-      returnVal.error = "Attempted to remove edit lock that is not yours";
-      returnVal.errorCode = 2;
-      next(returnVal);
+  
+  metadata(args.pagename, (pMeta, err) => {
+    if (pMeta === 3) {
+      next(pMeta, err);
       return;
     }
 
-    pMeta.editlock = "";
-    pMeta.editstart = "";
-    pMeta.save();
-  }
+    // get the edit lock
+    metadata.editlock.get_by_url(args.pagename, (el, err) => {
+      if (el === 3) { next(el, err); return; }
+	
+      if (!el) {
+        // nothing to do!
+	returnVal.error = "Attempted to remove a non-existent edit lock";
+	returnVal.errorCode = 3;
+	next(returnVal);
+	return;
+      }
 
-  returnVal.result = true;
-  next(returnVal);
+      // if there's an editlock mismatch, we have an error
+      if (pMeta && (pMeta.editlock.id !== el.id || pMeta.editlock.url !== el.url || pMeta.editlock.username !== el.username)) {
+        next(-1, new Error("Editlock mismatch"));
+	return;
+      }
+
+      // if the edit lock belongs to the user, remove it
+      if (el.username === username) {
+        el.remove((res, err) => {
+          if (res) next(res, err);
+
+          // if necessary, set the editlock on the metadata to none
+          if (pMeta) {
+	    pMeta.editlock = -1;
+	    pMeta.save((res, err) => {
+              if (res) { next(res, err); return; }
+	      returnVal.result = true;
+	      next(returnVal);
+	    });
+	    return;
+	  }
+
+          returnVal.result = true;
+          next(returnVal);
+	});
+      } else {
+        returnVal.error = "Attempted to remove an editlock belonging to " + el.username;
+	returnVal.errorCode = 2;
+	returnVal.editlockBlocker = el.username;
+	next(returnVal);
+      }
+    });
+  });
 };
 
 // save an edit
@@ -145,10 +173,29 @@ var changePage = function(username, args, next) {
   fs.writeFileSync(dataLoc, data);
 
   // TODO: add revisions, et al
-  mObj.save();
+  mObj.save((res, err) => {
+    if (res) { next(res, err); return; }
 
-  returnVal.result = true;
-  next(returnVal);
+    returnVal.result = true;
+    next(returnVal);
+  });
+};
+
+// save an edit
+var changePage = function(username, args, next) {
+  var returnVal = {result: false};
+
+  metadata(args.pagename, (pMeta, err) => {
+    if (pMeta === 3) { next(pMeta, err); return; }
+
+    // before anything, check to see if there's an editlock 
+    // this shouldn't be an issue for normal usage, just if someone is messing with the API
+    metadata.editlock.get_by_url(args.pagename, (el, err) => {
+      if (el === 3) { next(el, err); return; }
+
+      
+    });
+  });
 };
 
 // vote on a page
@@ -156,23 +203,68 @@ var voteOnPage = function(username, args, next) {
   var returnVal = {result: false};
 
   // TODO: add username check
-  var mObj = metadata(args.pagename); 
-  mObj.rating += Number(args.rating);
-  mObj.save();
+  metadata(args.pagename, (mObj, err) => { 
+    if (mObj === 3) { next(mObj, err); return; }
 
-  returnVal.result = true;
-  returnVal.newRating = mObj.rating;
-  next(returnVal);
+    if (!mObj) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    }
+
+    if (args.rating > 1 || args.rating < -1) {
+      returnVal.error = "Invalid rating";
+      returnVal.errorCode = 5;
+      next(returnVal);
+      return;
+    }
+
+    // search for rater if needed
+    var rater = {user: username, rating: args.rating};
+    var found = false;
+    for (var i = 0; i < mObj.raters.length; i++) {
+      if (mObj.raters[i].username === username) {
+        mObj.raters[i].rating = args.rating;
+	found = true;
+	break;
+      }
+    }
+ 
+    if (!found)
+      mObj.raters.push(rating);
+
+    mObj.recalculate_rating();
+
+    mObj.save((res, err) => {
+      if (res) { next(res, err); return; }
+
+      returnVal.result = true;
+      returnVal.newRating = mObj.rating;
+      next(returnVal);
+    });
+  });
 };
 
 // get rating
 var getRating = function(username, args, next) {
   var returnVal = {result: false};
 
-  var mObj = metadata(args.pagename);
-  returnVal.rating = mObj.rating;
-  returnVal.result = true;
-  next(returnVal);
+  metadata(args.pagename, (pMeta, err) => {
+    if (pMeta === 3) { next(pMeta, err); return; }
+
+    if (!pMeta) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    }
+
+    // remove the current rating, if needed
+    returnVal.rating = pMeta.rating;
+    returnVal.result = true;
+    next(returnVal);
+  });
 };
 
 // master prs function

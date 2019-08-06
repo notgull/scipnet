@@ -30,6 +30,7 @@ use ftml::prelude::*;
 use ftml::transform;
 //use ftml::WikidotHandle;
 use ftml::HtmlRender;
+use ftml::MetadataObject;
 //use serde::{Deserialize, Serialize};
 //use serde_json::Value;
 
@@ -38,16 +39,17 @@ use ftml::HtmlRender;
 //use std::borrow::Cow;
 use std::ffi::CStr;
 use std::ffi::CString;
-//use std::collections::HashMap;
+use std::iter::FromIterator;
+use std::collections::HashSet;
 use std::convert::From;
 use std::os::raw::c_char;
 //use std::sync::Arc;
 
 mod scipnetincluder;
-mod scipnethandle;
+//mod scipnethandle;
 
 use self::scipnetincluder::ScipnetIncluder;
-use self::scipnethandle::get_metadata_properties;
+//use self::scipnethandle::get_metadata_properties;
 
 // helper function to convert a *const c_char into a regular string
 fn c_char_to_string(s: *const c_char) -> Result<String> {
@@ -66,7 +68,8 @@ fn c_char_to_string(s: *const c_char) -> Result<String> {
 
 // function called from node.js
 #[no_mangle]
-pub extern fn scipnet_transform(url: *const c_char, src: *const c_char) -> *const c_char {
+pub extern fn scipnet_transform(url: *const c_char, src: *const c_char, rating: i32,
+                                title: *const c_char, tags: *const c_char) -> *const c_char {
   //println!("{}", url);
 
   //let arc_string = c_char_to_string(arc).unwrap();
@@ -74,8 +77,15 @@ pub extern fn scipnet_transform(url: *const c_char, src: *const c_char) -> *cons
   let url = c_char_to_string(url).unwrap();
   //println!("Converting src");
   let mut src = c_char_to_string(src).unwrap();
+
   //let mut article_json: Value = serde_json::from_str(arc_string).expect("Could not process;
-  let metadata_object = get_metadata_properties(&url).expect("Unable to fetch metadata");
+  let metadata_object = MetadataObject {
+    url: url.clone(),
+    title: c_char_to_string(title).unwrap(),
+    rating: rating,
+    tags: HashSet::from_iter::<Vec<String>>(c_char_to_string(tags).unwrap().split(';').map(
+      |s| String::from(s)).collect()),
+  };
 
   let output = transform::<HtmlRender>(0, metadata_object, &mut src, &ScipnetIncluder, &url).expect("FTML failed");
 

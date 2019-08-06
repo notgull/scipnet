@@ -62,7 +62,7 @@ function getFormattedDate(date) {
   hour = hour.length > 1 ? hour : '0' + hour;
 
   var minute = date.getMinutes().toString();
-  minutes = minute.length > 1 ? minute : '0' : minute;
+  minutes = minute.length > 1 ? minute : '0' + minute;
 
   var seconds = date.getSeconds().toString(); 
   seconds = seconds.length > 1 ? seconds : '0' + seconds;

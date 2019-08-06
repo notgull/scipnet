@@ -44,7 +44,9 @@ var { query } = require("./../sql");
 
 var check_metadata_existence = function(url, next) {
   var check_existence_query = "SELECT article_id FROM Pages WEHRE url='" + url + "';";
+  //console.log(check_existence_query);
   query(check_existence_query, (err, res) => {
+    //console.log('aaaaaa');
     if (err) next(error_codes[0], err);
     else if (res.rowCount == 0) next(error_codes[1]);
     else next(0);
@@ -75,23 +77,31 @@ var editlock = function(url, username, id=-1, created_at=null) {
 };
 
 // get editlock from id
-var editlock.get = function(id, next) {
+editlock.get = function(id, next) {
   var get_editlock_query = "SELECT url, username, created FROM Editlocks WHERE editlock_id = " + id + ";";
   query(get_editlock_query, (err, res) => {
     if (err) next(error_codes[0], err);
+    if (row.rowCount === 0) next(null);
 
     var row = res.rows[0];
-    next(editlock(row.url, row.username, id, row.created);
+    next(editlock(row.url, row.username, id, row.created));
   });
 };
 
 // get editlock from url
-//var editlock.get_by_url = function(url, next) {
-//
-//};
+editlock.get_by_url = function(url, next) {
+  var get_elurl_query = "SELECT editlock_id, username, created FROM Editlocks WHERE url = '" + url + "';";
+  query(get_elurl_query, (err, res) => {
+    if (err) next(error_codes[0], err);
+    if (row.rowCount === 0) next(null);
+
+    var row = res.rows[0];
+    next(editlock(url, row.username, id, row.created));
+  });
+};
 
 // remove editlock from database
-var editlock.prototype.remove = function(next) {
+editlock.prototype.remove = function(next) {
   // if the id is -1, we don't need anything, go next
   if (this.id === -1) {
     next(0);
@@ -105,7 +115,7 @@ var editlock.prototype.remove = function(next) {
   });
 }
 
-var editlock.prototype.save = function(next) {
+editlock.prototype.save = function(next) {
   // NOTE: this function should only be used for saving stuff that doesn't exist yet
   // so just delete it first
   this.remove((res, err) => {
@@ -172,7 +182,8 @@ module.exports = function(url, next) {
           editlock.get(metadata.editlock, (res, err) => {
             if (res === error_codes[0]) next(res, err);
             else {
-	      mObj.editlock = res;  
+	      mObj.editlock = res;
+	      if (!mObj.editlock) mObj.editlock = -1;
               after_editlock_check();
 	    }
 	  });
@@ -199,6 +210,10 @@ module.exports = function(url, next) {
   }
 };
 
+module.exports.prototype.recalcuate_rating = function() {
+  this.rating = aggregate_rating(this.raters);
+}
+
 // save metadata to a file
 module.exports.prototype.save = function(next) {
   mObj = {};
@@ -217,24 +232,30 @@ module.exports.prototype.save = function(next) {
   mObj.parentPage = this.parentPage;*/
 
   // save the metadata to the database
-  check_metadata_existence((res, err) => {
+  check_metadata_existence(this.url, (res, err) => {
     if (res == error_codes[1]) next(res, err);
     else if (res) {
+      var editlock = -1;
+      if (this.editlock !== -1) {
+        editlock = this.editlock.id;
+      }
+
       // item was not found, create a new item
       var create_newmd_query = "INSERT INTO Pages (url, title, author, raters, revisions, tags, editlock, discuss_page, locked, files, parent) " +
 		                 "VALUES (" +
 		                   "'" + this.url + "'," +
 		                   "'" + this.title + "'," +
 		                   "'" + this.author + "'," +
-		                   "'" + JSON.stringify(this.raters).replace("'", '"') + "'," +
+		                   "" + JSON.stringify(this.raters).replace("'", '"') + "," +
 		                   "[" + this.revisions.toString() + "]," +	
 		                   JSON.stringify(this.tags).replace("'", '"') + "," +
-		                   this.editlock + "," +
+		                   editlock + "," +
 		                   "'" + this.discuss_link + "'," +
 		                   this.locked + "," +
 		                   JSON.stringify(this.attached_files).replace("'", '"') + "," +
 		                   "'" + this.parentPage + "'" +
 		               ");";
+      console.log(create_newmd_query);
       query(create_newmd_query, (err, res) => {
         if (err) next(error_codes[0], err);
 	else next(0);
@@ -244,7 +265,7 @@ module.exports.prototype.save = function(next) {
 		                 "title = '" + this.title + "'," +
 		                 "author = '" + this.author + "'," +
 		                 "raters = '" + JSON.stringify(this.raters).replace("'", '"') + "'," +
-		                 "revisions = [" this.revisisions.toString() + "]," + 
+		                 "revisions = [" + this.revisisions.toString() + "]," + 
 		                 "tags = " + JSON.stringify(this.tags).replace("'", '"') + "," +
 		                 "editlock = " + this.editlock + "," +
 		                 "discuss_page = " + this.discuss_link + "'," +
@@ -252,6 +273,7 @@ module.exports.prototype.save = function(next) {
 		                 "files = " + JSON.stringify(this.attached_files).replace("'", '"') + "," +
 		                 "parent = " + this.parentPage + "' " +
 		               "WHERE url = '" + this.url + "';";
+      console.log(update_newmd_query);
       query(update_newmd_query, (err, res) => {
         if (err) next(error_codes[0], err);
 	else next(0);

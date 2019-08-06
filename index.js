@@ -29,6 +29,7 @@ var util = require('util');
 var ut_initializer = require("./nodejs/user/initialize_database");
 var mt_initializer = require("./nodejs/metadata/initialize_database");
 
+var metadata = require('./nodejs/metadata/metadata');
 var prs = require('./nodejs/metadata/prs');
 var renderer = require('./nodejs/renderer');
 var usertable = require('./nodejs/user/usertable');
@@ -210,8 +211,10 @@ app.post("/process-register", function(req, res) {
 app.get("/:pageid", function(req, res) {
   // TODO: render username
   var pageid = req.params.pageid;
-  //console.log("logininfo is " + loginInfo);
-  res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req)));
+  metadata(pageid, (pMeta, err) => {
+    if (pMeta === 3 || !pMeta) res.redirect('/_404');
+    else res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req), pMeta));
+  });
 });
 
 // load javascript files
@@ -225,7 +228,10 @@ app.get("/js/:script", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  res.send(renderer.render("main", '', '', loginInfo(req)));
+  metadata("main", (pMeta, err) => {
+    if (pMeta === 3 || !pMeta) res.redirect('/_404');
+    else res.send(renderer.render("main", '', '', loginInfo(req), pMeta));
+  });
 });
 
 // initialize http servers

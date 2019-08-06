@@ -26,7 +26,7 @@ var { query } = require('./../sql');
 module.exports = function(next) {
   // create user and pwhash tables
   var user_table_sql = "CREATE TABLE IF NOT EXISTS Users (" +
-		            "user_id SERIAL PRIMARY KEY," +
+		            "user_id BIGSERIAL PRIMARY KEY," +
 		            "username TEXT NOT NULL UNIQUE," +
 		            "email TEXT NOT NULL UNIQUE," +
 		            "karma INTEGER NOT NULL," +
@@ -41,8 +41,8 @@ module.exports = function(next) {
   query(user_table_sql, (err, res) => {
     if (err) throw new Error(err);
     var pwHash_table_sql = "CREATE TABLE IF NOT EXISTS Passwords (" +
-                               "user_id SERIAL PRIMARY KEY," +
-			       "username TEXT NOT NULL UNIQUE," +
+                               "hash_id BIGSERIAL PRIMARY KEY," +
+			       "user_id INTEGER REFERENCES Users(user_id)," +
 		               "salt JSONB NOT NULL UNIQUE," +
 			       "pwhash TEXT NOT NULL" +
 			     ");";

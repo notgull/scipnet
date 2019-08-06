@@ -22,15 +22,12 @@ var { query } = require('./../sql');
 
 module.exports = function(next) {
   var metadata_table_sql = "CREATE TABLE IF NOT EXISTS Pages (" +
-		             "article_id SERIAL PRIMARY KEY," +
-		             "url TEXT NOT NULL UNIQUE," +
+		             "article_id BIGSERIAL PRIMARY KEY," +
+		             "slug TEXT NOT NULL UNIQUE," +
 		             "title TEXT NOT NULL," +
-		             "author TEXT NOT NULL," +
-	                     "raters JSON," +
-		             "revisions INTEGER[]," +
 		             "tags TEXT[]," +
-		             "editlock INTEGER," +
-		             "discuss_page TEXT," +
+		             "editlock_id INTEGER," +
+		             "discuss_page_link TEXT," +
 		             "locked BOOLEAN NOT NULL," +
 		             "files TEXT[]," +
 		             "parent TEXT" +
@@ -41,24 +38,54 @@ module.exports = function(next) {
     // also create the revision table
     var revision_table_sql = "CREATE TABLE IF NOT EXISTS Revisions (" +
 		               "revision_id BIGSERIAL PRIMARY KEY," +
-		               "article_id INTEGER NOT NULL," +
+		               "article_id INTEGER REFERENCES Pages(article_id)," +
+		               "user_id INTEGER REFERENCES Users(user_id)," +
 		               "diff_link TEXT NOT NULL UNIQUE," +
 		               "occured_on TIMESTAMP NOT NULL" +
 		             ");";
     query(revision_table_sql, (err, res) => {
       if (err) throw new Error(err);
 
-      // also create the editlock table
-      var editlock_sql = "CREATE TABLE IF NOT EXISTS Editlocks (" +
-		           "editlock_id SERIAL PRIMARY KEY," +
-		           "url TEXT NOT NULL UNIQUE," +
-		           "username TEXT," +
-		           "created TIMESTAMP" +
-		         ");";
-      query(editlock_sql, (err, res) => {
+      // also create the ratings table
+      var rating_table_sql = "CREATE TABLE IF NOT EXISTS Ratings (" +
+		               "rating_id BIGSERIAL PRIMARY KEY," +
+		               "article_id INTEGER REFERENCES Pages(article_id)," +
+		               "user_id INTEGER REFERENCES Users(user_id)," +
+                               "rating INTEGER NOT NULL" +
+		             ");";
+      query(rating_table_sql, (err, res) => {
         if (err) throw new Error(err);
 
-	next();
+        var author_table_sql = "CREATE TABLE IF NOT EXISTS Author (" +
+		                 "author_id BIGSERIAL PRIMARY KEY," +
+		                 "article_id INTEGER REFERENCES Pages(article_id)," +
+		                 "user_id INTEGER REFERENCES Users(user_id)," +
+		                 "role TEXT NOT NULL," +
+		                 "date TIMESTAMP NOT NULL" +
+		               ");";
+	query(author_table_sql, (err, res) => {
+          if (err) throw new Error(err);
+
+          var file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
+			         "file_id BIGSERIAL PRIMARY KEY," +
+			         "article_id INTEGER REFERENCES Pages(article_id)," +
+			         "description TEXT," +
+			         "file_uri TEXT NOT NULL" +
+			       ");";
+          query(file_table_sql, (err, res) => {
+            if (err) throw new Error(err);
+
+            var parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
+			             "parent_id BIGSERIAL PRIMARY KEY," +
+			             "article_id INTEGER REFERENCES Pages(article_id)," +
+			             "parent_article_id INTEGER REFERENCES Pages(article_id)" +
+			           ");";
+	    query(parent_table_sql, (err, res) => {
+              if (err) throw new Error(err);
+	      next(0);
+	    });
+	  });
+	});
       });
     });
   });
