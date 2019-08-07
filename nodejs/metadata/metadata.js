@@ -40,15 +40,13 @@ var query = require('./../sql').queryPromise;
 var uuidv4 = require('uuid/v4');
 
 var check_metadata_existence = async function(url) {
-  var check_existence_query = "SELECT article_id FROM Pages WEHRE url=$1;";
+  var check_existence_query = "SELECT article_id FROM Pages WEHRE slug=$1;";
   //console.log(check_existence_query);
   return await query(check_existence_query, [url]).rowCount > 0;
 };
 
 // getting id from a table will be a common occurence
 var get_primary_key = async function(key_name, table_name, determiner_name, determiner) {
-  
-
   var gpk_query = "SELECT $1 FROM $2 WHERE $3 = $4;";
   var res = await query(gpk_query, [key_name, table_name, determiner_name, determiner]).rows[0];
   return res[determiner_name];
@@ -65,7 +63,10 @@ exports.rating = function(article_id, user_id, rating) {
 // load from database by article id/user id
 exports.rating.load_by_article = async function(article_id, user_id) {
   var res = await query("SELECT * FROM Ratings WHERE article_id = $1 AND user_id = $2;",
-                        [article_id, user_id]).rows[0];
+                        [article_id, user_id]);
+  if (res.rowCount === 0) return null;
+  else res = res.rows[0];
+
   var rating = exports.rating(article_id, user_id, res.rating);
   //rating.rating_id = res.rating_id;
   return rating;
@@ -90,7 +91,10 @@ exports.revision = function(article_id, user_id, diff_link) {
 }
 
 exports.revision.load_by_id = async function(revision_id) {
-  var res = await query("SELECT * FROM Revisions WHERE revision_id = $1;", [revision_id]).rows[0];
+  var res = await query("SELECT * FROM Revisions WHERE revision_id = $1;", [revision_id]);
+  if (res.rowCount === 0) return null;
+  else res = res.rows[0];
+
   var revision = new exports.revision(res.article_id, res.user_id, res.diff_link);
   revision.created_at = res.created_at;
   revision.revision_id = revision_id;
@@ -99,6 +103,8 @@ exports.revision.load_by_id = async function(revision_id) {
 
 exports.revision.load_array_by_article = async function(article_id) {
   var res = await query("SELECT * FROM Revisions WHERE article_id = $1;", [article_id]).rows;
+  if (res.rowCount === 0) return [];
+
   var revisions = [];
   var row;
   for (row of res) {
@@ -129,7 +135,10 @@ exports.author = function(article_id, user_id, role) {
 }
 
 exports.author.load_by_id = async function(author_id) {
-  var res = await query("SELECT * FROM Authors WHERE author_id=$1;", [author_id]).rows[0];
+  var res = await query("SELECT * FROM Authors WHERE author_id=$1;", [author_id]);
+  if (res.rowCount === 0) return null;
+  else res = res.rows[0];
+
   var author = new exports.author(res.article_id, res.user_id, res.author_type);
   author.created_at = res.created_at;
   author.author_id = res.author_id;
@@ -137,7 +146,10 @@ exports.author.load_by_id = async function(author_id) {
 }
 
 exports.author.load_array_by_article = async function(article_id) {
-  var res = await query("SELECT * FROM Authors WHERE article_id=$1;", [article_id]).rows;
+  var res = await query("SELECT * FROM Authors WHERE article_id=$1;", [article_id]);
+  if (res.rowCount === 0) return [];
+  else res = res.rows;
+
   var authors = [];
   var row;
   for (row of res) {
@@ -156,6 +168,37 @@ exports.author.prototype.submit = async function() {
 	      "$1, $2, $3, $4);", [this.article_id, this.user_id, this.author_type, this.created_at]);
   this.author_id = await query("SELECT author_id FROM Authors WHERE article_id = $1 AND " +
 	                       "user_id = $2;", [this.article_id, this.user_id])
+}
+
+// represents a parent - one article can have many parents
+exports.parent = function(carticle_id, particle_id) {
+  if (!(this instanceof exports.parent)) return new exports.parent(carticle_id, particle_id);
+
+  this.child_id = carticle_id;
+  this.parent_id = parent_id;
+}
+
+exports.parent.load_by_ids = async function(child_id, parent_id) {
+  var res = await query("SELECT * FROM Parents WHERE article_id=$1 AND parent_article_id=$2");
+  if (res.rowCount === 0) return null;
+
+  var parent = new exports.parent(child_id, parent_id);
+  return parent;
+}
+
+exports.parent.load_array_by_child = async function(child_id) {
+  var res = await query("SELECT parent_article_id FROM Parents WHERE article_id=$1", [child_id]);
+  if (res.rowCount === 0) return [];
+  else res = res.rows;
+
+  var parents = [];
+  var row;
+  for (row in res) {
+    var parent = new exports.parent(child_id, row.parent_article_id);
+    parents.push(parent);
+  }
+
+  return parents;
 }
 
 // we will just store edit locks in memory
@@ -224,7 +267,10 @@ exports.metadata = function(url) {
 }
 
 exports.metadata.load_by_slug = async function(slug) {
-  var res = await query("SELECT * FROM Metadata WHERE slug=$1;", [slug]).rows[0];
+  var res = await query("SELECT * FROM Metadata WHERE slug=$1;", [slug]);
+  if (res.rowCount === 0) return null;
+  else res = res.rows[0];
+
   var metadata = new exports.metadata(slug);
   metadata.article_id = res.article_id;
   metadata.title = res.title;
@@ -232,4 +278,7 @@ exports.metadata.load_by_slug = async function(slug) {
   metadata.editlock_id = res.editlock_id;
   metadata.discuss_page_link = res.discuss_page_link;
   metadata.locked_at = res.locked_at;
+
+  // TODO: load associated bits (e.g. parents, authors, etc)
+  return metadata;
 }  
