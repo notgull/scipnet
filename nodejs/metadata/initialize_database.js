@@ -26,7 +26,7 @@ module.exports = function(next) {
 		             "slug TEXT NOT NULL UNIQUE," +
 		             "title TEXT NOT NULL," +
 		             "tags TEXT[]," +
-		             "editlock_id INTEGER," +
+		             "editlock_id TEXT," +
 		             "discuss_page_link TEXT," +
 		             "locked_at TIMESTAMP" +
 		             //"files TEXT[]," +

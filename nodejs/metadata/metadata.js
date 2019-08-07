@@ -72,6 +72,22 @@ exports.rating.load_by_article = async function(article_id, user_id) {
   return rating;
 }
 
+// load from database just by article id
+exports.rating.load_array_by_article = async function(article_id) {
+  var res = await query("SELECT * FROM Ratings WHERE article_id = $1;", [article_id]);
+  if (res.rowCount === 0) return [];
+  else res = res.rows;
+
+  var ratings = [];
+  var row;
+  for (row of res) {
+    var rating = exports.rating(article_id, row.user_id, row.rating);
+    ratings.push(rating);
+  }
+
+  return ratings;
+}
+
 // save rating to database
 exports.rating.prototype.submit = async function() {
   var remove_query = "DELETE FROM Ratings WHERE article_id = $1 AND user_id = $2;";
@@ -102,8 +118,9 @@ exports.revision.load_by_id = async function(revision_id) {
 }
 
 exports.revision.load_array_by_article = async function(article_id) {
-  var res = await query("SELECT * FROM Revisions WHERE article_id = $1;", [article_id]).rows;
+  var res = await query("SELECT * FROM Revisions WHERE article_id = $1;", [article_id]);
   if (res.rowCount === 0) return [];
+  else res = res.rows;
 
   var revisions = [];
   var row;
@@ -193,7 +210,7 @@ exports.parent.load_array_by_child = async function(child_id) {
 
   var parents = [];
   var row;
-  for (row in res) {
+  for (row of res) {
     var parent = new exports.parent(child_id, row.parent_article_id);
     parents.push(parent);
   }
@@ -238,11 +255,12 @@ exports.remove_editlock = function(slug) {
   }
 }
 
-exports.check_editlock = function(slug) {
+exports.check_editlock = function(slug=null, uuid=null) {
   outdated_check();
   for (var i = exports.editlock_table.length - 1; i >= 0; i--) {
-    if (exports.editlock_table[i].slug === slug)
-      return true;
+    if ((slug && exports.editlock_table[i].slug === slug) ||
+        (uuid && exports.editlock_table[i].editlock_id === uuid))
+      return exports.editlock_table[i];
   }
   return false;
 }
@@ -256,7 +274,7 @@ exports.metadata = function(url) {
     this.title = "";
     this.ratings = [];
     this.authors = [];
-    this.editlock = -1;
+    this.editlock = null;
     this.tags = [];
     this.revisions = [];
     this.discuss_page_link = "";
@@ -266,8 +284,16 @@ exports.metadata = function(url) {
   }
 }
 
+// get the composite rating of the article
+exports.metadata.prototype.get_rating = function() {
+  var rating = 0;
+  for (var i = this.ratings.length; i >= 0; i--)
+    rating += this.ratings.[i].rating;
+  return rating;
+}
+
 exports.metadata.load_by_slug = async function(slug) {
-  var res = await query("SELECT * FROM Metadata WHERE slug=$1;", [slug]);
+  var res = await query("SELECT * FROM Pages WHERE slug=$1;", [slug]);
   if (res.rowCount === 0) return null;
   else res = res.rows[0];
 
@@ -275,9 +301,27 @@ exports.metadata.load_by_slug = async function(slug) {
   metadata.article_id = res.article_id;
   metadata.title = res.title;
   metadata.tags = res.tags;
-  metadata.editlock_id = res.editlock_id;
   metadata.discuss_page_link = res.discuss_page_link;
   metadata.locked_at = res.locked_at;
+
+  // get the editlock, if any
+  var el = exports.check_editlock(uuid=res.editlock_id);
+  if (el) metadata.editlock = el;
+  else {
+    el = exports.check_editlock(slug=slug);
+    if (el) metadata.editlock = el;
+    else metadata.editlock = null;
+  }
+
+  // load ratings
+  this.ratings = await exports.rating.load_array_by_article(res.article_id);
+
+  // load authors
+  this.authors = await exports.author.load_array_by_article(res.article_id);
+  if (this.authors.length > 1)
+    this.author = null;
+  else
+    this.author = this.authors[0];
 
   // TODO: load associated bits (e.g. parents, authors, etc)
   return metadata;
