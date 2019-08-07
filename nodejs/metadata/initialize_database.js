@@ -28,9 +28,9 @@ module.exports = function(next) {
 		             "tags TEXT[]," +
 		             "editlock_id INTEGER," +
 		             "discuss_page_link TEXT," +
-		             "locked BOOLEAN NOT NULL," +
-		             "files TEXT[]," +
-		             "parent TEXT" +
+		             "locked_at TIMESTAMP" +
+		             //"files TEXT[]," +
+		             //"parent TEXT" +
 		           ");";
   query(metadata_table_sql, (err, res) => {
     if (err) throw new Error(err);
@@ -41,27 +41,26 @@ module.exports = function(next) {
 		               "article_id INTEGER REFERENCES Pages(article_id)," +
 		               "user_id INTEGER REFERENCES Users(user_id)," +
 		               "diff_link TEXT NOT NULL UNIQUE," +
-		               "occured_on TIMESTAMP NOT NULL" +
+		               "created_at TIMESTAMP NOT NULL" +
 		             ");";
     query(revision_table_sql, (err, res) => {
       if (err) throw new Error(err);
 
       // also create the ratings table
       var rating_table_sql = "CREATE TABLE IF NOT EXISTS Ratings (" +
-		               "rating_id BIGSERIAL PRIMARY KEY," +
 		               "article_id INTEGER REFERENCES Pages(article_id)," +
 		               "user_id INTEGER REFERENCES Users(user_id)," +
-                               "rating INTEGER NOT NULL" +
+                               "rating SMALLINT NOT NULL CHECK(abs(rating) <= 1)" +
 		             ");";
       query(rating_table_sql, (err, res) => {
         if (err) throw new Error(err);
 
-        var author_table_sql = "CREATE TABLE IF NOT EXISTS Author (" +
+        var author_table_sql = "CREATE TABLE IF NOT EXISTS Authors (" +
 		                 "author_id BIGSERIAL PRIMARY KEY," +
 		                 "article_id INTEGER REFERENCES Pages(article_id)," +
 		                 "user_id INTEGER REFERENCES Users(user_id)," +
-		                 "role TEXT NOT NULL," +
-		                 "date TIMESTAMP NOT NULL" +
+		                 "author_type TEXT NOT NULL," +
+		                 "created_at TIMESTAMP NOT NULL" +
 		               ");";
 	query(author_table_sql, (err, res) => {
           if (err) throw new Error(err);
@@ -69,14 +68,14 @@ module.exports = function(next) {
           var file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
 			         "file_id BIGSERIAL PRIMARY KEY," +
 			         "article_id INTEGER REFERENCES Pages(article_id)," +
-			         "description TEXT," +
-			         "file_uri TEXT NOT NULL" +
+			         "description TEXT NOT NULL," +
+			         "file_uri TEXT NOT NULL," +
+			         "filename TEXT NOT NULL" +
 			       ");";
           query(file_table_sql, (err, res) => {
             if (err) throw new Error(err);
 
             var parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
-			             "parent_id BIGSERIAL PRIMARY KEY," +
 			             "article_id INTEGER REFERENCES Pages(article_id)," +
 			             "parent_article_id INTEGER REFERENCES Pages(article_id)" +
 			           ");";

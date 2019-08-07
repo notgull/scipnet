@@ -4,5 +4,7 @@
 
   "postgres_username": "scipnet",
   "postgres_password": "GoodPassword222",
-  "postgres_database": "scipnet"
+  "postgres_database": "scipnet",
+
+  "editlock_timeout": 900
 }

@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// basic class for storing metadata for individual files
+"use strict";
 
 // metadata properties, add more if necessary
 // url
@@ -36,250 +36,200 @@
 
 var config = require('./../../config.json');
 var { error_codes, getFormattedDate } = require('./../user/validate');
-var metadata_dir = config.scp_meta_location;
+var query = require('./../sql').queryPromise;
+var uuidv4 = require('uuid/v4');
 
-var fs = require('fs');
-var path = require('path');
-var { query } = require("./../sql");
-
-var check_metadata_existence = function(url, next) {
-  var check_existence_query = "SELECT article_id FROM Pages WEHRE url='" + url + "';";
+var check_metadata_existence = async function(url) {
+  var check_existence_query = "SELECT article_id FROM Pages WEHRE url=$1;";
   //console.log(check_existence_query);
-  query(check_existence_query, (err, res) => {
-    //console.log('aaaaaa');
-    if (err) next(error_codes[0], err);
-    else if (res.rowCount == 0) next(error_codes[1]);
-    else next(0);
-  });
+  return await query(check_existence_query, [url]).rowCount > 0;
 };
 
+// getting id from a table will be a common occurence
+var get_primary_key = async function(key_name, table_name, determiner_name, determiner) {
+  
 
-// note: ratings are dicts, such that
-// {user: "[username]", rating: +-1}
-var aggregate_rating = function(ratings) {
-  var total = 0;
-  for (var i = 0; i < ratings.length; i++) {
-    total += ratings[i].rating;
-  }
-  return total;
+  var gpk_query = "SELECT $1 FROM $2 WHERE $3 = $4;";
+  var res = await query(gpk_query, [key_name, table_name, determiner_name, determiner]).rows[0];
+  return res[determiner_name];
 };
 
-// edit locks
-var editlock = function(url, username, id=-1, created_at=null) {
-  if (!(this instanceof editlock)) return new editlock(url, username, id, created_at);
-
-  this.url = url;
-  this.username = username;
-  this.created_at = created_at;
-  this.id = id;
-  if (!created_at)
-    this.created_at = new Date();
-};
-
-// get editlock from id
-editlock.get = function(id, next) {
-  var get_editlock_query = "SELECT url, username, created FROM Editlocks WHERE editlock_id = " + id + ";";
-  query(get_editlock_query, (err, res) => {
-    if (err) next(error_codes[0], err);
-    if (row.rowCount === 0) next(null);
-
-    var row = res.rows[0];
-    next(editlock(row.url, row.username, id, row.created));
-  });
-};
-
-// get editlock from url
-editlock.get_by_url = function(url, next) {
-  var get_elurl_query = "SELECT editlock_id, username, created FROM Editlocks WHERE url = '" + url + "';";
-  query(get_elurl_query, (err, res) => {
-    if (err) next(error_codes[0], err);
-    if (row.rowCount === 0) next(null);
-
-    var row = res.rows[0];
-    next(editlock(url, row.username, id, row.created));
-  });
-};
-
-// remove editlock from database
-editlock.prototype.remove = function(next) {
-  // if the id is -1, we don't need anything, go next
-  if (this.id === -1) {
-    next(0);
-    return;
-  }
-
-  var delete_el_query = "DELETE FROM Editlocks WHERE editlock_id = " + this.id + ";";
-  query(delete_el_query, (err, res) => {
-    if (err) next(error_codes[0], err);
-    else next(0);
-  });
+exports.rating = function(article_id, user_id, rating) {
+  if (!(this instanceof exports.rating)) return new exports.rating(user_id, rating);
+  this.user_id = user_id;
+  this.article_id = article_id;
+  this.rating = rating;
+  //this.rating_id = -1;
 }
 
-editlock.prototype.save = function(next) {
-  // NOTE: this function should only be used for saving stuff that doesn't exist yet
-  // so just delete it first
-  this.remove((res, err) => {
-    if (res) next(res, err);
-    else {
-      var add_el_query = "INSERT INTO Editlocks (url, username, created) VALUES (" +
-		           "'" + this.url + "'," +
-		           "'" + this.username + "'," +
-		           "'" + getFormattedDate(this.created_at) + "'" +
-		         ");";
-      query(add_el_query, (err, res) => {
-        if (err) next(error_codes[0], err);
-	
-	// glob the id from the database
-	var get_id_query = "SELECT editlock_id FROM Editlocks WHERE url='" + this.url + "';";
-	query(get_id_query, (err, res) => {
-          if (err) next(error_codes[0], err);
-          this.id = res.rows[0].editlock_id;
+// load from database by article id/user id
+exports.rating.load_by_article = async function(article_id, user_id) {
+  var res = await query("SELECT * FROM Ratings WHERE article_id = $1 AND user_id = $2;",
+                        [article_id, user_id]).rows[0];
+  var rating = exports.rating(article_id, user_id, res.rating);
+  //rating.rating_id = res.rating_id;
+  return rating;
+}
 
-          next(0);
-	});
-      });
+// save rating to database
+exports.rating.prototype.submit = async function() {
+  var remove_query = "DELETE FROM Ratings WHERE article_id = $1 AND user_id = $2;";
+  await query(remove_query, [this.article_id, this.user_id]);
+
+  var insert_query = "INSERT INTO Ratings VALUES ($1, $2, $3);"
+  await query(insert_query, [this.article_id, this.user_id, this.rating]);
+}
+
+exports.revision = function(article_id, user_id, diff_link) {
+  if (!(this instanceof exports.revision)) return new exports.revision(article_id, user_id, diff_link);
+  this.article_id = article_id;
+  this.user_id = user_id;
+  this.diff_link = diff_link;
+  this.revision_id = -1;
+  this.created_at = new Date();
+}
+
+exports.revision.load_by_id = async function(revision_id) {
+  var res = await query("SELECT * FROM Revisions WHERE revision_id = $1;", [revision_id]).rows[0];
+  var revision = new exports.revision(res.article_id, res.user_id, res.diff_link);
+  revision.created_at = res.created_at;
+  revision.revision_id = revision_id;
+  return revision;
+}
+
+exports.revision.load_array_by_article = async function(article_id) {
+  var res = await query("SELECT * FROM Revisions WHERE article_id = $1;", [article_id]).rows;
+  var revisions = [];
+  var row;
+  for (row of res) {
+    var revision = new exports.revision(article_id, row.user_id, row.diff_link);
+    revision.created_at = row.created_at;
+    revision.revision_id = row.revision_id;
+    revisions.push(revision);
+  }
+
+  return revisions;
+}
+
+exports.revision.prototype.submit = async function() {
+  await query("DELETE FROM Revisions WHERE revision_id = $1;", [this.revision_id]);
+  await query("INSERT INTO Revisions (article_id, user_id, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp);", [this.article_id, this.user_id, this.diff_link, getFormattedDate(this.created_at)]);
+  this.revision_id = await query("SELECT revision_id FROM Revisions WHERE article_id = $1 AND " +
+	                         "user_id = $1", [this.article_id, this.user_id]).rows[0].revision_id;
+}
+
+// represents an author - there can be more than one per article
+exports.author = function(article_id, user_id, role) {
+  if (!(this instanceof exports.author)) return new exports.author(article_id, user_id, role);
+  this.article_id = article_id;
+  this.user_id = user_id;
+  this.author_type = role;
+  this.created_at = new Date();
+  this.author_id = -1;
+}
+
+exports.author.load_by_id = async function(author_id) {
+  var res = await query("SELECT * FROM Authors WHERE author_id=$1;", [author_id]).rows[0];
+  var author = new exports.author(res.article_id, res.user_id, res.author_type);
+  author.created_at = res.created_at;
+  author.author_id = res.author_id;
+  return author;
+}
+
+exports.author.load_array_by_article = async function(article_id) {
+  var res = await query("SELECT * FROM Authors WHERE article_id=$1;", [article_id]).rows;
+  var authors = [];
+  var row;
+  for (row of res) {
+    var author = new exports.revision(article_id, row.user_id, row.diff_link);
+    author.created_at = row.created_at;
+    author.revision_id = row.author_id;
+    authors.push(author);
+  }
+
+  return authors;
+}
+
+exports.author.prototype.submit = async function() {
+  await query("DELETE FROM Authors WHERE author_id = $1;", [this.author_id]);
+  await query("INSERT INTO Authors (article_id, user_id, author_type, created_at) VALUES (" +
+	      "$1, $2, $3, $4);", [this.article_id, this.user_id, this.author_type, this.created_at]);
+  this.author_id = await query("SELECT author_id FROM Authors WHERE article_id = $1 AND " +
+	                       "user_id = $2;", [this.article_id, this.user_id])
+}
+
+// we will just store edit locks in memory
+exports.editlock = function(slug, username, locked_at) {
+  if (!(this instanceof exports.editlock)) return new exports.editlock(slug, username, locked_at);
+
+  this.url = slug;
+  this.username = username;
+  this.locked_at = locked_at;
+  this.editlock_id = uuidv4();
+}
+
+exports.editlock.prototype.is_valid = function() {
+  var now = new Date();
+  var ms_per_sec = 1000;
+  return (now - this.editlock) > (ms_per_sec * config.editlock_timeout);
+}
+
+exports.editlock_table = [];
+var outdated_check = function() {
+  for (var i = exports.editlock_table.length - 1; i >= 0; i--) {
+    if (!(exports.editlock_table[i].is_valid()))
+      exports.editlock_table.splice(i, 1);
+  }
+}
+
+exports.add_editlock = function(slug, username) {
+  exports.editlock_table.push(new exports.editlock(slug, username, new Date()));
+}
+
+exports.remove_editlock = function(slug) {
+  for (var i = exports.editlock_table.length - 1; i >= 0; i--) {
+    if (exports.editlock_table[i].slug === slug) {
+      exports.editlock_table.splice(i, 1);
+      break;
     }
-  });
-};
+  }
+}
 
-module.exports = function(url, next) {
-  if (!(this instanceof module.exports)) {
-    metadata_path = path.join(metadata_dir, url);
-    if (!(fs.existsSync(metadata_path)))
-      return null;
+exports.check_editlock = function(slug) {
+  outdated_check();
+  for (var i = exports.editlock_table.length - 1; i >= 0; i--) {
+    if (exports.editlock_table[i].slug === slug)
+      return true;
+  }
+  return false;
+}
 
-    // return an instance of metadata loaded from a file 
-    var get_metadata_query = "SELECT title, author, raters, revisions, tags, editlock, discuss_page, locked, files, parent FROM Pages WHERE url = '" + url + "';";
-    query(get_metadata_query, (err, res) => {
-      if (err) next(error_codes[0], err);
-      else if (res.rowCount === 0) next(null);
-      else {
-        metadata = res.rows[0];
-
-        mObj = new module.exports(url);
-        mObj.title = metadata.title;
-        //mObj.rating = metadata.rating;
-        mObj.raters = metadata.raters;
-	mObj.rating = aggregate_rating(mObj.raters);
-        mObj.author = metadata.author;
-        mObj.revisions = metadata.revisions; // TODO: put revision diffs in here 
-        mObj.tags = metadata.tags;
-        //mObj.editlock = metadata.editlock;
-        mObj.discuss_link = metadata.discuss_link;
-        mObj.attached_files = metadata.attached_files;
-        mObj.locked = metadata.locked;
-        mObj.parentPage = metadata.parentPage;
-
-        var after_editlock_check = function() {
-          // now get revisions 
-          // TODO: get revisions
-	  mObj.revisions = metadata.revisions;
-          next(mObj);
-	};
-
-	// get the editlock, if any
-	if (metadata.editlock !== -1) {
-          editlock.get(metadata.editlock, (res, err) => {
-            if (res === error_codes[0]) next(res, err);
-            else {
-	      mObj.editlock = res;
-	      if (!mObj.editlock) mObj.editlock = -1;
-              after_editlock_check();
-	    }
-	  });
-	} else {
-          mObj.editlock = null;
-          after_editlock_check();
-	}
-      }
-    });
+exports.metadata = function(url) {
+  if (!(this instanceof exports.metadata)) {
+    return new exports.metadata(url);
   } else {
-    // create a new metadata instance
+    this.article_id = -1;
     this.url = url;
     this.title = "";
-    this.rating = 0;
-    this.raters = [];
-    this.author = "";
+    this.ratings = [];
+    this.authors = [];
     this.editlock = -1;
     this.tags = [];
     this.revisions = [];
-    this.discuss_link = "";
-    this.attached_files = [];
+    this.discuss_page_link = "";
+    this.attached_files = []; 
     this.locked = false;
-    this.parentPage = "";
+    this.parents = [];
   }
-};
-
-module.exports.prototype.recalcuate_rating = function() {
-  this.rating = aggregate_rating(this.raters);
 }
 
-// save metadata to a file
-module.exports.prototype.save = function(next) {
-  mObj = {};
-  
-  /*mObj.
-  mObj.title = this.title;
-  mObj.rating = this.rating;
-  mObj.raters = this.raters;
-  mObj.author = this.author;
-  mObj.revisions = this.revisions; 
-  mObj.tags = this.tags;
-  mObj.editlock = this.editlock;
-  mObj.discuss_link = this.discuss_link;
-  mObj.attached_files = this.attached_files;
-  mObj.locked = this.locked;
-  mObj.parentPage = this.parentPage;*/
-
-  // save the metadata to the database
-  check_metadata_existence(this.url, (res, err) => {
-    if (res == error_codes[1]) next(res, err);
-    else if (res) {
-      var editlock = -1;
-      if (this.editlock !== -1) {
-        editlock = this.editlock.id;
-      }
-
-      // item was not found, create a new item
-      var create_newmd_query = "INSERT INTO Pages (url, title, author, raters, revisions, tags, editlock, discuss_page, locked, files, parent) " +
-		                 "VALUES (" +
-		                   "'" + this.url + "'," +
-		                   "'" + this.title + "'," +
-		                   "'" + this.author + "'," +
-		                   "" + JSON.stringify(this.raters).replace("'", '"') + "," +
-		                   "[" + this.revisions.toString() + "]," +	
-		                   JSON.stringify(this.tags).replace("'", '"') + "," +
-		                   editlock + "," +
-		                   "'" + this.discuss_link + "'," +
-		                   this.locked + "," +
-		                   JSON.stringify(this.attached_files).replace("'", '"') + "," +
-		                   "'" + this.parentPage + "'" +
-		               ");";
-      console.log(create_newmd_query);
-      query(create_newmd_query, (err, res) => {
-        if (err) next(error_codes[0], err);
-	else next(0);
-      });
-    } else {
-      var update_newmd_query = "UPDATE Pages SET " +
-		                 "title = '" + this.title + "'," +
-		                 "author = '" + this.author + "'," +
-		                 "raters = '" + JSON.stringify(this.raters).replace("'", '"') + "'," +
-		                 "revisions = [" + this.revisisions.toString() + "]," + 
-		                 "tags = " + JSON.stringify(this.tags).replace("'", '"') + "," +
-		                 "editlock = " + this.editlock + "," +
-		                 "discuss_page = " + this.discuss_link + "'," +
-		                 "locked = " + this.locked + "," +
-		                 "files = " + JSON.stringify(this.attached_files).replace("'", '"') + "," +
-		                 "parent = " + this.parentPage + "' " +
-		               "WHERE url = '" + this.url + "';";
-      console.log(update_newmd_query);
-      query(update_newmd_query, (err, res) => {
-        if (err) next(error_codes[0], err);
-	else next(0);
-      });
-    }
-  });
-};
-
-module.exports.editlock = editlock;
+exports.metadata.load_by_slug = async function(slug) {
+  var res = await query("SELECT * FROM Metadata WHERE slug=$1;", [slug]).rows[0];
+  var metadata = new exports.metadata(slug);
+  metadata.article_id = res.article_id;
+  metadata.title = res.title;
+  metadata.tags = res.tags;
+  metadata.editlock_id = res.editlock_id;
+  metadata.discuss_page_link = res.discuss_page_link;
+  metadata.locked_at = res.locked_at;
+}  

@@ -98,8 +98,8 @@ exports.check_user_existence = function(user, next) {
  // if (exports.error_codes.indexOf(db) !== -1) next(db, err);
 
     // check for user existence first
-  const check_user_sql = "SELECT username FROM Users WHERE username='" + user + "';";
-  query(check_user_sql, (err, row) => {
+  const check_user_sql = "SELECT username FROM Users WHERE username=$1;";
+  query(check_user_sql, user, (err, row) => {
       //db.close();
       //console.log("Row is: ");
       //console.log(row);
@@ -115,8 +115,8 @@ exports.check_email_usage = function(email, next) {
   //connect_to_db((db, err) => {
   //  if (exports.error_codes.indexOf(db) !== -1) next(db, err);
     
-  var check_email_sql = "SELECT username FROM Users WHERE email='" + email + "';";
-  query(check_email_sql, (err, row) => {
+  var check_email_sql = "SELECT username FROM Users WHERE email=$1;";
+  query(check_email_sql, [email], (err, row) => {
     //  db.close();
 
     if (err) next(exports.INTERNAL_ERROR, err);
@@ -126,6 +126,16 @@ exports.check_email_usage = function(email, next) {
   //});
 }
 
+exports.get_user_id = function(user, next) {
+  var userid_query = "SELECT user_id FROM Users WHERE username=$1;";
+  query(userid_query, [user], (err, res) => {
+    if (err) { next(exports.INTERNAL_ERROR, err); return; }
+    
+    if (res.rowCount === 0) next(exports.USER_NOT_FOUND);
+    else next(res.rows[0].user_id);
+  });
+};
+
 exports.validate_user = function(user, pwHash, next) {
   // connect to the user database
   //connect_to_db((db) => {
@@ -134,31 +144,36 @@ exports.validate_user = function(user, pwHash, next) {
     // check for user existence first
 	//
   //console.log("User is " + user + ", pwHash is " + pwHash);
-  var check_user_sql = "SELECT username FROM Users WHERE username='" + user + "';";
-  query(check_user_sql, (err, row) => {
+  var check_user_sql = "SELECT username FROM Users WHERE username=$1;";
+  query(check_user_sql, [user], (err, row) => {
     if (err) next(exports.INTERNAL_ERROR, err);
     else if (!row) next(exports.USER_NOT_FOUND);
     else {
-      // get the proper password hash
-      var get_pwhash_sql = "SELECT salt, pwhash FROM Passwords WHERE username='" + user + "';";
-      query(get_pwhash_sql, (err, row) => {
+      // get the user id
+      exports.validate_user(user, (res, err) => {
+	if (err) { next(res, err); return; }
+
+        // get the proper password hash
+        var get_pwhash_sql = "SELECT salt, pwhash FROM Passwords WHERE user_id=$1;";
+        query(get_pwhash_sql, [res,rows[0].user_id], (err, row) => {
 	  //db.close();
-        if (err) next(exports.INTERNAL_ERROR, err);
-	else if (row.rowCount === 0) next(exports.USER_NOT_FOUND);
-        else {
-	  row = row.rows[0];
-	  var opts = options;
-	  opts.salt = Buffer(row.salt.data);
-	  //console.log("Salt: " + JSON.stringify(opts.salt));
+          if (err) next(exports.INTERNAL_ERROR, err);
+	  else if (row.rowCount === 0) next(exports.USER_NOT_FOUND);
+          else {
+	    row = row.rows[0];
+	    var opts = options;
+	    opts.salt = Buffer(row.salt.data);
+	    //console.log("Salt: " + JSON.stringify(opts.salt));
 
-          //argon2.hash(pwHash, opts).then((r) => {console.log("Hash: " + r)});
+            //argon2.hash(pwHash, opts).then((r) => {console.log("Hash: " + r)});
 
-	  argon2.verify(row.pwhash, pwHash, opts).then((result) => {
+	    argon2.verify(row.pwhash, pwHash, opts).then((result) => {
 	    
-            if (result) next(0);
-            else next(exports.PASSWORD_INCORRECT);
-	  }).catch((err) => { next(exports.INTERNAL_ERROR, err); });
-	}
+              if (result) next(0);
+              else next(exports.PASSWORD_INCORRECT);
+	    }).catch((err) => { next(exports.INTERNAL_ERROR, err); });
+	  }
+        });
       });
     }
   });
@@ -166,7 +181,7 @@ exports.validate_user = function(user, pwHash, next) {
 
 // add a new user to the database
 exports.add_new_user = function(user, email, pwHash, next) {
-  console.log("Username is " + user + ", pwHash is " + pwHash + ", email is " + email + ", registering account");
+  //console.log("Username is " + user + ", pwHash is " + pwHash + ", email is " + email + ", registering account");
   // connect to the user database
   //connect_to_db((db) => {
   //  if (exports.error_codes.indexOf(db) !== -1) next(db);
@@ -176,17 +191,20 @@ exports.add_new_user = function(user, email, pwHash, next) {
   // add user data in
   console.log("Adding user data");
   var now = new Date();
-  var add_user_sql = "INSERT INTO Users (username, email, karma, join_date, status, avatar) VALUES (" +
-	                 "'" + user + "'," +
+  var add_user_sql = "INSERT INTO Users (username, email, karma, join_date, status, avatar) " +
+		     "VALUES ($1, $2, 0, $3::text, 0, '');";
+	             /*    "'" + user + "'," +
 		         "'" + email + "'," +
 		         "0," +
 		         "'" + getFormattedDate(now) + "'," +
 		         "0," +
 		         "''" +
-		       ");";
-  query(add_user_sql, (err, res) => {
+		       ");";*/
+  query(add_user_sql, [user, email, getFormattedDate(now)], (err, res) => {
     if (err) next(exports.INTERNAL_ERROR, err);
     else {
+      // get the user id
+
       // generate a salt for the user
       console.log("Added user to database");
       crypto.randomBytes(16, (err, buf) => {
@@ -203,12 +221,13 @@ exports.add_new_user = function(user, email, pwHash, next) {
             var stringified_salt = JSON.stringify(buf);
             stringified_salt = stringified_salt.split("'").join("\"");
 
-	    var add_password_sql = "INSERT INTO Passwords (username, salt, pwhash) VALUES (" +
-			           "'" + user + "'," +
+	    var add_password_sql = "INSERT INTO Passwords (user_id, salt, pwhash) " + 
+			           "VALUES ($1, $2, $3);";
+			           /*"'" + user + "'," +
 			           "'" + stringified_salt + "'," +
 			           "'" + realHash + "'" +
-	  	  	           ");";
-	    query(add_password_sql, (err, res) => {
+	  	  	           ");";*/
+	    query(add_password_sql, [user, stringified_salt, realHash], (err, res) => {
 	        console.log("Finally done");
 	        //db.close();
 		//console.log(err);

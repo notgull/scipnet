@@ -29,6 +29,10 @@ const pool = new Pool({
   password: config.postgres_password,
 }); // TODO: set up port?
 
-module.exports.query = function(query, callback) {
+module.exports.query = function(query, args, callback) {
   pool.query(query, callback);
+}
+
+module.exports.queryPromise = async function(query, args) {
+  return await pool.query(query);
 }
