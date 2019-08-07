@@ -38,6 +38,6 @@ exports.get_markdown = function(url, src, metadata) {
 
   var url_buffer = str_to_buffer(url);
   var src_buffer = str_to_buffer(src);
-  return ftml.scipnet_transform(url_buffer, src_buffer, metadata.rating,
-	                        str_to_buffer(metadata.title), str_to_buffer("stuff;two")).readCString();
+  return ftml.scipnet_transform(url_buffer, src_buffer, metadata.get_rating(),
+	                        str_to_buffer(metadata.title), str_to_buffer(metadata.tags.join(';'))).readCString();
 }

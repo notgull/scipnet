@@ -292,12 +292,9 @@ exports.metadata.prototype.get_rating = function() {
   return rating;
 }
 
-exports.metadata.load_by_slug = async function(slug) {
-  var res = await query("SELECT * FROM Pages WHERE slug=$1;", [slug]);
-  if (res.rowCount === 0) return null;
-  else res = res.rows[0];
-
-  var metadata = new exports.metadata(slug);
+// load metadata from any sql source
+var load_metadata_from_row = async function(res) {
+  var metadata = new exports.metadata(res.slug);
   metadata.article_id = res.article_id;
   metadata.title = res.title;
   metadata.tags = res.tags;
@@ -308,7 +305,7 @@ exports.metadata.load_by_slug = async function(slug) {
   var el = exports.check_editlock(uuid=res.editlock_id);
   if (el) metadata.editlock = el;
   else {
-    el = exports.check_editlock(slug=slug);
+    el = exports.check_editlock(slug=res.slug);
     if (el) metadata.editlock = el;
     else metadata.editlock = null;
   }
@@ -322,7 +319,38 @@ exports.metadata.load_by_slug = async function(slug) {
     this.author = null;
   else
     this.author = this.authors[0];
+  
+  // load revisions
+  this.revisions = await exports.revision.load_array_by_article(res.article_id);
 
-  // TODO: load associated bits (e.g. parents, authors, etc)
+  // load parents
+  this.parents = await exports.parent.load_array_by_child(res.article_id);
+
+  // TODO: load files once we have that system up and running
   return metadata;
-}  
+}
+
+exports.metadata.load_by_slug = async function(slug) {
+  var res = await query("SELECT * FROM Pages WHERE slug=$1;", [slug]);
+  if (res.rowCount === 0) return null;
+  else res = res.rows[0];
+
+  return await load_metadata_from_row(res);
+}
+
+exports.metadata.load_by_id = async function(article_id) {
+  var res = await query("SELECT * FROM Pages WHERE article_id=$1;", [article_id]);
+  if (res.row_count === 0) return null;
+  else res = res.rows[0];
+
+  return await load_metadata_from_row(res);
+}
+
+// save metadata to database
+exports.metadata.prototype.submit = async function(save_dependencies=false) {
+  var editlock = null;
+  if (this.editlock)
+    editlock = this.editlock.editlock_id;
+  var upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
+               "$1, $2, $3, $4, $5, $6::timestamp);";
+}
