@@ -203,7 +203,7 @@ exports.parent_.load_by_ids = async function(child_id, parent_id) {
   return parent_;
 }
 
-exports.parent.load_array_by_child = async function(child_id) {
+exports.parent_.load_array_by_child = async function(child_id) {
   var res = await query("SELECT parent_article_id FROM Parents WHERE article_id=$1", [child_id]);
   if (res.rowCount === 0) return [];
   else res = res.rows;

@@ -42,7 +42,7 @@ var beginEditPage = function(username, args, next) {
     //}
 
     // check for an edit lock
-    if (pMeta && (pMeta.editlock && pMeta.editlock.username !== username)) {
+    if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== username)) {
       returnVal.error = "Page is locked by " + pMeta.editlock.username;
       returnVal.errorCode = 1;
       next(returnVal);
@@ -62,6 +62,7 @@ var beginEditPage = function(username, args, next) {
       returnVal.src = data;
       returnVal.title = pMeta.title;
 
+      // save metadata to database
       pMeta.save().then(() => {
         //if (res) { next(res, err); return; }
 
@@ -98,9 +99,9 @@ var removeEditLock = function(username, args, next) {
       return;
     }
 
-      // if there's an editlock mismatch, we have an error
+    // if there's an editlock mismatch, we have an error
     if (pMeta && (pMeta.editlock.editlock_id !== el.editlock_id || pMeta.editlock.url !== el.url || pMeta.editlock.username !== el.username)) {
-      next(-1, new Error("Editlock mismatch"));
+      next({result: false, errorCode: -1, error: new Error("Editlock mismatch")});
       return;
     }
 
@@ -111,12 +112,12 @@ var removeEditLock = function(username, args, next) {
       // if necessary, set the editlock on the metadata to none
       if (pMeta) {
         pMeta.editlock = null;
-	pMeta.save().then(() => {
-        //      if (res) { next(res, err); return; }
-	      returnVal.result = true;
-	      next(returnVal);
-	}).catch((err) => { next({result: false, errorCode: -1, error: err}); });
-	return;
+        pMeta.save().then(() => {
+          //      if (res) { next(res, err); return; }
+	        returnVal.result = true;
+	        next(returnVal);
+        }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+        return;
       }
 
       returnVal.result = true;
@@ -131,7 +132,7 @@ var removeEditLock = function(username, args, next) {
 };
 
 // save an edit
-var changePage = function(username, args, next) {
+/*var changePage = function(username, args, next) {
   var returnVal = {result: false};
 
   // TODO: add revision
@@ -175,7 +176,7 @@ var changePage = function(username, args, next) {
     returnVal.result = true;
     next(returnVal);
   });
-};
+};*/
 
 // save an edit
 var changePage = function(username, args, next) {
@@ -186,12 +187,10 @@ var changePage = function(username, args, next) {
 
     // before anything, check to see if there's an editlock 
     // this shouldn't be an issue for normal usage, just if someone is messing with the API
-    metadata.editlock.get_by_url(args.pagename, (el, err) => {
-      if (el === 3) { next(el, err); return; }
-
+    metadata.editlock.get_by_slug(args.pagename).then((el) => {
       
-    });
-  });
+    }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+  }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
 };
 
 // vote on a page
@@ -220,17 +219,15 @@ var voteOnPage = function(username, args, next) {
     for (var i = 0; i < mObj.raters.length; i++) {
       if (mObj.ratings[i].username === username) {
         mObj.ratings[i].rating = args.rating;
-	found = true;
-	break;
+	      found = true;
+        break;
       }
     }
  
     if (!found)
       mObj.raters.push(rating);
 
-    mObj.recalculate_rating();
-
-    mObj.save(().then(() => {
+    mObj.save().then(() => {
       if (res) { next(res, err); return; }
 
       returnVal.result = true;
