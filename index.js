@@ -40,12 +40,12 @@ var version = require('./package.json').version;
 console.log("SCPWiki v" + version);
 
 // error out if not root
-if (process.geteuid) {
-  if (process.geteuid() !== 0) {
-    console.error("Error: Must be run as root");
-    process.exit(1);
-  }
-}
+//if (process.geteuid) {
+//  if (process.geteuid() !== 0) {
+//    console.error("Error: Must be run as root");
+//    process.exit(1);
+//  }
+//}
 
 // if we can't access config.json, return
 require('./config.json');
