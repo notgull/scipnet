@@ -35,14 +35,14 @@ var beginEditPage = function(username, args, next) {
   var returnVal = {result: false};
   
   // fetch the metadata
-  metadata(args.pagename, (pMeta, err) => {
-    if (pMeta === 3) {
-      next(pMeta, err);
-      return;
-    }
+  metadata.metadata.get_by_slug(args.pagename).then((pMeta) => {
+    //if (pMeta === 3) {
+    //  next(pMeta, err);
+    //  return;
+    //}
 
     // check for an edit lock
-    if (pMeta && pMeta.editlock !== -1) {
+    if (pMeta && (pMeta.editlock && pMeta.editlock.username !== username)) {
       returnVal.error = "Page is locked by " + pMeta.editlock.username;
       returnVal.errorCode = 1;
       next(returnVal);
@@ -50,88 +50,84 @@ var beginEditPage = function(username, args, next) {
     }
  
     // set an edit lock, if possible
-    var el = metadata.editlock(args.pagename, username);
-    el.save((res, err) => {
-      if (res) { next(res, err); return; }
+    var el = metadata.add_editlock(args.pagename, username);
+      //if (res) { next(res, err); return; }
  
-      // if necessary, set the editlock in the metadata to it
-      if (pMeta) {
-        pMeta.editlock = el;
+    // if necessary, set the editlock in the metadata to it
+    if (pMeta) {
+      pMeta.editlock = el;
 
-        var dataLoc = path.join(data_dir, args.pagename);
-	var data = "" + fs.readFileSync(dataLoc);
-	returnVal.src = data;
-	returnVal.title = pMeta.title;
+      var dataLoc = path.join(data_dir, args.pagename);
+      var data = "" + fs.readFileSync(dataLoc);
+      returnVal.src = data;
+      returnVal.title = pMeta.title;
 
-	pMeta.save((res, err) => {
-          if (res) { next(res, err); return; }
+      pMeta.save().then(() => {
+        //if (res) { next(res, err); return; }
 
-          returnVal.result = true;
-          next(returnVal);
-	});
-      }
+        returnVal.result = true;
+        next(returnVal);
+      }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+      return;
+    }
 
-      returnVal.result = true;
-      next(returnVal);
-    });
-  });
+    returnVal.result = true;
+    next(returnVal);
+  }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
 };
 
 // cancel an edit lock
 var removeEditLock = function(username, args, next) {
   var returnVal = {result: false};
   
-  metadata(args.pagename, (pMeta, err) => {
+  metadata(args.pagename).then((pMeta) => {
     if (pMeta === 3) {
       next(pMeta, err);
       return;
     }
 
     // get the edit lock
-    metadata.editlock.get_by_url(args.pagename, (el, err) => {
-      if (el === 3) { next(el, err); return; }
+    el = metadata.check_editlock(args.pagename);
+      //if (el === 3) { next(el, err); return; }
 	
-      if (!el) {
-        // nothing to do!
-	returnVal.error = "Attempted to remove a non-existent edit lock";
-	returnVal.errorCode = 3;
-	next(returnVal);
-	return;
-      }
+    if (!el) {
+      // nothing to do!
+      returnVal.error = "Attempted to remove a non-existent edit lock";
+      returnVal.errorCode = 3;
+      next(returnVal);
+      return;
+    }
 
       // if there's an editlock mismatch, we have an error
-      if (pMeta && (pMeta.editlock.id !== el.id || pMeta.editlock.url !== el.url || pMeta.editlock.username !== el.username)) {
-        next(-1, new Error("Editlock mismatch"));
+    if (pMeta && (pMeta.editlock.editlock_id !== el.editlock_id || pMeta.editlock.url !== el.url || pMeta.editlock.username !== el.username)) {
+      next(-1, new Error("Editlock mismatch"));
+      return;
+    }
+
+    // if the edit lock belongs to the user, remove it
+    if (el.username === username) {
+      metadata.remove_editlock(url);
+
+      // if necessary, set the editlock on the metadata to none
+      if (pMeta) {
+        pMeta.editlock = null;
+	pMeta.save().then(() => {
+        //      if (res) { next(res, err); return; }
+	      returnVal.result = true;
+	      next(returnVal);
+	}).catch((err) => { next({result: false, errorCode: -1, error: err}); });
 	return;
       }
 
-      // if the edit lock belongs to the user, remove it
-      if (el.username === username) {
-        el.remove((res, err) => {
-          if (res) next(res, err);
-
-          // if necessary, set the editlock on the metadata to none
-          if (pMeta) {
-	    pMeta.editlock = -1;
-	    pMeta.save((res, err) => {
-              if (res) { next(res, err); return; }
-	      returnVal.result = true;
-	      next(returnVal);
-	    });
-	    return;
-	  }
-
-          returnVal.result = true;
-          next(returnVal);
-	});
-      } else {
-        returnVal.error = "Attempted to remove an editlock belonging to " + el.username;
-	returnVal.errorCode = 2;
-	returnVal.editlockBlocker = el.username;
-	next(returnVal);
-      }
-    });
-  });
+      returnVal.result = true;
+      next(returnVal);
+    } else {
+      returnVal.error = "Attempted to remove an editlock belonging to " + el.username;
+      returnVal.errorCode = 2;
+      returnVal.editlockBlocker = el.username;
+      next(returnVal);
+    }
+  }).catch((err) => { next({result: false, error: err, errorCode: -1}); });
 };
 
 // save an edit
@@ -203,9 +199,7 @@ var voteOnPage = function(username, args, next) {
   var returnVal = {result: false};
 
   // TODO: add username check
-  metadata(args.pagename, (mObj, err) => { 
-    if (mObj === 3) { next(mObj, err); return; }
-
+  metadata.metadata.load_by_slug(args.pagename).then((mObj) => { 
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -224,8 +218,8 @@ var voteOnPage = function(username, args, next) {
     var rater = {user: username, rating: args.rating};
     var found = false;
     for (var i = 0; i < mObj.raters.length; i++) {
-      if (mObj.raters[i].username === username) {
-        mObj.raters[i].rating = args.rating;
+      if (mObj.ratings[i].username === username) {
+        mObj.ratings[i].rating = args.rating;
 	found = true;
 	break;
       }
@@ -236,21 +230,21 @@ var voteOnPage = function(username, args, next) {
 
     mObj.recalculate_rating();
 
-    mObj.save((res, err) => {
+    mObj.save(().then(() => {
       if (res) { next(res, err); return; }
 
       returnVal.result = true;
       returnVal.newRating = mObj.rating;
       next(returnVal);
-    });
-  });
+    }).catch((err) => { next({result: false, errorCode: -1, error:err}); });
+  }).catch((err) => { next({result: false, errorCode: -1, error:err}); });
 };
 
 // get rating
 var getRating = function(username, args, next) {
   var returnVal = {result: false};
 
-  metadata(args.pagename, (pMeta, err) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
     if (pMeta === 3) { next(pMeta, err); return; }
 
     if (!pMeta) {
@@ -261,10 +255,10 @@ var getRating = function(username, args, next) {
     }
 
     // remove the current rating, if needed
-    returnVal.rating = pMeta.rating;
+    returnVal.rating = pMeta.get_rating();
     returnVal.result = true;
     next(returnVal);
-  });
+  }).catch((err) => { next({result:false,errorCode:-1}); });
 };
 
 // master prs function

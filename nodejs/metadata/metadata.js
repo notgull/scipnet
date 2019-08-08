@@ -188,19 +188,19 @@ exports.author.prototype.submit = async function() {
 }
 
 // represents a parent - one article can have many parents
-exports.parent = function(carticle_id, particle_id) {
-  if (!(this instanceof exports.parent)) return new exports.parent(carticle_id, particle_id);
+exports.parent_ = function(carticle_id, particle_id) {
+  if (!(this instanceof exports.parent_)) return new exports.parent_(carticle_id, particle_id);
 
   this.child_id = carticle_id;
   this.parent_id = parent_id;
 }
 
-exports.parent.load_by_ids = async function(child_id, parent_id) {
+exports.parent_.load_by_ids = async function(child_id, parent_id) {
   var res = await query("SELECT * FROM Parents WHERE article_id=$1 AND parent_article_id=$2");
   if (res.rowCount === 0) return null;
 
-  var parent = new exports.parent(child_id, parent_id);
-  return parent;
+  var parent_ = new exports.parent_(child_id, parent_id);
+  return parent_;
 }
 
 exports.parent.load_array_by_child = async function(child_id) {
@@ -211,8 +211,8 @@ exports.parent.load_array_by_child = async function(child_id) {
   var parents = [];
   var row;
   for (row of res) {
-    var parent = new exports.parent(child_id, row.parent_article_id);
-    parents.push(parent);
+    var parent_ = new exports.parent_(child_id, row.parent_article_id);
+    parents.push(parent_);
   }
 
   return parents;
@@ -243,7 +243,9 @@ var outdated_check = function() {
 }
 
 exports.add_editlock = function(slug, username) {
-  exports.editlock_table.push(new exports.editlock(slug, username, new Date()));
+  var el = new exports.editlock(slug, username, new Date());
+  exports.editlock_table.push(el);
+  return el;
 }
 
 exports.remove_editlock = function(slug) {
@@ -324,7 +326,7 @@ var load_metadata_from_row = async function(res) {
   this.revisions = await exports.revision.load_array_by_article(res.article_id);
 
   // load parents
-  this.parents = await exports.parent.load_array_by_child(res.article_id);
+  this.parents = await exports.parent_.load_array_by_child(res.article_id);
 
   // TODO: load files once we have that system up and running
   return metadata;
@@ -352,5 +354,16 @@ exports.metadata.prototype.submit = async function(save_dependencies=false) {
   if (this.editlock)
     editlock = this.editlock.editlock_id;
   var upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
-               "$1, $2, $3, $4, $5, $6::timestamp);";
+               "$1, $2, $3, $4, $5, $6::timestamp) " + "
+	       "ON CONFLICT (slug) DO UPDATE slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5i, " +
+	       "locked_at=$6::timestamp;";
+  await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
+
+  if (save_dependencies) {
+    // save the dependencies
+    this.ratings.forEach((rating) => { await rating.submit(); });
+    this.authors.forEach((author) => { await author.submit(); });
+    this.revisions.forEach((revision) => { await revision.submit(); });
+    this.parents.forEach((parent_) => { await parent_.submit(); });
+  }
 }
