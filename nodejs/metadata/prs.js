@@ -183,13 +183,19 @@ var changePage = function(username, args, next) {
   var returnVal = {result: false};
 
   metadata(args.pagename, (pMeta, err) => {
-    if (pMeta === 3) { next(pMeta, err); return; }
-
     // before anything, check to see if there's an editlock 
     // this shouldn't be an issue for normal usage, just if someone is messing with the API
-    metadata.editlock.get_by_slug(args.pagename).then((el) => {
-      
-    }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+    var el = metadata.check_editlock(args.pagename);
+    if (el && el.username !== username) {
+      returnVal.errorCode = 1;
+      returnVal.error = "Page is locked by " + el.username;
+      returnVal.editlockBlocker = el.username;
+      next(returnVal);
+      return;
+    } else if (el) { // username is the same, then remove the editlock
+      metadata.remove_editlock(args.pagename);
+      metadata.editlock = null;
+    }
   }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
 };
 
