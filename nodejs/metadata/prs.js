@@ -194,8 +194,19 @@ var changePage = function(username, args, next) {
       return;
     } else if (el) { // username is the same, then remove the editlock
       metadata.remove_editlock(args.pagename);
-      metadata.editlock = null;
+      pMeta.editlock = null;
     }
+
+    // update source
+    var dataLoc = path.join(data_dir, args.pagename);
+    var data = args.src;
+    fs.writeFileSync(dataLoc, data);
+
+    // TODO: apply revision to metadata, create diff, et al
+    pMeta.save().then(() => {
+      returnVal.result = true;
+      next(returnVal);
+    }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
   }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
 };
 

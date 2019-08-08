@@ -157,6 +157,10 @@ app.post("/prs", function(req, res) {
     for (var key in req.body)
       args[key] = req.body[key];
     prs.request(args["name"], username, args, function(result) {
+      if (result.errorCode === -1) {
+        console.log(result.error);
+        result.error = "An internal error occurred. Please contact a site administrator.";
+      }
       res.send(JSON.stringify(result));
     });
   } else {
