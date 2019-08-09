@@ -1,5 +1,5 @@
 /*
- * sql.js
+ * autocreate_404.js
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,21 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// exposes basic SQL functionality
-const { Pool } = require('pg');
-var config = require("./../config.json");
+// automatically create the 404 and main pages
+var metadata = require('./metadata');
 
-const pool = new Pool({
-  user: config.postgres_username,
-  host: "localhost",
-  database: config.postgres_database,
-  password: config.postgres_password,
-}); // TODO: set up port?
-
-module.exports.query = function(query, args, callback) {
-  pool.query(query, args, callback);
-}
-
-module.exports.queryPromise = async function(query, args) {
-  return await pool.query(query, args);
-}
+// put more pages in this if we need them
+module.exports = function(next) {
+  var _404 = new metadata.metadata("_404");
+  
+};

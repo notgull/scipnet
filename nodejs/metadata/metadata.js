@@ -290,7 +290,7 @@ exports.metadata = function(url) {
 exports.metadata.prototype.get_rating = function() {
   var rating = 0;
   for (var i = this.ratings.length; i >= 0; i--)
-    rating += this.ratings.[i].rating;
+    rating += this.ratings[i].rating;
   return rating;
 }
 
@@ -348,22 +348,29 @@ exports.metadata.load_by_id = async function(article_id) {
   return await load_metadata_from_row(res);
 }
 
+// define an asynchronous foreach loop
+var async_foreach = async function(arr, iter) {
+  for (var i = 0; i < arr.length; i++) {
+    await iter(arr[i]);
+  }
+};
+
 // save metadata to database
 exports.metadata.prototype.submit = async function(save_dependencies=false) {
   var editlock = null;
   if (this.editlock)
     editlock = this.editlock.editlock_id;
   var upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
-               "$1, $2, $3, $4, $5, $6::timestamp) " + "
+               "$1, $2, $3, $4, $5, $6::timestamp) " + 
 	       "ON CONFLICT (slug) DO UPDATE slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5i, " +
 	       "locked_at=$6::timestamp;";
   await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
 
   if (save_dependencies) {
     // save the dependencies
-    this.ratings.forEach((rating) => { await rating.submit(); });
-    this.authors.forEach((author) => { await author.submit(); });
-    this.revisions.forEach((revision) => { await revision.submit(); });
-    this.parents.forEach((parent_) => { await parent_.submit(); });
+    async_foreach(this.ratings, async function(rating) { await rating.submit(); });
+    async_foreach(this.authors, async function(author) { await author.submit(); });
+    async_foreach(this.revisions, async function(revision) { await revision.submit(); });
+    async_foreach(this.parents, async function (parent_) { await parent_.submit(); });
   }
 }

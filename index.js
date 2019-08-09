@@ -53,8 +53,9 @@ require('./config.json');
 var s_port = process.env.PORT || 8443;
 
 // load up the SQL before we start up
-ut_initializer((_o) => {});
-mt_initializer((_o) => {});
+ut_initializer((_o) => {
+  mt_initializer((_o) => {});
+});
 
 // initialize node.js app
 var app = express();
@@ -215,10 +216,10 @@ app.post("/process-register", function(req, res) {
 app.get("/:pageid", function(req, res) {
   // TODO: render username
   var pageid = req.params.pageid;
-  metadata(pageid, (pMeta, err) => {
+  metadata.metadata.load_by_slug(pageid).then(() => {
     if (pMeta === 3 || !pMeta) res.redirect('/_404');
     else res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req), pMeta));
-  });
+  }).catch((err) => { throw err; });
 });
 
 // load javascript files

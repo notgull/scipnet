@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var { query } = require('./../sql');
+var  query  = require('./../sql').query;
 
 module.exports = function(next) {
   var metadata_table_sql = "CREATE TABLE IF NOT EXISTS Pages (" +
@@ -32,7 +32,7 @@ module.exports = function(next) {
 		             //"files TEXT[]," +
 		             //"parent TEXT" +
 		           ");";
-  query(metadata_table_sql, (err, res) => {
+  query(metadata_table_sql, [], (err, res) => {
     if (err) throw new Error(err);
     
     // also create the revision table
@@ -43,7 +43,7 @@ module.exports = function(next) {
 		               "diff_link TEXT NOT NULL UNIQUE," +
 		               "created_at TIMESTAMP NOT NULL" +
 		             ");";
-    query(revision_table_sql, (err, res) => {
+    query(revision_table_sql, [], (err, res) => {
       if (err) throw new Error(err);
 
       // also create the ratings table
@@ -52,7 +52,7 @@ module.exports = function(next) {
 		               "user_id INTEGER REFERENCES Users(user_id)," +
                                "rating SMALLINT NOT NULL CHECK(abs(rating) <= 1)" +
 		             ");";
-      query(rating_table_sql, (err, res) => {
+      query(rating_table_sql, [], (err, res) => {
         if (err) throw new Error(err);
 
         var author_table_sql = "CREATE TABLE IF NOT EXISTS Authors (" +
@@ -62,7 +62,7 @@ module.exports = function(next) {
 		                 "author_type TEXT NOT NULL," +
 		                 "created_at TIMESTAMP NOT NULL" +
 		               ");";
-	query(author_table_sql, (err, res) => {
+	query(author_table_sql, [], (err, res) => {
           if (err) throw new Error(err);
 
           var file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
@@ -72,14 +72,14 @@ module.exports = function(next) {
 			         "file_uri TEXT NOT NULL," +
 			         "filename TEXT NOT NULL" +
 			       ");";
-          query(file_table_sql, (err, res) => {
+          query(file_table_sql, [], (err, res) => {
             if (err) throw new Error(err);
 
             var parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
 			             "article_id INTEGER REFERENCES Pages(article_id)," +
 			             "parent_article_id INTEGER REFERENCES Pages(article_id)" +
 			           ");";
-	    query(parent_table_sql, (err, res) => {
+	    query(parent_table_sql, [], (err, res) => {
               if (err) throw new Error(err);
 	      next(0);
 	    });
