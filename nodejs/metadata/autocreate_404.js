@@ -20,9 +20,47 @@
 
 // automatically create the 404 and main pages
 var metadata = require('./metadata');
+var validate = require('./../user/validate');
 
 // put more pages in this if we need them
 module.exports = function(next) {
-  var _404 = new metadata.metadata("_404");
-  
+  // add system user
+  validate.add_new_user("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", (user_id, err) => {
+    if (err) throw err;
+
+    var _404 = new metadata.metadata("_404");
+    _404.title = "404";
+    _404.locked_at = new Date();
+
+    // save the page to the database so that we have a page id to work with
+    _404.save().then(() => {
+      var article_id = _404.article_id;
+      var _404_author = new metadata.author(article_id, user_id, "author");
+      var _404_revision = new metadata.revision(article_id, user_id, ""); // TODO: diff link
+
+      _404.authors.push(_404_author);
+      _404.revisions.push(_404_revision);
+
+      _404.save().then(() => {
+        // we also need the main page
+        var mainpage = new metadata.metadata("main");
+        main.title = "";
+        main.locked_at = new Date();
+
+        main.save().then(() => {
+          var article_id = mainpage.article_id;
+          var mainpage_author = new metadata.author(article_id, user_id, "author");
+          var mainpage_revision = new metadata.revision(article_id, user_id, ""); // TODO: diff link
+
+          mainpage.authors.push(mainpage_author);
+          mainpage.revisions.push(mainpage_revision);
+
+          main.save().then(() => {
+            // done!
+            next(0);
+          }).catch((err) => {throw err;});
+        }).catch((err) => {throw err;});
+      }).catch((err) => {throw err;});
+    }).catch((err) => {throw err;});
+  });
 };

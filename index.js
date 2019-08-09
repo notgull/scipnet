@@ -200,13 +200,13 @@ app.post("/process-register", function(req, res) {
         if (result === validate.INTERNAL_ERROR) {
           //console.log(err);
           res.redirect('/register?errors=512');
-	} else if (result !== validate.EMAIL_NOT_FOUND)
-	  res.redirect('/register?errors=256');
-	else {
+        } else if (result !== validate.EMAIL_NOT_FOUND)
+          res.redirect('/register?errors=256');
+        else {
           // TODO: verify via email
           res.redirect('/');
           onEmailVerify(username, pwHash, email);
-	}
+        }
       });
     }
   });

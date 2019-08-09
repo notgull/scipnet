@@ -373,4 +373,6 @@ exports.metadata.prototype.submit = async function(save_dependencies=false) {
     async_foreach(this.revisions, async function(revision) { await revision.submit(); });
     async_foreach(this.parents, async function (parent_) { await parent_.submit(); });
   }
+
+  this.article_id = await query("SELECT article_id FROM Pages WHERE slug=$1;", [this.slug]).rows[0];
 }
