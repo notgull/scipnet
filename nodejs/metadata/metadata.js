@@ -272,7 +272,7 @@ exports.metadata = function(url) {
     return new exports.metadata(url);
   } else {
     this.article_id = -1;
-    this.url = url;
+    this.slug = url;
     this.title = "";
     this.ratings = [];
     this.authors = [];
@@ -289,7 +289,7 @@ exports.metadata = function(url) {
 // get the composite rating of the article
 exports.metadata.prototype.get_rating = function() {
   var rating = 0;
-  for (var i = this.ratings.length; i >= 0; i--)
+  for (var i = this.ratings.length - 1; i >= 0; i--)
     rating += this.ratings[i].rating;
   return rating;
 }
@@ -304,29 +304,29 @@ var load_metadata_from_row = async function(res) {
   metadata.locked_at = res.locked_at;
 
   // get the editlock, if any
-  var el = exports.check_editlock(uuid=res.editlock_id);
+  var el = exports.check_editlock(null, res.editlock_id);
   if (el) metadata.editlock = el;
   else {
-    el = exports.check_editlock(slug=res.slug);
+    el = exports.check_editlock(res.slug, null);
     if (el) metadata.editlock = el;
     else metadata.editlock = null;
   }
 
   // load ratings
-  this.ratings = await exports.rating.load_array_by_article(res.article_id);
+  metadata.ratings = await exports.rating.load_array_by_article(res.article_id);
 
   // load authors
-  this.authors = await exports.author.load_array_by_article(res.article_id);
-  if (this.authors.length > 1)
-    this.author = null;
+  metadata.authors = await exports.author.load_array_by_article(res.article_id);
+  if (metadata.authors.length > 1)
+    metadata.author = null;
   else
-    this.author = this.authors[0];
+    metadata.author = metadata.authors[0];
   
   // load revisions
-  this.revisions = await exports.revision.load_array_by_article(res.article_id);
+  metadata.revisions = await exports.revision.load_array_by_article(res.article_id);
 
   // load parents
-  this.parents = await exports.parent_.load_array_by_child(res.article_id);
+  metadata.parents = await exports.parent_.load_array_by_child(res.article_id);
 
   // TODO: load files once we have that system up and running
   return metadata;
@@ -357,14 +357,18 @@ var async_foreach = async function(arr, iter) {
 
 // save metadata to database
 exports.metadata.prototype.submit = async function(save_dependencies=false) {
+  console.log("Submitting metadata");
+  console.log(JSON.stringify(this));
   var editlock = null;
   if (this.editlock)
     editlock = this.editlock.editlock_id;
   var upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
                "$1, $2, $3, $4, $5, $6::timestamp) " + 
-	       "ON CONFLICT (slug) DO UPDATE slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5i, " +
+	       "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
 	       "locked_at=$6::timestamp;";
   await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
+
+  //console.log("Upsert done");
 
   if (save_dependencies) {
     // save the dependencies
@@ -374,5 +378,7 @@ exports.metadata.prototype.submit = async function(save_dependencies=false) {
     async_foreach(this.parents, async function (parent_) { await parent_.submit(); });
   }
 
-  this.article_id = await query("SELECT article_id FROM Pages WHERE slug=$1;", [this.slug]).rows[0];
+  this.article_id = await query("SELECT article_id FROM Pages WHERE slug=$1;", [this.slug]);
+  if (this.article_id.rowLength === 0) throw new Error("Unable to get user id after saving to database");
+  else this.article_id = this.article_id.rows[0].article_id;
 }

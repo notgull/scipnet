@@ -181,7 +181,7 @@ exports.add_new_user = function(user, email, pwHash, next) {
   console.log("Adding user data");
   var now = new Date();
   var add_user_sql = "INSERT INTO Users (username, email, karma, join_date, status, avatar) " +
-		     "VALUES ($1, $2, 0, $3::text, 0, '');";
+		     "VALUES ($1, $2, 0, $3::timestamp, 0, '');";
 
   query(add_user_sql, [user, email, getFormattedDate(now)], (err, res) => {
     if (err) next(exports.INTERNAL_ERROR, err);
@@ -208,7 +208,7 @@ exports.add_new_user = function(user, email, pwHash, next) {
 	            var add_password_sql = "INSERT INTO Passwords (user_id, salt, pwhash) " + 
 			           "VALUES ($1, $2, $3);";
 
-	            query(add_password_sql, [user, stringified_salt, realHash], (err, res) => {
+	            query(add_password_sql, [user_id, stringified_salt, realHash], (err, res) => {
 	              console.log("Finally done");
 
                 if (err) next(exports.INTERNAL_ERROR, err);

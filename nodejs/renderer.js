@@ -28,6 +28,7 @@ var fs = require('fs');
 var path = require('path');
 
 exports.render = async function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false, metadata=null) {
+
   var template = fs.readFileSync('html/template.html');
   template = template + ''; // ensure template is a string
   const replacement_string = "[INSERT_CONTENT_HERE]";
@@ -46,6 +47,9 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
     //var markdown_tree = markdown(modName);
     //content = markdown_tree.flatten(username);
 	 
+    if (!metadata)
+      throw new Error("Expected metadata");
+
     // test for existence first
     var filepath = path.join(config.scp_cont_location, modName);
     if (!fs.existsSync(filepath))
@@ -54,7 +58,7 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
     
 
     var src = fs.readFileSync(filepath);
-    content = markdown.get_markdown(modName, src);
+    content = markdown.get_markdown(modName, src, metadata);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
   }

@@ -26,6 +26,7 @@ var http = require('http');
 var https = require('https');
 var util = require('util');
 
+var autocreation = require('./nodejs/metadata/autocreate_404');
 var ut_initializer = require("./nodejs/user/initialize_database");
 var mt_initializer = require("./nodejs/metadata/initialize_database");
 
@@ -54,7 +55,9 @@ var s_port = process.env.PORT || 8443;
 
 // load up the SQL before we start up
 ut_initializer((_o) => {
-  mt_initializer((_o) => {});
+  mt_initializer((_o) => {
+    autocreation((_o) => {});
+  });
 });
 
 // initialize node.js app
@@ -76,6 +79,25 @@ var ut = usertable();
 function loginInfo(req) {
   var ip_addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
   return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
+}
+
+
+// function to render a page
+async function render_page_async(req, isHTML, name, pageTitle) {
+  //console.log("Rendering page with: ");
+  //console.log(Array.from(arguments));
+
+  if (isHTML) {
+    return await renderer.render('', name, pageTitle, loginInfo(req));
+  } else {
+    var md = await metadata.metadata.load_by_slug(name);
+    if (!md) return false;
+    return await renderer.render(name, '', pageTitle, loginInfo(req), md);
+  }
+}
+
+function render_page(req, isHTML, name, pageTitle, next) {
+  render_page_async(req, isHTML, name, pageTitle).then(next).catch((err) => {throw err;});
 }
 
 // if the css theme is requested, return it
@@ -107,8 +129,11 @@ app.get("/special/itc-bauhaus-lt-demi.eot", function(req, res) {
 
 // get login page
 app.get("/login", function(req, res) {
-  var login = renderer.render('', 'html/login.html', 'Login', loginInfo(req)); 
-  res.send(login);
+  //var login = renderer.render('', 'html/login.html', 'Login', loginInfo(req)); 
+  //res.send(login);
+
+ render_page(req, true, 'html/login.html', "Login",
+	  (d) => {res.send(d)});
 });
 
 const day_constant = 86400000;
@@ -173,6 +198,9 @@ app.post("/prs", function(req, res) {
 app.get("/register", function(req, res) {
   var register = renderer.render('', 'html/register.html', 'Register', loginInfo(req));
   res.send(register);
+
+  render_page(req, true, 'html/register.html', 'Register', 
+	       (d) => {res.send(d);});
 });
 
 var onEmailVerify = function(username, pwHash, email) {
@@ -216,10 +244,16 @@ app.post("/process-register", function(req, res) {
 app.get("/:pageid", function(req, res) {
   // TODO: render username
   var pageid = req.params.pageid;
-  metadata.metadata.load_by_slug(pageid).then(() => {
-    if (pMeta === 3 || !pMeta) res.redirect('/_404');
-    else res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req), pMeta));
-  }).catch((err) => { throw err; });
+  //metadata.metadata.load_by_slug(pageid).then(() => {
+  //  if (pMeta === 3 || !pMeta) res.redirect('/_404');
+  //  else res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req), pMeta));
+  //}).catch((err) => { throw err; });
+
+  render_page(req, false, pageid, '', 
+	        (d) => {
+		  if (!d) res.redirect("/_404");	
+		  else res.send(d);
+		});
 });
 
 // load javascript files
@@ -233,10 +267,16 @@ app.get("/js/:script", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  metadata("main", (pMeta, err) => {
-    if (pMeta === 3 || !pMeta) res.redirect('/_404');
-    else res.send(renderer.render("main", '', '', loginInfo(req), pMeta));
-  });
+  //metadata.metadata.load_by_slug("main").then((pMeta) => {
+  //  if (pMeta === 3 || !pMeta) res.redirect('/_404');
+  //  else {
+  //    var data = renderer.render("main", '', '', loginInfo(req), pMeta);
+  //    console.log(data);
+  //    res.send(data);
+  //  }
+  //}).catch((err) => { throw err; });
+  render_page(req, false, 'main', '',
+	        (d) => {res.send(d);});
 });
 
 // initialize http servers
