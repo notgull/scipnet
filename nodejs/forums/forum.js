@@ -1,6 +1,5 @@
-<!--
 /*
- * lbar_nli.html
+ * forum.js
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,11 +17,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
--->
-<script>
-document.onload =  function() {
-  var slug = '?new_url=' + get_slug();
-  document.getElementById("login_button").href += slug;
-};
-</script>
-<p><a id="login_button" href="/login">Log In</a> | <a id="register_button" href="/register">Create Account</a></p>
+
+// manages forums
+
+// first, the data structure
+exports.post = function(user_id, contents) {
+  if (!(this instanceof exports.post)) return new exports.post(user_id, contents);
+
+  this.user_id = user_id;
+  this.contents = contents;
+  this.title = "";
+  this.replies = [];
+  this.created_at = new Date();
+}
+
+var gen_board_id = function() {
+
+}
+
+var gen_thread_id = function() {
+  
+}
+
+exports.thread = function() {
+  if (!(this instanceof exports.thread)) return new exports.thread();
+
+  
+}

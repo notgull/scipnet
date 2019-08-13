@@ -36,7 +36,9 @@
 
 var config = require('./../../config.json');
 var { error_codes, getFormattedDate } = require('./../user/validate');
+var fs = require('fs');
 var query = require('./../sql').queryPromise;
+var path = require('path');
 var uuidv4 = require('uuid/v4');
 
 var check_metadata_existence = async function(url) {
@@ -53,7 +55,7 @@ var get_primary_key = async function(key_name, table_name, determiner_name, dete
 };
 
 exports.rating = function(article_id, user_id, rating) {
-  if (!(this instanceof exports.rating)) return new exports.rating(user_id, rating);
+  if (!(this instanceof exports.rating)) return new exports.rating(article_id, user_id, rating);
   this.user_id = user_id;
   this.article_id = article_id;
   this.rating = rating;
@@ -81,7 +83,10 @@ exports.rating.load_array_by_article = async function(article_id) {
   var ratings = [];
   var row;
   for (row of res) {
+    //console.log("FOUND ROW:");
+    //console.log(row);
     var rating = exports.rating(article_id, row.user_id, row.rating);
+    //console.log(rating);
     ratings.push(rating);
   }
 
@@ -97,11 +102,22 @@ exports.rating.prototype.submit = async function() {
   await query(insert_query, [this.article_id, this.user_id, this.rating]);
 }
 
-exports.revision = function(article_id, user_id, diff_link) {
+// generate a good place for a diff link
+var get_diff_link = function(article_id) {
+  const diff_dir = config.scp_diff_location;
+  var diff_col = path.join(diff_dir, article_id);
+
+  if (!(fs.existsSync(diff_col)))
+    fs.mkdirSync(diff_col, { recursive: true});
+
+  return path.join(diff_col, uuidv4()) + ".patch";
+}
+
+exports.revision = function(article_id, user_id, diff_link=null) {
   if (!(this instanceof exports.revision)) return new exports.revision(article_id, user_id, diff_link);
   this.article_id = article_id;
   this.user_id = user_id;
-  this.diff_link = diff_link;
+  this.diff_link = diff_link || get_diff_link(article_id);
   this.revision_id = -1;
   this.created_at = new Date();
 }
@@ -290,7 +306,7 @@ exports.metadata = function(url) {
 exports.metadata.prototype.get_rating = function() {
   var rating = 0;
   for (var i = this.ratings.length - 1; i >= 0; i--)
-    rating += this.ratings[i].rating;
+    rating += Number(this.ratings[i].rating);
   return rating;
 }
 
@@ -314,6 +330,7 @@ var load_metadata_from_row = async function(res) {
 
   // load ratings
   metadata.ratings = await exports.rating.load_array_by_article(res.article_id);
+  //console.log(metadata.ratings);
 
   // load authors
   metadata.authors = await exports.author.load_array_by_article(res.article_id);
@@ -357,7 +374,7 @@ var async_foreach = async function(arr, iter) {
 
 // save metadata to database
 exports.metadata.prototype.submit = async function(save_dependencies=false) {
-  console.log("Submitting metadata");
+  //console.log("Submitting metadata");
   console.log(JSON.stringify(this));
   var editlock = null;
   if (this.editlock)

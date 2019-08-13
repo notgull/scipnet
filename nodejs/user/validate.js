@@ -99,7 +99,7 @@ exports.check_user_existence = function(user, next) {
 
     // check for user existence first
   const check_user_sql = "SELECT username FROM Users WHERE username=$1;";
-  query(check_user_sql, user, (err, row) => {
+  query(check_user_sql, [user], (err, row) => {
       //db.close();
       //console.log("Row is: ");
       //console.log(row);
@@ -131,7 +131,7 @@ exports.get_user_id = function(user, next) {
   query(userid_query, [user], (err, res) => {
     if (err) { next(exports.INTERNAL_ERROR, err); return; }
     
-    if (res.rowCount === 0) next(exports.USER_NOT_FOUND);
+    if (res.rowCount === 0) next(null, "Unable to find user ID");
     else next(res.rows[0].user_id);
   });
 };
@@ -155,7 +155,7 @@ exports.validate_user = function(user, pwHash, next) {
 
         // get the proper password hash
         var get_pwhash_sql = "SELECT salt, pwhash FROM Passwords WHERE user_id=$1;";
-        query(get_pwhash_sql, [res,rows[0].user_id], (err, row) => {
+        query(get_pwhash_sql, [res], (err, row) => {
           if (err) next(exports.INTERNAL_ERROR, err);
           else if (row.rowCount === 0) next(exports.USER_NOT_FOUND);
           else {
@@ -166,7 +166,7 @@ exports.validate_user = function(user, pwHash, next) {
             argon2.verify(row.pwhash, pwHash, opts).then((result) => {
               if (result) next(0);
               else next(exports.PASSWORD_INCORRECT);
-	          }).catch((err) => { next(exports.INTERNAL_ERROR, err); });
+	    }).catch((err) => { next(exports.INTERNAL_ERROR, err); });
           }
         });
       });
@@ -201,7 +201,6 @@ exports.add_new_user = function(user, email, pwHash, next) {
             opts.salt = buf;
 	        
             argon2.hash(pwHash, opts).then(function(realHash) {  
-
               var stringified_salt = JSON.stringify(buf);
               stringified_salt = stringified_salt.split("'").join("\"");
 
@@ -215,7 +214,7 @@ exports.add_new_user = function(user, email, pwHash, next) {
 	              else next(user_id, null);
 	            });
             }).catch(function(err) { console.log(err); next(exports.INTERNAL_ERROR, err); });
-	        }
+	  }
         });
       });
     }

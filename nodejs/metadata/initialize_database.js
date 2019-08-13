@@ -41,6 +41,7 @@ module.exports = function(next) {
 		               "article_id INTEGER REFERENCES Pages(article_id)," +
 		               "user_id INTEGER REFERENCES Users(user_id)," +
 		               "diff_link TEXT NOT NULL UNIQUE," +
+		               "description TEXT," +
 		               "created_at TIMESTAMP NOT NULL" +
 		             ");";
     query(revision_table_sql, [], (err, res) => {

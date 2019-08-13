@@ -23,11 +23,15 @@
 
 // page request system - for things like upvoting, creating pages, etc.
 var config = require('./../../config.json');
+var diff = require('diff');
 var fs = require('fs');
+var { get_user_id } = require('./../user/validate');
 var metadata = require('./metadata');
 var path = require('path');
+var uuid = require('uuid/v4');
 
 var data_dir = config.scp_cont_location;
+var diff_dir = config.scp_diff_location;
 var meta_dir = config.scp_meta_location;
 
 // request an edit for the page
@@ -35,7 +39,7 @@ var beginEditPage = function(username, args, next) {
   var returnVal = {result: false};
   
   // fetch the metadata
-  metadata.metadata.get_by_slug(args.pagename).then((pMeta) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
     //if (pMeta === 3) {
     //  next(pMeta, err);
     //  return;
@@ -63,7 +67,7 @@ var beginEditPage = function(username, args, next) {
       returnVal.title = pMeta.title;
 
       // save metadata to database
-      pMeta.save().then(() => {
+      pMeta.submit(true).then(() => {
         //if (res) { next(res, err); return; }
 
         returnVal.result = true;
@@ -81,7 +85,7 @@ var beginEditPage = function(username, args, next) {
 var removeEditLock = function(username, args, next) {
   var returnVal = {result: false};
   
-  metadata(args.pagename).then((pMeta) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
     if (pMeta === 3) {
       next(pMeta, err);
       return;
@@ -112,7 +116,7 @@ var removeEditLock = function(username, args, next) {
       // if necessary, set the editlock on the metadata to none
       if (pMeta) {
         pMeta.editlock = null;
-        pMeta.save().then(() => {
+        pMeta.submit(true).then(() => {
           //      if (res) { next(res, err); return; }
 	        returnVal.result = true;
 	        next(returnVal);
@@ -132,57 +136,10 @@ var removeEditLock = function(username, args, next) {
 };
 
 // save an edit
-/*var changePage = function(username, args, next) {
-  var returnVal = {result: false};
-
-  // TODO: add revision
-  var mObj = metadata(args.pagename);
-  if (!mObj) {
-    // if needed, create a new metadata object
-    var editlockPath = path.join(meta_dir, args.pagename + ".editlock");
-    if (fs.existsSync(editlockPath)) {
-      // make sure we're not messing with anyone
-      var editlockObj = JSON.parse("" + fs.readFileSync(editlockPath));
-      if (editlockObj.name === username)
-        fs.unlinkSync(editlockPath);
-      else {
-        returnVal.errorCode = 2;
-	returnVal.error = "Attempted to remove edit lock that is not yours";
-	next(returnVal);
-	return;
-      }
-    }
-   
-    mObj = new metadata(args.pagename);
-    mObj.title = args.title;
-    mObj.author = username;
-  } else {
-    if (mObj.editlock.length > 0 && mObj.editlock !== username) {
-      returnVal.errorCode = 2;
-      returnVal.error = "Attempted to remove edit lock that is not yours";
-      next(returnVal);
-      return;
-    }
-  }
-
-  var dataLoc = path.join(data_dir, args.pagename);
-  var data = args.src;
-  fs.writeFileSync(dataLoc, data);
-
-  // TODO: add revisions, et al
-  mObj.save((res, err) => {
-    if (res) { next(res, err); return; }
-
-    returnVal.result = true;
-    next(returnVal);
-  });
-};*/
-
-// save an edit
 var changePage = function(username, args, next) {
   var returnVal = {result: false};
 
-  metadata(args.pagename, (pMeta, err) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
     // before anything, check to see if there's an editlock 
     // this shouldn't be an issue for normal usage, just if someone is messing with the API
     var el = metadata.check_editlock(args.pagename);
@@ -197,13 +154,30 @@ var changePage = function(username, args, next) {
       pMeta.editlock = null;
     }
 
-    // update source
+    if (!pMeta) {
+      pMeta = new metadata.metadata(args.pagename);
+      pMeta.title = args.title || "";
+    }
+
+    // get the old source
     var dataLoc = path.join(data_dir, args.pagename);
     var data = args.src;
+    var oldData;
+    if (fs.existsSync(dataLoc))
+      oldData = fs.readFileSync(dataLoc);
+    else
+      oldData = "";
     fs.writeFileSync(dataLoc, data);
 
+    // write revision
+    var patch = diff.createPatch(dataLoc, oldData, data, "", "");
+
+    var revision = new metadata.revision(pMeta.article_id, args.user_id);
+    fs.writeFilSync(revision.diff_loc, patch);
+    pMeta.revisions.push(revision);
+
     // TODO: apply revision to metadata, create diff, et al
-    pMeta.save().then(() => {
+    pMeta.submit(true).then(() => {
       returnVal.result = true;
       next(returnVal);
     }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
@@ -231,24 +205,28 @@ var voteOnPage = function(username, args, next) {
     }
 
     // search for rater if needed
-    var rater = {user: username, rating: args.rating};
+    var rater = new metadata.rating(mObj.article_id, args.user_id, args.rating);
     var found = false;
-    for (var i = 0; i < mObj.raters.length; i++) {
-      if (mObj.ratings[i].username === username) {
+    console.log("User id is " + args.user_id);
+    for (var i = 0; i < mObj.ratings.length; i++) {
+      if (Number(mObj.ratings[i].user_id) === Number(args.user_id)) {
         mObj.ratings[i].rating = args.rating;
-	      found = true;
+	found = true;
         break;
       }
     }
  
-    if (!found)
-      mObj.raters.push(rating);
+    if (!found) {
+      console.log("User was not found in list");
+      mObj.ratings.push(rater);
+    }
 
-    mObj.save().then(() => {
-      if (res) { next(res, err); return; }
+    mObj.submit(true).then(() => {
+      //if (res) { next(res, err); return; }
 
       returnVal.result = true;
-      returnVal.newRating = mObj.rating;
+      returnVal.newRating = mObj.get_rating();
+      console.log(returnVal);
       next(returnVal);
     }).catch((err) => { next({result: false, errorCode: -1, error:err}); });
   }).catch((err) => { next({result: false, errorCode: -1, error:err}); });
@@ -268,7 +246,7 @@ var getRating = function(username, args, next) {
       return;
     }
 
-    // remove the current rating, if needed
+    // get the current rating
     returnVal.rating = pMeta.get_rating();
     returnVal.result = true;
     next(returnVal);
@@ -291,9 +269,16 @@ exports.request = function(name, username, args, next) {
     return;
   }
 
-  if (name === 'changePage') changePage(username, args, next);
-  else if (name === 'removeEditLock') removeEditLock(username, args, next);
-  else if (name === 'beginEditPage') beginEditPage(username, args, next);
-  else if (name === 'voteOnPage') voteOnPage(username, args, next);
-  else throw new Error("Improper PRS request " + name);
+  // also get the user id
+  get_user_id(username, (user_id, err) => {
+    if (err && username) { next({result: false, errorCode: -1}); return; }
+
+    args['user_id'] = user_id;
+
+    if (name === 'changePage') changePage(username, args, next);
+    else if (name === 'removeEditLock') removeEditLock(username, args, next);
+    else if (name === 'beginEditPage') beginEditPage(username, args, next);
+    else if (name === 'voteOnPage') voteOnPage(username, args, next);
+    else throw new Error("Improper PRS request " + name);
+  });
 };

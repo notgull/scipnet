@@ -1,6 +1,7 @@
 {
   "scp_cont_location": "/var/scp-content/",
   "scp_meta_location": "/var/scp-metadata/",
+  "scp_diff_location": "/var/scp-diff/",
 
   "postgres_username": "scipnet",
   "postgres_password": "GoodPassword222",

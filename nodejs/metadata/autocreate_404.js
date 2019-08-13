@@ -19,8 +19,23 @@
  */
 
 // automatically create the 404 and main pages
+var config = require('./../../config.json');
+var diff = require('diff');
+var fs = require('fs');
 var metadata = require('./metadata');
+var path = require('path');
 var validate = require('./../user/validate');
+
+// just create a raw revision - good for pages
+var raw_revision = function(article_id, article_name, user_id) {
+  var dataLoc = path.join(config.scp_cont_location, article_name);
+  var data = fs.readFileSync(dataLoc) + "";
+  var patch = diff.createPatch(dataLoc, "", data, "", "");
+  var revision = new metadata.revision(article_id, user_id);
+
+  fs.writeFileSync(revision.diff_link, patch);
+  return revision;
+}
 
 // put more pages in this if we need them
 module.exports = function(next) {
@@ -40,7 +55,7 @@ module.exports = function(next) {
     _404.submit().then(() => {
       var article_id = _404.article_id;
       var _404_author = new metadata.author(article_id, user_id, "author");
-      var _404_revision = new metadata.revision(article_id, user_id, ""); // TODO: diff link
+      var _404_revision = raw_revision(article_id, _404.slug, user_id);
 
       _404.authors.push(_404_author);
       _404.revisions.push(_404_revision);
@@ -54,7 +69,7 @@ module.exports = function(next) {
         mainpage.submit().then(() => {
           var article_id = mainpage.article_id;
           var mainpage_author = new metadata.author(article_id, user_id, "author");
-          var mainpage_revision = new metadata.revision(article_id, user_id, ""); // TODO: diff link
+          var mainpage_revision = raw_revision(article_id, mainpage.slug, user_id);
 
           mainpage.authors.push(mainpage_author);
           mainpage.revisions.push(mainpage_revision);

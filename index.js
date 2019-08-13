@@ -92,12 +92,19 @@ async function render_page_async(req, isHTML, name, pageTitle) {
   } else {
     var md = await metadata.metadata.load_by_slug(name);
     if (!md) return false;
-    return await renderer.render(name, '', pageTitle, loginInfo(req), md);
+
+    let title = pageTitle;
+    if (pageTitle.length === 0)
+      title = md.title;
+
+    return await renderer.render(name, '', title, loginInfo(req), md);
   }
 }
 
 function render_page(req, isHTML, name, pageTitle, next) {
-  render_page_async(req, isHTML, name, pageTitle).then(next).catch((err) => {throw err;});
+  render_page_async(req, isHTML, name, pageTitle).then((r) => {
+    next(r);
+  }).catch((err) => {throw err;});
 }
 
 // if the css theme is requested, return it
@@ -144,7 +151,7 @@ app.post("/process-login", function(req, res) {
   var pwHash = req.body.pwHash;
   var push_expiry = (req.body.remember === "true");
   var change_ip = (req.body.change_ip === "true");
-  var new_url = req.body.new_url || "/";
+  var new_url = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
   validate.validate_user(username, pwHash, (result, err) => {
@@ -163,7 +170,7 @@ app.post("/process-login", function(req, res) {
       var sessionId = ut.register(username, ip_addr, expiry, change_ip);
       console.log("Logged session " + sessionId);
       res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
-      res.redirect(new_url);
+      res.redirect('/' + new_url);
     }
   });
 });
@@ -196,8 +203,8 @@ app.post("/prs", function(req, res) {
 
 // get registration page
 app.get("/register", function(req, res) {
-  var register = renderer.render('', 'html/register.html', 'Register', loginInfo(req));
-  res.send(register);
+  //var register = renderer.render('', 'html/register.html', 'Register', loginInfo(req));
+  //res.send(register);
 
   render_page(req, true, 'html/register.html', 'Register', 
 	       (d) => {res.send(d);});

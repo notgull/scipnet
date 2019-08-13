@@ -20,6 +20,13 @@
 
 // sending xmlhttprequests to the server and receiving data in return
 // need to include: js/cookie.js
+
+// helper function: get slug
+var get_slug = function() {
+  var pathname = window.location.pathname;
+  return pathname.split('/')[1];
+}
+
 var prsRequest = function(name, args, next) {
   // set up a form data with everything needed
   //var fData = new FormData();
