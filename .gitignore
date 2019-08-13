@@ -1,4 +1,10 @@
+# Binaries
 node_modules/
 certs/
 db/
 rust/target/
+
+# Misc
+*.bak
+.*.sw?
+*~
