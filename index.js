@@ -251,14 +251,10 @@ app.post("/process-register", function(req, res) {
 app.get("/:pageid", function(req, res) {
   // TODO: render username
   var pageid = req.params.pageid;
-  //metadata.metadata.load_by_slug(pageid).then(() => {
-  //  if (pMeta === 3 || !pMeta) res.redirect('/_404');
-  //  else res.send(renderer.render(pageid, '', 'Testing Page', loginInfo(req), pMeta));
-  //}).catch((err) => { throw err; });
 
   render_page(req, false, pageid, '', 
 	        (d) => {
-		  if (!d) res.redirect("/_404");	
+		  if (!d) res.redirect("/_404?original_page=" + pageid);	
 		  else res.send(d);
 		});
 });
@@ -274,14 +270,6 @@ app.get("/js/:script", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  //metadata.metadata.load_by_slug("main").then((pMeta) => {
-  //  if (pMeta === 3 || !pMeta) res.redirect('/_404');
-  //  else {
-  //    var data = renderer.render("main", '', '', loginInfo(req), pMeta);
-  //    console.log(data);
-  //    res.send(data);
-  //  }
-  //}).catch((err) => { throw err; });
   render_page(req, false, 'main', '',
 	        (d) => {res.send(d);});
 });

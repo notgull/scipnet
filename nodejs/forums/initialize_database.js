@@ -19,5 +19,8 @@
  */
 
 var init_forum_table = async function() {
-
+  var init_forums_sql = "CREATE TABLE IF NOT EXISTS ForumPosts (" +
+		          "post_id BIGSERIAL PRIMARY KEY," +
+		          "user_id INTEGER REFERENCES Users(user_id)," +
+		          "";
 }

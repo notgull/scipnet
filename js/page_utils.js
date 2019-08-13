@@ -60,14 +60,25 @@ var editpage = function() {
   });
 };
 
-var savepage = function(refresh) {
+var toggle_404_param = function() {
+  document.getElementById("sac_button").onclick = function() { savepage(false, true); };
+  document.getElementById("save_button").onclick = function() { savepage(true, true); };
+}
+
+var savepage = function(refresh, use_404_param=false) {
   args = {pagename: window.location.href};
   args.src = document.getElementById('srcbox').value;
   args.title = document.getElementById('titlebox').value;
 
+  if (use_404_param)
+    args.pagename = window.location.protocol + "//" + window.location.host + "/" + get_parameter("original_page");
+
   prsRequest("changePage", args, (d) => {
     if (refresh)
-      window.location.reload();
+      if (!use_404_param)
+        window.location.reload();
+      else
+	window.location.href = args.pagename;
   });
 };
 

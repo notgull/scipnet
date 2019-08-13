@@ -42,7 +42,7 @@ var path = require('path');
 var uuidv4 = require('uuid/v4');
 
 var check_metadata_existence = async function(url) {
-  var check_existence_query = "SELECT article_id FROM Pages WEHRE slug=$1;";
+  var check_existence_query = "SELECT article_id FROM Pages WHERE slug=$1;";
   //console.log(check_existence_query);
   return await query(check_existence_query, [url]).rowCount > 0;
 };
