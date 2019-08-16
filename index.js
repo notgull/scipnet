@@ -75,9 +75,14 @@ var certs = { key: fs.readFileSync('certs/scpwiki.key'),
 // create a table of user sessions
 var ut = usertable();
 
+// get an ip address from a request
+function getIPAddress(req) {
+  return req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
+}
+
 // function that puts together login info for user
 function loginInfo(req) {
-  var ip_addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
+  var ip_addr = getIPAddress(req); 
   return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
 }
 
@@ -183,22 +188,18 @@ app.post("/prs", function(req, res) {
 
   // get username
   var username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
-  //console.log(username);
-  if (username) {
-    // pull all parameters from req.body and put them in args
-    var args = {};
-    for (var key in req.body)
-      args[key] = req.body[key];
-    prs.request(args["name"], username, args, function(result) {
-      if (result.errorCode === -1) {
-        console.log(result.error);
-        result.error = "An internal error occurred. Please contact a site administrator.";
-      }
-      res.send(JSON.stringify(result));
-    });
-  } else {
-    res.send(JSON.stringify({not_logged_in: true, result: false}));
-  }
+  
+  // pull all parameters from req.body and put them in args
+  var args = {};
+  for (var key in req.body)
+    args[key] = req.body[key];
+  prs.request(args["name"], username, args, function(result) {
+  if (result.errorCode === -1) {
+      console.log(result.error);
+      result.error = "An internal error occurred. Please contact a site administrator.";
+    }
+    res.send(JSON.stringify(result));
+  });
 });
 
 // get registration page
@@ -239,12 +240,24 @@ app.post("/process-register", function(req, res) {
           res.redirect('/register?errors=256');
         else {
           // TODO: verify via email
-          res.redirect('/');
+          res.redirect('/login');
           onEmailVerify(username, pwHash, email);
         }
       });
     }
   });
+});
+
+// log a user out of the system
+app.use("/process-logout", function(req, res) {
+  //var username = loginInfo(req);
+  //var ip_addr = getIPAddress(req);
+
+  var user_id = req.cookies["session_id"];
+  var new_location = req.query.new_url || "";
+  ut.logout(user_id);
+  
+  res.redirect('/' + new_location);
 });
 
 // get generic page

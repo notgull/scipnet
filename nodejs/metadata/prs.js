@@ -28,6 +28,7 @@ var fs = require('fs');
 var { get_user_id } = require('./../user/validate');
 var metadata = require('./metadata');
 var path = require('path');
+var renderer = require('./../renderer');
 var uuid = require('uuid/v4');
 
 var data_dir = config.scp_cont_location;
@@ -92,8 +93,7 @@ var removeEditLock = function(username, args, next) {
     }
 
     // get the edit lock
-    el = metadata.check_editlock(args.pagename);
-      //if (el === 3) { next(el, err); return; }
+    let el = metadata.check_editlock(args.pagename); 
 	
     if (!el) {
       // nothing to do!
@@ -117,9 +117,8 @@ var removeEditLock = function(username, args, next) {
       if (pMeta) {
         pMeta.editlock = null;
         pMeta.submit(true).then(() => {
-          //      if (res) { next(res, err); return; }
-	        returnVal.result = true;
-	        next(returnVal);
+	  returnVal.result = true;
+	  next(returnVal);
         }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
         return;
       }
@@ -136,53 +135,69 @@ var removeEditLock = function(username, args, next) {
 };
 
 // save an edit
-var changePage = function(username, args, next) {
+// NOTE: making this async because it's easier to glob the id for the metadata
+var changePageAsync = async function(username, args) {
   var returnVal = {result: false};
 
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
+  //metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
+  var pMeta = await metadata.metadata.load_by_slug(args.pagename);
     // before anything, check to see if there's an editlock 
-    // this shouldn't be an issue for normal usage, just if someone is messing with the API
-    var el = metadata.check_editlock(args.pagename);
-    if (el && el.username !== username) {
-      returnVal.errorCode = 1;
-      returnVal.error = "Page is locked by " + el.username;
-      returnVal.editlockBlocker = el.username;
-      next(returnVal);
-      return;
-    } else if (el) { // username is the same, then remove the editlock
-      metadata.remove_editlock(args.pagename);
-      pMeta.editlock = null;
-    }
+    // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
+  var el = metadata.check_editlock(args.pagename);
+  if (el && el.username !== username) {
+    returnVal.errorCode = 1;
+    returnVal.error = "Page is locked by " + el.username;
+    returnVal.editlockBlocker = el.username;
+    return returnVal;
+  } else if (el) { // username is the same, then remove the editlock
+    metadata.remove_editlock(args.pagename);
+    pMeta.editlock = null;
+  }
 
-    if (!pMeta) {
-      pMeta = new metadata.metadata(args.pagename);
-      pMeta.title = args.title || "";
-    }
+  if (!pMeta) {
+    pMeta = new metadata.metadata(args.pagename); 
 
-    // get the old source
-    var dataLoc = path.join(data_dir, args.pagename);
-    var data = args.src;
-    var oldData;
-    if (fs.existsSync(dataLoc))
-      oldData = fs.readFileSync(dataLoc);
-    else
-      oldData = "";
-    fs.writeFileSync(dataLoc, data);
+    // submit so we get the metadata ID
+    await pMeta.submit();
+  }
 
-    // write revision
-    var patch = diff.createPatch(dataLoc, oldData, data, "", "");
+  pMeta.title = args.title || "";
 
-    var revision = new metadata.revision(pMeta.article_id, args.user_id);
-    fs.writeFilSync(revision.diff_loc, patch);
-    pMeta.revisions.push(revision);
+  // get the old source
+  var dataLoc = path.join(data_dir, args.pagename);
+  var data = args.src;
+  var oldData;
+  if (fs.existsSync(dataLoc))
+    oldData = "" + fs.readFileSync(dataLoc);
+  else
+    oldData = "";
+  fs.writeFileSync(dataLoc, data);
 
-    // TODO: apply revision to metadata, create diff, et al
-    pMeta.submit(true).then(() => {
-      returnVal.result = true;
-      next(returnVal);
-    }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
-  }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+  // write revision
+  //console.log(dataLoc, oldData, data);
+  var patch = diff.createPatch(dataLoc, oldData, data, "", "");
+
+  var revision = new metadata.revision(pMeta.article_id, args.user_id);
+  console.log("Revision loc: " + revision.diff_link);
+  fs.writeFileSync(revision.diff_link, patch);
+  //console.log(pMeta);
+  pMeta.revisions.push(revision);
+ 
+  await pMeta.submit(true);
+  // also submit the revision, since that's done manually
+  await revision.submit();
+
+
+  returnVal.result = true;
+  return returnVal;
+  //}).catch((err) => { next({result: false, errorCode: -1, error: err}); });
 };
+
+var changePage = function(username, args, next) {
+  changePageAsync(username, args).then((returnVal) => {next(returnVal);}).catch((err) => {
+    next({result: false, errorCode: -1, error: err}); 
+  });
+}
 
 // vote on a page
 var voteOnPage = function(username, args, next) {
@@ -237,8 +252,6 @@ var getRating = function(username, args, next) {
   var returnVal = {result: false};
 
   metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
-    if (pMeta === 3) { next(pMeta, err); return; }
-
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -253,21 +266,34 @@ var getRating = function(username, args, next) {
   }).catch((err) => { next({result:false,errorCode:-1}); });
 };
 
+// get the html corresponding to the rating module
+var getRatingModule = function(args, next) {
+  var returnVal = {result: false};
+  
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
+    if (!pMeta) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    }
+
+    renderer.render_rating_module(pMeta).then((ratingModule) => {
+      returnVal.ratingModule = ratingModule;
+      returnVal.result = true;
+      next(returnVal);
+    }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+  }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+}
+
 // master prs function
 exports.request = function(name, username, args, next) {
   var returnVal = {};
 
-  // slight modification to pagename
-  if ('pagename' in args) {
-    var pagenameParts = args['pagename'].split('/');
-    args['pagename'] = pagenameParts[pagenameParts.length - 1];
-    
-  }
-
-  if (!username) {
-    next({result: false, errorCode: -1});
-    return;
-  }
+  //if (!username) {
+  //  next({result: false, not_logged_in: true});
+  //  return;
+  //}
 
   // also get the user id
   get_user_id(username, (user_id, err) => {
@@ -275,6 +301,15 @@ exports.request = function(name, username, args, next) {
 
     args['user_id'] = user_id;
 
+    // functions that don't need the username
+    if (name === "getRatingModule") { getRatingModule(args, next); return; }
+
+    if (!username) {
+      next({result: false, not_logged_in: true});
+      return;
+    }
+
+    // function that do
     if (name === 'changePage') changePage(username, args, next);
     else if (name === 'removeEditLock') removeEditLock(username, args, next);
     else if (name === 'beginEditPage') beginEditPage(username, args, next);

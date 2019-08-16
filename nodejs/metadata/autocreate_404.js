@@ -60,7 +60,7 @@ module.exports = function(next) {
       _404.authors.push(_404_author);
       _404.revisions.push(_404_revision);
 
-      _404.submit().then(() => {
+      _404.submit(true).then(() => {
         // we also need the main page
         var mainpage = new metadata.metadata("main");
         mainpage.title = "";
@@ -74,8 +74,9 @@ module.exports = function(next) {
           mainpage.authors.push(mainpage_author);
           mainpage.revisions.push(mainpage_revision);
 
-          mainpage.submit().then(() => {
+          mainpage.submit(true).then(() => {
             // done!
+	    console.log("========== FINISHED AUTOCREATION ===========");
             next(0);
           }).catch((err) => {throw err;});
         }).catch((err) => {throw err;});

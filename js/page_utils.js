@@ -23,13 +23,21 @@
 
 var hidePageUtilities = function() {
   document.getElementById("editor").classList.add("vanished");
+  document.getElementById("rater").classList.add("vanished");
 };
 
-var editpage = function() {
+var editpage = function(use_404_param=false) {
   hidePageUtilities();
+  var pagename = get_slug();
+  if (use_404_param)
+    pagename = get_parameter("original_page");
+
+  var args = {};
+  args.pagename = pagename;
+  console.log("Pagename: " + pagename);
 
   // request page source and edit lock
-  prsRequest("beginEditPage", {pagename: window.location.href}, (d) => {
+  prsRequest("beginEditPage", args, (d) => {
     if ('not_logged_in' in d && d.not_logged_in) {
       createDialog("You must be logged in to edit pages.");
       return;
@@ -66,12 +74,13 @@ var toggle_404_param = function() {
 }
 
 var savepage = function(refresh, use_404_param=false) {
-  args = {pagename: window.location.href};
+  args = {};
+  args.pagename = get_slug();
   args.src = document.getElementById('srcbox').value;
   args.title = document.getElementById('titlebox').value;
 
   if (use_404_param)
-    args.pagename = window.location.protocol + "//" + window.location.host + "/" + get_parameter("original_page");
+    args.pagename = get_parameter("original_page");
 
   prsRequest("changePage", args, (d) => {
     if (refresh)
@@ -85,7 +94,7 @@ var savepage = function(refresh, use_404_param=false) {
 var canceleditpage = function() {
   hidePageUtilities();
 
-  prsRequest("removeEditLock", {pagename: window.location.href}, (d) => {
+  prsRequest("removeEditLock", {pagename: get_slug()}, (d) => {
     window.location.reload();
   });
 };
@@ -93,7 +102,7 @@ var canceleditpage = function() {
 var scpvote = function(rate) {
   if (rate > 1 || rate < -1) return;
 
-  prsRequest('voteOnPage', {pagename: window.location.href, rating: rate}, (d)=>{
+  prsRequest('voteOnPage', {pagename: get_slug(), rating: rate}, (d)=>{
     if ('not_logged_in' in d && d.not_logged_in) {
       createDialog("You must be logged in to vote on pages.");
       return;
@@ -111,6 +120,21 @@ var scpvote = function(rate) {
       else
 	prList[i].innerHTML = d.newRating;
     }
+  });
+};
+
+// clicking the "Rate" button
+var showrater = function() {
+  hidePageUtilities();
+
+  prsRequest("getRatingModule", {pagename: get_slug()}, (d) => {
+    if ('result' in d && !d.result) {
+      createDialog("Failed to open rating module.");
+      return;
+    }
+
+    document.getElementById("utils_rating_module").innerHTML = d.ratingModule;
+    document.getElementById("rater").classList.remove("vanished");
   });
 };
 

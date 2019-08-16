@@ -105,7 +105,7 @@ exports.rating.prototype.submit = async function() {
 // generate a good place for a diff link
 var get_diff_link = function(article_id) {
   const diff_dir = config.scp_diff_location;
-  var diff_col = path.join(diff_dir, article_id);
+  var diff_col = path.join(diff_dir, String(article_id));
 
   if (!(fs.existsSync(diff_col)))
     fs.mkdirSync(diff_col, { recursive: true});
@@ -151,10 +151,9 @@ exports.revision.load_array_by_article = async function(article_id) {
 }
 
 exports.revision.prototype.submit = async function() {
-  await query("DELETE FROM Revisions WHERE revision_id = $1;", [this.revision_id]);
-  await query("INSERT INTO Revisions (article_id, user_id, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp);", [this.article_id, this.user_id, this.diff_link, getFormattedDate(this.created_at)]);
-  this.revision_id = await query("SELECT revision_id FROM Revisions WHERE article_id = $1 AND " +
-	                         "user_id = $1", [this.article_id, this.user_id]).rows[0].revision_id;
+  let revision_id = await query("INSERT INTO Revisions (article_id, user_id, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.diff_link, this.created_at]); 
+  if (revision_id.rowCount > 0)
+    this.revision_id = revision_id.rows[0].revision_id;
 }
 
 // represents an author - there can be more than one per article
@@ -374,8 +373,8 @@ var async_foreach = async function(arr, iter) {
 
 // save metadata to database
 exports.metadata.prototype.submit = async function(save_dependencies=false) {
-  //console.log("Submitting metadata");
-  console.log(JSON.stringify(this));
+  console.log("Submitting metadata");
+  //console.log(JSON.stringify(this));
   var editlock = null;
   if (this.editlock)
     editlock = this.editlock.editlock_id;
@@ -391,7 +390,7 @@ exports.metadata.prototype.submit = async function(save_dependencies=false) {
     // save the dependencies
     async_foreach(this.ratings, async function(rating) { await rating.submit(); });
     async_foreach(this.authors, async function(author) { await author.submit(); });
-    async_foreach(this.revisions, async function(revision) { await revision.submit(); });
+    //async_foreach(this.revisions, async function(revision) { await revision.submit(); });
     async_foreach(this.parents, async function (parent_) { await parent_.submit(); });
   }
 

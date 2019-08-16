@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+var uuid = require('uuid/v4');
 var random = require('../random');
 
 // a table of user data
@@ -49,6 +50,9 @@ module.exports.prototype.register = function(user, ip_addr, expiry, change_ip) {
   if (id > 2999999) id -= prevId;
   this.prevId = id;
 
+  // it's much more random to use the UUID algoritm
+  //var id = uuid();
+
   var userObj = {id: id};
   userObj.user = user;
   userObj.expiry = expiry;
@@ -59,6 +63,17 @@ module.exports.prototype.register = function(user, ip_addr, expiry, change_ip) {
 
   return id;
 };
+
+// log a user out
+module.exports.prototype.logout = function(id) {
+  for (var i = this.userset.length - 1; i >= 0; i--) {
+    var chckUser = this.userset[i];
+    if (chckUser.id === id) {
+      this.userset.splice(i, 1);
+      break;
+    }
+  }
+}
 
 // check to make sure a session conforms to the ip address
 module.exports.prototype.check_session = function(session, ip_addr) {

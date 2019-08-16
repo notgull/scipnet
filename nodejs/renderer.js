@@ -27,8 +27,14 @@ var metadata = require('./metadata/metadata');
 var fs = require('fs');
 var path = require('path');
 
-exports.render = async function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false, metadata=null) {
+var rating_mod_src = "[[module Rate]]";
 
+exports.render_rating_module = async function(metadata) {
+  // render a rating module
+  return markdown.get_markdown("Rating Module", rating_mod_src, metadata);
+};
+
+exports.render = async function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false, metadata=null) {
   var template = fs.readFileSync('html/template.html');
   template = template + ''; // ensure template is a string
   const replacement_string = "[INSERT_CONTENT_HERE]";
@@ -55,8 +61,6 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
     if (!fs.existsSync(filepath))
       return exports.render("_404", '', "404", loginInfo);
 	
-    
-
     var src = fs.readFileSync(filepath);
     content = markdown.get_markdown(modName, src, metadata);
   } else {
@@ -75,9 +79,19 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
   const t_replacement_string = "[INSERT_TITLE_HERE]";
   const u_replacement_string = "[INSERT_USERNAME_HERE]";
   const ulv_replacement_string = "[INSERT_UL_VANISHING_HERE]";
+  const r_replacement_string = "[INSERT_RATING_HERE]";
+  const rr_replacement_string = "[INSERT_RATER_HERE]";
+
   var ulv_replacement = "";
   if (htmlFileName !== '' || modName === "_404")
     ulv_replacement = "display: none;"
+
+  var rating = 0;
+  var rater = "";
+  if (metadata) {
+    rating = metadata.get_rating();
+    rater = await exports.render_rating_module(metadata);
+  }
   
   var page = template.split(replacement_string).join(content);
   page = page.split(mt_replacement_string).join(meta_title);
@@ -85,6 +99,8 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
   page = page.split(lb_replacement_string).join(loginBar);
   page = page.split(u_replacement_string).join(username);
   page = page.split(ulv_replacement_string).join(ulv_replacement);
+  page = page.split(r_replacement_string).join(rating);
+  page = page.split(rr_replacement_string).join(rater);
 
   return page;
 }
