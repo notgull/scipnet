@@ -24,8 +24,11 @@
 var config = require('./../config.json');
 var markdown = require('./ftml/markdown');
 var metadata = require('./metadata/metadata');
+//var nunjucks = require('nunjucks');
 var fs = require('fs');
 var path = require('path');
+
+//nunjucks.configure('html', { autoescape: true });
 
 var rating_mod_src = "[[module Rate]]";
 
@@ -92,6 +95,10 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
     rating = metadata.get_rating();
     rater = await exports.render_rating_module(metadata);
   }
+
+  //var replacements = {
+  //
+  //};
   
   var page = template.split(replacement_string).join(content);
   page = page.split(mt_replacement_string).join(meta_title);
