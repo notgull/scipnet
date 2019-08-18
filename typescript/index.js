@@ -26,18 +26,18 @@ var http = require('http');
 var https = require('https');
 var util = require('util');
 
-var autocreation = require('./nodejs/metadata/autocreate_404');
-var ut_initializer = require("./nodejs/user/initialize_database");
-var mt_initializer = require("./nodejs/metadata/initialize_database");
+var autocreation = require('./metadata/autocreate_404');
+var ut_initializer = require("./user/initialize_database");
+var mt_initializer = require("./metadata/initialize_database");
 
-var metadata = require('./nodejs/metadata/metadata');
-var prs = require('./nodejs/metadata/prs');
-var renderer = require('./nodejs/renderer');
-var usertable = require('./nodejs/user/usertable');
-var validate = require('./nodejs/user/validate');
+var metadata = require('./metadata/metadata');
+var prs = require('./metadata/prs');
+var renderer = require('./renderer');
+var usertable = require('./user/usertable');
+var validate = require('./user/validate');
 
 // get version
-var version = require('./package.json').version;
+var version = require('./../package.json').version;
 console.log("SCPWiki v" + version);
 
 // error out if not root
@@ -49,7 +49,7 @@ console.log("SCPWiki v" + version);
 //}
 
 // if we can't access config.json, return
-require('./config.json');
+require('./../config.json');
 
 var s_port = process.env.PORT || 8443;
 

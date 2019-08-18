@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "allowJs": true,
+    "incremental": true,
+    "target": "es5",
+    "removeComments": true,
+    "sourceMap": true,
+    "strict": true
+  },
+  "include": [
+    "typescript"
+  ]
+}

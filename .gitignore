@@ -1,8 +1,10 @@
 # Binaries
 node_modules/
+dist/
 certs/
 db/
 rust/target/
+package-lock.json
 
 # Misc
 *.bak
