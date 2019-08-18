@@ -65,10 +65,10 @@ var mt_initializer = require("./metadata/initialize_database");
 var metadata = require('./metadata/metadata');
 var prs = require('./metadata/prs');
 var renderer = require('./renderer');
-var usertable = require('./usertable');
+var usertable = require('./user/usertable');
 var validate = require('./user/validate');
 // get version
-var version = require('./package.json').version;
+var version = require('./../package.json').version;
 console.log("SCPWiki v" + version);
 // error out if not root
 //if (process.geteuid) {
@@ -78,7 +78,7 @@ console.log("SCPWiki v" + version);
 //  }
 //}
 // if we can't access config.json, return
-require('./config.json');
+require('./../config.json');
 var s_port = process.env.PORT || 8443;
 // load up the SQL before we start up
 ut_initializer(function (_o) {

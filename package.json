@@ -2,10 +2,6 @@
   "name": "scpwiki",
   "version": "1.0.0",
   "description": "SCP Wiki server software",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "not_a_seagull",
   "license": "AGPL-3.0",
   "dependencies": {
@@ -27,5 +23,10 @@
     "gulp-typescript": "^5.0.1",
     "mocha": "^6.2.0",
     "typescript": "^3.5.3"
+  },
+  "main": "index.js",
+  "scripts": {
+    "gulp": "node node_modules/gulp/bin/gulp.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
