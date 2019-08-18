@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "./server-js",
+    "outDir": "dist",
     "allowJs": true,
     "target": "es5"
   },
-  "include": {
-    "./typescript/*",
-    "./typescript/**/*"
-  }
+  "include": [
+    "typescript/*"
+  ]
 }

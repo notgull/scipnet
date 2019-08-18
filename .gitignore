@@ -1,5 +1,6 @@
 # Binaries
 node_modules/
+dist/
 certs/
 db/
 rust/target/
