@@ -49,7 +49,7 @@ console.log("SCPWiki v" + version);
 //}
 
 // if we can't access config.json, return
-require('./../config.json');
+require('./../../config.json');
 
 var s_port = process.env.PORT || 8443;
 

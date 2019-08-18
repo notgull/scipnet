@@ -19,7 +19,7 @@
  */
 
 // automatically create the 404 and main pages
-var config = require('./../../config.json');
+var config = require('./../../../config.json');
 var diff = require('diff');
 var fs = require('fs');
 var metadata = require('./metadata');

@@ -34,7 +34,7 @@
 // locked (y/n)
 // parent page
 
-var config = require('./../../config.json');
+var config = require('./../../../config.json');
 var { error_codes, getFormattedDate } = require('./../user/validate');
 var fs = require('fs');
 var query = require('./../sql').queryPromise;

@@ -22,7 +22,7 @@
  */
 
 // page request system - for things like upvoting, creating pages, etc.
-var config = require('./../../config.json');
+var config = require('./../../../config.json');
 var diff = require('diff');
 var fs = require('fs');
 var { get_user_id } = require('./../user/validate');

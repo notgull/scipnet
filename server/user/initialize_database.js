@@ -19,7 +19,7 @@
  */
 
 // create the initial database
-var config = require('./../../config.json');
+var config = require('./../../../config.json');
 //var sqlite3 = require('sqlite3').verbose();
 var { query } = require('./../sql');
 

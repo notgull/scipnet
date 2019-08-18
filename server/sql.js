@@ -20,7 +20,7 @@
 
 // exposes basic SQL functionality
 const { Pool } = require('pg');
-var config = require("./../config.json");
+var config = require("./../../config.json");
 
 const pool = new Pool({
   user: config.postgres_username,

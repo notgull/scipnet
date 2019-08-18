@@ -21,7 +21,7 @@
 
 // this file renders html from markdown stored in data files
 //var markdown = require('./markdown/markdown');
-var config = require('./../config.json');
+var config = require('./../../config.json');
 var markdown = require('./ftml/markdown');
 var metadata = require('./metadata/metadata');
 //var nunjucks = require('nunjucks');

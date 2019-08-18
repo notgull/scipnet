@@ -21,7 +21,7 @@
 // validating whether users exist or not
 var argon2 = require('argon2');
 var crypto = require('crypto');
-var config = require('./../../config.json');
+var config = require('./../../../config.json');
 var fs = require('fs');
 //var initialize_database = require('./initialize_database');
 var { promisify } = require('util');
