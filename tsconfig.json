@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "dist/server",
     "allowJs": true,
     "incremental": true,
     "target": "es5",
@@ -9,6 +9,6 @@
     "strict": true
   },
   "include": [
-    "typescript"
+    "server"
   ]
 }
