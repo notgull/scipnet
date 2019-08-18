@@ -1,5 +1,5 @@
 /*
- * sql.js
+ * sql.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -19,8 +19,8 @@
  */
 
 // exposes basic SQL functionality
-const { Pool } = require('pg');
-var config = require("./../../config.json");
+import { Pool } from 'pg';
+import * as config from "./../../config.json";
 
 const pool = new Pool({
   user: config.postgres_username,
@@ -29,10 +29,10 @@ const pool = new Pool({
   password: config.postgres_password,
 }); // TODO: set up port?
 
-module.exports.query = function(query, args, callback) {
-  pool.query(query, args, callback);
+export function query(sql: string, args: any, callback: (err: any, res: any) => void): void {
+  pool.query(sql, args, callback);
 }
 
-module.exports.queryPromise = async function(query, args) {
-  return await pool.query(query, args);
+export async function queryPromise(sql: string, args: any): Promise<any> {
+  return await pool.query(sql, args);
 }

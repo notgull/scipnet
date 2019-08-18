@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
-    "outDir": "dist/server",
+    "outDir": "dist/",
+    "rootDir": "./",
     "allowJs": true,
     "incremental": true,
     "target": "es5",
     "removeComments": true,
+    "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true
   },
