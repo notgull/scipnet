@@ -20,7 +20,9 @@
 
 // exposes basic SQL functionality
 import { Pool } from 'pg';
-import * as config from "./../../config.json";
+import * as path from 'path';
+//import * as config from path.join(process.cwd(), "config.json");
+const config = require(path.join(process.cwd(), "config.json"));
 
 const pool = new Pool({
   user: config.postgres_username,

@@ -20,38 +20,36 @@
 'use strict';
 
 // this file renders html from markdown stored in data files
-//var markdown = require('./markdown/markdown');
-var config = require('./../config.json');
-var markdown = require('./ftml/markdown');
-var metadata = require('./metadata/metadata');
-//var nunjucks = require('nunjucks');
-var fs = require('fs');
-var path = require('path');
+import { get_markdown } from './ftml/markdown';
+import * as metadata from './metadata/metadata';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const config = require(path.join(process.cwd(), "config.json"));
 
 //nunjucks.configure('../../html', { autoescape: true });
 
-var rating_mod_src = "[[module Rate]]";
+const rating_mod_src = "[[module Rate]]";
 
-exports.render_rating_module = async function(metadata) {
+export async function render_rating_module(metadata: any): Promise<string> {
   // render a rating module
-  return markdown.get_markdown("Rating Module", rating_mod_src, metadata);
+  return get_markdown("Rating Module", rating_mod_src, metadata);
 };
 
-exports.render = async function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false, metadata=null) {
-  var template = fs.readFileSync('../../html/template.html');
-  template = template + ''; // ensure template is a string
+export async function render(modName: string, htmlFileName: string = '', title: string = 'Testing Page', loginInfo: any = false, metadata: any = null): Promise<string> {
+  let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
   const replacement_string = "[INSERT_CONTENT_HERE]";
  
   // get username, if it exists
-  var username;
-  var loginBar;
+  let username;
+  let loginBar;
   if (loginInfo) {
     username = loginInfo;
-    loginBar = fs.readFileSync('html/lbar_li.html');
+    loginBar = fs.readFileSync(path.join(process.cwd(), 'html/lbar_li.html')) + "";
   } else
-    loginBar = fs.readFileSync('html/lbar_nli.html');
+    loginBar = fs.readFileSync(path.join(process.cwd(), 'html/lbar_nli.html')) + "";
 
-  var content;
+  let content;
   if (!htmlFileName || htmlFileName.length === 0) {
     //var markdown_tree = markdown(modName);
     //content = markdown_tree.flatten(username);
@@ -60,12 +58,12 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
       throw new Error("Expected metadata");
 
     // test for existence first
-    var filepath = path.join(config.scp_cont_location, modName);
+    let filepath = path.join(config.scp_cont_location, modName);
     if (!fs.existsSync(filepath))
       return exports.render("_404", '', "404", loginInfo);
 	
-    var src = fs.readFileSync(filepath);
-    content = markdown.get_markdown(modName, src, metadata);
+    let src = fs.readFileSync(filepath);
+    content = get_markdown(modName, src, metadata);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
   }
@@ -73,7 +71,7 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
   const lb_replacement_string = "[INSERT_LOGINBAR_HERE]";
 
   const mt_replacement_string = "[INSERT_META_TITLE_HERE]";
-  var meta_title;
+  let meta_title;
   if (modName === "main") {
     meta_title = '';
     title = '';
@@ -85,12 +83,12 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
   const r_replacement_string = "[INSERT_RATING_HERE]";
   const rr_replacement_string = "[INSERT_RATER_HERE]";
 
-  var ulv_replacement = "";
+  let ulv_replacement = "";
   if (htmlFileName !== '' || modName === "_404")
     ulv_replacement = "display: none;"
 
-  var rating = 0;
-  var rater = "";
+  let rating = 0;
+  let rater = "";
   if (metadata) {
     rating = metadata.get_rating();
     rater = await exports.render_rating_module(metadata);
@@ -100,13 +98,13 @@ exports.render = async function(modName, htmlFileName = '', title = 'Testing Pag
   //
   //};
   
-  var page = template.split(replacement_string).join(content);
+  let page = template.split(replacement_string).join(content) + "";
   page = page.split(mt_replacement_string).join(meta_title);
   page = page.split(t_replacement_string).join(title);
   page = page.split(lb_replacement_string).join(loginBar);
   page = page.split(u_replacement_string).join(username);
   page = page.split(ulv_replacement_string).join(ulv_replacement);
-  page = page.split(r_replacement_string).join(rating);
+  page = page.split(r_replacement_string).join(String(rating));
   page = page.split(rr_replacement_string).join(rater);
 
   return page;

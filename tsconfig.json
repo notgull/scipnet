@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist/",
+    "outDir": "dist",
     "rootDir": "./",
     "allowJs": true,
     "incremental": true,
