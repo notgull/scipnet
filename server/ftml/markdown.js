@@ -21,7 +21,7 @@
 var ffi = require('ffi');
 var path = require('path');
 
-var ftml_path = path.join(__dirname, "./../../rust/target/release/libscipnetrust.so");
+var ftml_path = path.join(__dirname, "./../../../rust/target/release/libscipnetrust.so");
 var ftml = ffi.Library(ftml_path, {
   scipnet_transform: ['char *', ['char *', 'char *', 'int', 'char *', 'char *']]
 });

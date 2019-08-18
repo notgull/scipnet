@@ -37,7 +37,7 @@ var usertable = require('./user/usertable');
 var validate = require('./user/validate');
 
 // get version
-var version = require('./../package.json').version;
+var version = require('./../../package.json').version;
 console.log("SCPWiki v" + version);
 
 // error out if not root

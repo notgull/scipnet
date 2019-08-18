@@ -28,7 +28,7 @@ var metadata = require('./metadata/metadata');
 var fs = require('fs');
 var path = require('path');
 
-//nunjucks.configure('html', { autoescape: true });
+//nunjucks.configure('../../html', { autoescape: true });
 
 var rating_mod_src = "[[module Rate]]";
 
@@ -38,7 +38,7 @@ exports.render_rating_module = async function(metadata) {
 };
 
 exports.render = async function(modName, htmlFileName = '', title = 'Testing Page', loginInfo = false, metadata=null) {
-  var template = fs.readFileSync('html/template.html');
+  var template = fs.readFileSync('../../html/template.html');
   template = template + ''; // ensure template is a string
   const replacement_string = "[INSERT_CONTENT_HERE]";
  
