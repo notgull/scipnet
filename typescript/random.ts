@@ -1,5 +1,5 @@
 /*
- * random.js
+ * random.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,8 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// get a random number/other randomness
-
-exports.randomInt = function(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+export function randomInt(min: number, max: number): number {
+  const range = Math.random() * (max - min + 1);
+  return Math.floor(range + min);
 }
