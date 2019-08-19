@@ -62,7 +62,7 @@ export async function render(modName: string, htmlFileName: string = '', title: 
     if (!fs.existsSync(filepath))
       return exports.render("_404", '', "404", loginInfo);
 	
-    let src = fs.readFileSync(filepath);
+    let src = fs.readFileSync(filepath) + "";
     content = get_markdown(modName, src, metadata);
   } else {
     content = '' + fs.readFileSync(htmlFileName);

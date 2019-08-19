@@ -32,7 +32,7 @@ import { initialize_pages } from './metadata/initialize_database';
 
 import { Nullable } from './helpers'
 import * as metadata from './metadata/metadata';
-import * as prs from './metadata/prs';
+import * as prs from './prs/prs';
 import * as renderer from './renderer';
 import { usertable } from './user/usertable';
 import * as validate from './user/validate';
@@ -186,10 +186,10 @@ app.post("/sys/prs", function(req: express.Request, res: express.Response) {
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
   
   // pull all parameters from req.body and put them in args
-  let args: { [key: string]: any } = {};
+  let args: prs.ArgsMapping = {};
   for (var key in req.body)
     args[key] = req.body[key];
-  prs.request(args["name"], username, args, function(result: any) {
+  prs.request(args["name"], username, args, function(result: prs.PRSReturnVal) {
   if (result.errorCode === -1) {
       console.log(result.error);
       result.error = "An internal error occurred. Please contact a site administrator.";

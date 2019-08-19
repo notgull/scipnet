@@ -1,5 +1,5 @@
 /*
- * markdown.js
+ * markdown.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,21 +18,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var ffi = require('ffi');
-var path = require('path');
+import * as ffi from 'ffi';
+import * as path from 'path';
 
-var ftml_path = path.join(__dirname, "./../../../rust/target/release/libscipnetrust.so");
-var ftml = ffi.Library(ftml_path, {
+const ftml_path = path.join(process.cwd(), "rust/target/release/libscipnetrust.so");
+const ftml = ffi.Library(ftml_path, {
   scipnet_transform: ['char *', ['char *', 'char *', 'int', 'char *', 'char *']]
 });
 
-var str_to_buffer = function(val) {
+function str_to_buffer(val: string): Buffer {
   var buffer = Buffer.from(val);
   var ending = Buffer.from([0x00]);
   return Buffer.concat([buffer, ending]);
 }
 
-exports.get_markdown = function(url, src, metadata) {
+export function get_markdown(url: string, src: string, metadata: any): string {
   //console.log("URL: " + url);
   //console.log("SRC: " + src);
 

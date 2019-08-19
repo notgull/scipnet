@@ -1,8 +1,5 @@
-"use strict";
-// using this to prevent mistakes
-
 /*
- * prs.js
+ * prs.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -22,25 +19,65 @@
  */
 
 // page request system - for things like upvoting, creating pages, etc.
-var config = require('./../../../config.json');
-var diff = require('diff');
-var fs = require('fs');
-var { get_user_id } = require('./../user/validate');
-var metadata = require('./metadata');
-var path = require('path');
-var renderer = require('./../renderer');
-var uuid = require('uuid/v4');
+import * as diff from 'diff';
+import * as fs from 'fs';
+import { Nullable } from './../helpers';
+import { get_user_id } from './../user/validate';
+import * as metadata from './../metadata/metadata';
+import * as path from 'path';
+import { render_rating_module } from './../renderer';
+import * as uuid from 'uuid/v4';
 
-var data_dir = config.scp_cont_location;
-var diff_dir = config.scp_diff_location;
-var meta_dir = config.scp_meta_location;
+const config = require(path.join(process.cwd(), 'config.json'));
+const data_dir = config.scp_cont_location;
+const diff_dir = config.scp_diff_location;
+const meta_dir = config.scp_meta_location;
+
+export type ArgsMapping = { [key: string]: any };
+
+export interface PRSReturnVal {
+  result: boolean;
+  error: Nullable<Error | string>;
+  errorCode: Nullable<number>;
+  src: Nullable<string>;
+  title: Nullable<string>;
+  editlockBlocker: Nullable<string>;
+  rating: Nullable<number>;
+  newRating: Nullable<number>;
+  ratingModule: Nullable<string>;
+  not_logged_in: boolean;		  
+};
+
+export type PRSCallback = (result: PRSReturnVal) => any;
+
+// generate an object for the return value
+function genReturnVal(): PRSReturnVal {
+  return { result: false,
+           error: null,
+	   errorCode: null,
+	   src: null,
+	   title: null,
+	   editlockBlocker: null,
+	   rating: null,
+	   newRating: null,
+	   ratingModule: null,
+	   not_logged_in: false };
+}
+
+// generate an error'd return value
+function genErrorVal(err: Error): PRSReturnVal {
+  let returnVal = genReturnVal();
+  returnVal.error = err;
+  returnVal.errorCode = -1;
+  return returnVal;
+}
 
 // request an edit for the page
-var beginEditPage = function(username, args, next) {
-  var returnVal = {result: false};
+function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
   
   // fetch the metadata
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
     //if (pMeta === 3) {
     //  next(pMeta, err);
     //  return;
@@ -55,43 +92,36 @@ var beginEditPage = function(username, args, next) {
     }
  
     // set an edit lock, if possible
-    var el = metadata.add_editlock(args.pagename, username);
-      //if (res) { next(res, err); return; }
+    let el = metadata.add_editlock(args.pagename, username); 
  
     // if necessary, set the editlock in the metadata to it
     if (pMeta) {
       pMeta.editlock = el;
 
-      var dataLoc = path.join(data_dir, args.pagename);
-      var data = "" + fs.readFileSync(dataLoc);
+      let dataLoc = path.join(data_dir, args.pagename);
+      let data = "" + fs.readFileSync(dataLoc);
       returnVal.src = data;
       returnVal.title = pMeta.title;
 
       // save metadata to database
-      pMeta.submit(true).then(() => {
-        //if (res) { next(res, err); return; }
-
+      pMeta.submit(true).then(() => { 
         returnVal.result = true;
         next(returnVal);
-      }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+      }).catch((err) => { next(genErrorVal(err)); });
+
       return;
     }
 
     returnVal.result = true;
     next(returnVal);
-  }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+  }).catch((err) => { next(genErrorVal(err)); });
 };
 
 // cancel an edit lock
-var removeEditLock = function(username, args, next) {
-  var returnVal = {result: false};
+function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
   
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
-    if (pMeta === 3) {
-      next(pMeta, err);
-      return;
-    }
-
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
     // get the edit lock
     let el = metadata.check_editlock(args.pagename); 
 	
@@ -104,14 +134,14 @@ var removeEditLock = function(username, args, next) {
     }
 
     // if there's an editlock mismatch, we have an error
-    if (pMeta && (pMeta.editlock.editlock_id !== el.editlock_id || pMeta.editlock.url !== el.url || pMeta.editlock.username !== el.username)) {
-      next({result: false, errorCode: -1, error: new Error("Editlock mismatch")});
+    if (pMeta && (pMeta.editlock.editlock_id !== el.editlock_id || pMeta.editlock.slug !== el.slug || pMeta.editlock.username !== el.username)) {
+      next(genErrorVal(new Error("Editlock mismatch")));
       return;
     }
 
     // if the edit lock belongs to the user, remove it
     if (el.username === username) {
-      metadata.remove_editlock(url);
+      metadata.remove_editlock(el.slug);
 
       // if necessary, set the editlock on the metadata to none
       if (pMeta) {
@@ -119,7 +149,7 @@ var removeEditLock = function(username, args, next) {
         pMeta.submit(true).then(() => {
 	  returnVal.result = true;
 	  next(returnVal);
-        }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+        }).catch((err) => { next(genErrorVal(err)); });
         return;
       }
 
@@ -131,19 +161,19 @@ var removeEditLock = function(username, args, next) {
       returnVal.editlockBlocker = el.username;
       next(returnVal);
     }
-  }).catch((err) => { next({result: false, error: err, errorCode: -1}); });
+  }).catch((err: Error) => { next(genErrorVal(err)) });
 };
 
 // save an edit
 // NOTE: making this async because it's easier to glob the id for the metadata
-var changePageAsync = async function(username, args) {
-  var returnVal = {result: false};
+async function changePageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
+  let returnVal = genReturnVal();
+ 
+  let pMeta = await metadata.metadata.load_by_slug(args.pagename);
 
-  //metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
-  var pMeta = await metadata.metadata.load_by_slug(args.pagename);
-    // before anything, check to see if there's an editlock 
-    // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
-  var el = metadata.check_editlock(args.pagename);
+  // before anything, check to see if there's an editlock 
+  // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
+  let el = metadata.check_editlock(args.pagename);
   if (el && el.username !== username) {
     returnVal.errorCode = 1;
     returnVal.error = "Page is locked by " + el.username;
@@ -151,7 +181,8 @@ var changePageAsync = async function(username, args) {
     return returnVal;
   } else if (el) { // username is the same, then remove the editlock
     metadata.remove_editlock(args.pagename);
-    pMeta.editlock = null;
+    if (pMeta)
+      pMeta.editlock = null;
   }
 
   if (!pMeta) {
@@ -164,9 +195,9 @@ var changePageAsync = async function(username, args) {
   pMeta.title = args.title || "";
 
   // get the old source
-  var dataLoc = path.join(data_dir, args.pagename);
-  var data = args.src;
-  var oldData;
+  let dataLoc = path.join(data_dir, args.pagename);
+  let data = args.src;
+  let oldData;
   if (fs.existsSync(dataLoc))
     oldData = "" + fs.readFileSync(dataLoc);
   else
@@ -175,9 +206,9 @@ var changePageAsync = async function(username, args) {
 
   // write revision
   //console.log(dataLoc, oldData, data);
-  var patch = diff.createPatch(dataLoc, oldData, data, "", "");
+  let patch = diff.createPatch(dataLoc, oldData, data, "", "");
 
-  var revision = new metadata.revision(pMeta.article_id, args.user_id);
+  let revision = new metadata.revision(pMeta.article_id, args.user_id);
   console.log("Revision loc: " + revision.diff_link);
   fs.writeFileSync(revision.diff_link, patch);
   //console.log(pMeta);
@@ -187,24 +218,21 @@ var changePageAsync = async function(username, args) {
   // also submit the revision, since that's done manually
   await revision.submit();
 
-
   returnVal.result = true;
-  return returnVal;
-  //}).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+  return returnVal; 
 };
 
-var changePage = function(username, args, next) {
-  changePageAsync(username, args).then((returnVal) => {next(returnVal);}).catch((err) => {
-    next({result: false, errorCode: -1, error: err}); 
+function changePage(username: string, args: ArgsMapping, next: PRSCallback) {
+  changePageAsync(username, args).then((returnVal) => { next(returnVal); }).catch((err) => {
+    next(genErrorVal(err)); 
   });
 }
 
 // vote on a page
-var voteOnPage = function(username, args, next) {
-  var returnVal = {result: false};
-
-  // TODO: add username check
-  metadata.metadata.load_by_slug(args.pagename).then((mObj) => { 
+function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
+ 
+  metadata.metadata.load_by_slug(args.pagename).then((mObj: metadata.metadata) => { 
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -220,12 +248,12 @@ var voteOnPage = function(username, args, next) {
     }
 
     // search for rater if needed
-    var rater = new metadata.rating(mObj.article_id, args.user_id, args.rating);
-    var found = false;
+    let rater = new metadata.rating(mObj.article_id, args.user_id, args.rating);
+    let found = false;
     console.log("User id is " + args.user_id);
-    for (var i = 0; i < mObj.ratings.length; i++) {
+    for (let i = 0; i < mObj.ratings.length; i++) {
       if (Number(mObj.ratings[i].user_id) === Number(args.user_id)) {
-        mObj.ratings[i].rating = args.rating;
+        mObj.ratings[i].rate = args.rating;
 	found = true;
         break;
       }
@@ -236,22 +264,20 @@ var voteOnPage = function(username, args, next) {
       mObj.ratings.push(rater);
     }
 
-    mObj.submit(true).then(() => {
-      //if (res) { next(res, err); return; }
-
+    mObj.submit(true).then(() => { 
       returnVal.result = true;
       returnVal.newRating = mObj.get_rating();
       console.log(returnVal);
       next(returnVal);
-    }).catch((err) => { next({result: false, errorCode: -1, error:err}); });
-  }).catch((err) => { next({result: false, errorCode: -1, error:err}); });
+    }).catch((err) => { next(genErrorVal(err)); });
+  }).catch((err) => { next(genErrorVal(err)); });
 };
 
 // get rating
-var getRating = function(username, args, next) {
-  var returnVal = {result: false};
+function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta: metadata.metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -263,14 +289,14 @@ var getRating = function(username, args, next) {
     returnVal.rating = pMeta.get_rating();
     returnVal.result = true;
     next(returnVal);
-  }).catch((err) => { next({result:false,errorCode:-1}); });
+  }).catch((err) => { next(genErrorVal(err)); });
 };
 
 // get the html corresponding to the rating module
-var getRatingModule = function(args, next) {
-  var returnVal = {result: false};
+function getRatingModule(args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
   
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta) => {
+  metadata.metadata.load_by_slug(args.pagename).then((pMeta: metadata.metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -278,26 +304,21 @@ var getRatingModule = function(args, next) {
       return;
     }
 
-    renderer.render_rating_module(pMeta).then((ratingModule) => {
+    render_rating_module(pMeta).then((ratingModule: string) => {
       returnVal.ratingModule = ratingModule;
       returnVal.result = true;
       next(returnVal);
-    }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
-  }).catch((err) => { next({result: false, errorCode: -1, error: err}); });
+    }).catch((err: Error) => { next(genErrorVal(err)); });
+  }).catch((err: Error) => { next(genErrorVal(err)); });
 }
 
 // master prs function
-exports.request = function(name, username, args, next) {
-  var returnVal = {};
-
-  //if (!username) {
-  //  next({result: false, not_logged_in: true});
-  //  return;
-  //}
+export function request(name: string, username: string, args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
 
   // also get the user id
-  get_user_id(username, (user_id, err) => {
-    if (err && username) { next({result: false, errorCode: -1}); return; }
+  get_user_id(username, (user_id: number, err: Error) => {
+    if (err && username) { next(genErrorVal(err)); return; }
 
     args['user_id'] = user_id;
 
@@ -305,7 +326,8 @@ exports.request = function(name, username, args, next) {
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
 
     if (!username) {
-      next({result: false, not_logged_in: true});
+      returnVal.not_logged_in = true;
+      next(returnVal);
       return;
     }
 
