@@ -23,7 +23,7 @@ var config = require('./../../../config.json');
 //var sqlite3 = require('sqlite3').verbose();
 var { query } = require('./../sql');
 
-module.exports = function(next) {
+module.exports.initialize_users = function(next) {
   // create user and pwhash tables
   var user_table_sql = "CREATE TABLE IF NOT EXISTS Users (" +
 		            "user_id BIGSERIAL PRIMARY KEY," +

@@ -20,7 +20,7 @@
 
 var  query  = require('./../sql').query;
 
-module.exports = function(next) {
+module.exports.initialize_pages = function(next) {
   var metadata_table_sql = "CREATE TABLE IF NOT EXISTS Pages (" +
 		             "article_id BIGSERIAL PRIMARY KEY," +
 		             "slug TEXT NOT NULL UNIQUE," +

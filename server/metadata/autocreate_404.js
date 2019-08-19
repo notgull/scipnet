@@ -38,7 +38,7 @@ var raw_revision = function(article_id, article_name, user_id) {
 }
 
 // put more pages in this if we need them
-module.exports = function(next) {
+module.exports.autocreate = function(next) {
   // add system user
   validate.add_new_user("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", (user_id, err) => {
     if (err) {

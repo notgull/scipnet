@@ -21,8 +21,8 @@
 -->
 
 <!-- login code -->
-<script type="text/javascript" src="/js/pbkdf2.js"></script>
-<script type="text/javascript" src="/js/post.js"></script>
+<script type="text/javascript" src="/sys/js/pbkdf2.js"></script>
+<script type="text/javascript" src="/sys/js/post.js"></script>
 <!--<script type="text/javascript" src="/js/get_param.js"></script>-->
 <script type="text/javascript">
 var setError = function(error) {
@@ -46,7 +46,7 @@ var process_details = function() {
 
   hash_password(data.password.value, username, function(pwHash) {
     // send post data to the login page, i.e. this url
-    var url = "/process-login";   
+    var url = "/sys/process-login";   
     var params = { username: username,
 	           pwHash: pwHash,
 	           remember: remember.toString(),

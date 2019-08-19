@@ -21,9 +21,9 @@
 -->
 
 <!-- registration code -->
-<script type="text/javascript" src="/js/pbkdf2.js"></script>
-<script type="text/javascript" src="/js/post.js"></script>
-<script type="text/javascript" src="/js/get_param.js"></script>
+<script type="text/javascript" src="/sys/js/pbkdf2.js"></script>
+<script type="text/javascript" src="/sys/js/post.js"></script>
+<script type="text/javascript" src="/sys/js/get_param.js"></script>
 <script type="text/javascript">
 var check_field_empty = function(field) {
   return field.value.trim().length > 0;
@@ -107,7 +107,7 @@ var process_details = function() {
     window.location.href = errUrl;
   } else {
     hash_password(data.password.value, data.username.value, function(pwHash) {
-      var url = "/process-register";
+      var url = "/sys/process-register";
       var params = { username: data.username.value,
 	             pwHash: pwHash,
 	             email: data.email.value };

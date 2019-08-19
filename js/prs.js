@@ -49,7 +49,7 @@ var prsRequest = function(name, args, next) {
   var req = new XMLHttpRequest();
   req.onload = xhrCallback;
  
-  req.open("POST", "/prs");
+  req.open("POST", "/sys/prs");
   req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
   req.send(new URLSearchParams(args));

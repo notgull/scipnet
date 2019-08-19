@@ -1,5 +1,5 @@
 /*
- * renderer.js
+ * renderer.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull

@@ -1,5 +1,5 @@
 /*
- * index.js
+ * index.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,77 +18,73 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var body_parser = require('body-parser');
-var cookie_parser = require('cookie-parser');
-var express = require('express');
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var util = require('util');
+import * as body_parser from 'body-parser';
+import * as cookie_parser from 'cookie-parser';
+import * as express from 'express';
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import * as path from 'path';
 
-var autocreation = require('./metadata/autocreate_404');
-var ut_initializer = require("./user/initialize_database");
-var mt_initializer = require("./metadata/initialize_database");
+import { autocreate } from './metadata/autocreate_404';
+import { initialize_users }  from './user/initialize_database';
+import { initialize_pages } from './metadata/initialize_database';
 
-var metadata = require('./metadata/metadata');
-var prs = require('./metadata/prs');
-var renderer = require('./renderer');
-var usertable = require('./user/usertable');
-var validate = require('./user/validate');
+import { Nullable } from './helpers'
+import * as metadata from './metadata/metadata';
+import * as prs from './metadata/prs';
+import * as renderer from './renderer';
+import { usertable } from './user/usertable';
+import * as validate from './user/validate';
 
 // get version
-var version = require('./../../package.json').version;
+const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
 
-// error out if not root
-//if (process.geteuid) {
-//  if (process.geteuid() !== 0) {
-//    console.error("Error: Must be run as root");
-//    process.exit(1);
-//  }
-//}
-
 // if we can't access config.json, return
-require('./../../config.json');
+require(path.join(process.cwd(), 'config.json'));
 
-var s_port = process.env.PORT || 8443;
+let s_port = process.env.PORT || 8443;
 
 // load up the SQL before we start up
-ut_initializer((_o) => {
-  mt_initializer((_o) => {
-    autocreation((_o) => {});
+initialize_users((_o: any) => {
+  initialize_pages((_o: any) => {
+    autocreate((_o: any) => {});
   });
 });
 
 // initialize node.js app
-var app = express();
+const app = express();
 app.use(body_parser.json());
-app.use(body_parser.urlencoded({ extended: true, }));
+app.use(body_parser.urlencoded({ extended: true }));
 //app.use(express.json());
 //app.use(express.urlencoded());
 app.use(cookie_parser());
 
 // load ssl certs
-var certs = { key: fs.readFileSync('certs/scpwiki.key'),
-	      cert: fs.readFileSync('certs/scpwiki.pem') };
+const certs = { key: fs.readFileSync('certs/scpwiki.key'),
+                cert: fs.readFileSync('certs/scpwiki.pem') };
 
 // create a table of user sessions
-var ut = usertable();
+let ut = new usertable();
+
+// need a type to deal with parameters
+type Params = { [key: string]: string };
 
 // get an ip address from a request
-function getIPAddress(req) {
-  return req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
+function getIPAddress(req: express.Request): string {
+  //return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  return req.ip;
 }
 
 // function that puts together login info for user
-function loginInfo(req) {
+function loginInfo(req: express.Request): Nullable<string> {
   var ip_addr = getIPAddress(req); 
   return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
 }
 
-
 // function to render a page
-async function render_page_async(req, isHTML, name, pageTitle) {
+async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
   //console.log("Rendering page with: ");
   //console.log(Array.from(arguments));
 
@@ -96,7 +92,7 @@ async function render_page_async(req, isHTML, name, pageTitle) {
     return await renderer.render('', name, pageTitle, loginInfo(req));
   } else {
     var md = await metadata.metadata.load_by_slug(name);
-    if (!md) return false;
+    if (!md) return null;
 
     let title = pageTitle;
     if (pageTitle.length === 0)
@@ -106,7 +102,7 @@ async function render_page_async(req, isHTML, name, pageTitle) {
   }
 }
 
-function render_page(req, isHTML, name, pageTitle, next) {
+function render_page(req: express.Request, isHTML: boolean, name: string, pageTitle: string, next: (s: Nullable<string>) => any): void {
   render_page_async(req, isHTML, name, pageTitle).then((r) => {
     next(r);
   }).catch((err) => {throw err;});
@@ -118,29 +114,29 @@ function render_page(req, isHTML, name, pageTitle, next) {
 //});
 
 // special files
-app.get("/favicon.ico", function(req, res) {
+app.get("/favicon.ico", function(req: express.Request, res: express.Response) {
   res.send(fs.readFileSync("images/icon.ico"));
 });
 
-app.get("/special/background.png", function(req, res) {
+app.get("/sys/images/background.png", function(req: express.Request, res: express.Response) {
   res.send(fs.readFileSync("images/body_bg.png"));
 });
 
 // bauhaus font css
-app.get("/special/font-bauhaus.css", function(req, res) {
+app.get("/sys/fonts/font-bauhaus.css", function(req: express.Request, res: express.Response) {
   res.send(fs.readFileSync("css/font-bauhaus.css"));
 });
 
-app.get("/special/itc-bauhaus-lt-demi.ttf", function(req, res) {
+app.get("/sys/fonts/itc-bauhaus-lt-demi.ttf", function(req: express.Request, res: express.Response) {
   res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.ttf"));
 });
 
-app.get("/special/itc-bauhaus-lt-demi.eot", function(req, res) {
+app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res: express.Response) {
   res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.eot"));
 });
 
 // get login page
-app.get("/login", function(req, res) {
+app.get("/sys/login", function(req: express.Request, res: express.Response) {
   //var login = renderer.render('', 'html/login.html', 'Login', loginInfo(req)); 
   //res.send(login);
 
@@ -151,28 +147,28 @@ app.get("/login", function(req, res) {
 const day_constant = 86400000;
 
 // post request - used for logging in
-app.post("/process-login", function(req, res) {
-  var username = req.body.username;
-  var pwHash = req.body.pwHash;
-  var push_expiry = (req.body.remember === "true");
-  var change_ip = (req.body.change_ip === "true");
-  var new_url = req.query.new_url || "";
+app.post("/sys/process-login", function(req: express.Request, res: express.Response) {
+  let username = req.body.username;
+  let pwHash = req.body.pwHash;
+  let push_expiry = (req.body.remember === "true");
+  let change_ip = (req.body.change_ip === "true");
+  let new_url = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
-  validate.validate_user(username, pwHash, (result, err) => {
+  validate.validate_user(username, pwHash, (result: number, err: Error) => {
     if (result === 3) console.log(err);
 
     if (result !== 0) res.redirect("/login?errorCode=" + result);
     else {
       // add user to user table
-      var ip_addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-      var expiry = new Date();
+      let ip_addr = getIPAddress(req);
+      let expiry = new Date();
       if (push_expiry)
 	expiry.setDate(expiry.getDate() + 7);
       else
 	expiry.setDate(expiry.getDate() + 1);
 
-      var sessionId = ut.register(username, ip_addr, expiry, change_ip);
+      let sessionId = ut.register(username, ip_addr, expiry, change_ip);
       console.log("Logged session " + sessionId);
       res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
       res.redirect('/' + new_url);
@@ -181,19 +177,19 @@ app.post("/process-login", function(req, res) {
 });
 
 // hookup to PRS system
-app.post("/prs", function(req, res) {
-  var ip_addr = req.headers['x-forwarded-for'] || req.connection.remoteAddress; 
+app.post("/sys/prs", function(req: express.Request, res: express.Response) {
+  let ip_addr = getIPAddress(req); 
 
   //console.log("PRS Request: " + JSON.stringify(req.body));
 
   // get username
-  var username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
+  let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
   
   // pull all parameters from req.body and put them in args
-  var args = {};
+  let args: { [key: string]: any } = {};
   for (var key in req.body)
     args[key] = req.body[key];
-  prs.request(args["name"], username, args, function(result) {
+  prs.request(args["name"], username, args, function(result: any) {
   if (result.errorCode === -1) {
       console.log(result.error);
       result.error = "An internal error occurred. Please contact a site administrator.";
@@ -203,7 +199,7 @@ app.post("/prs", function(req, res) {
 });
 
 // get registration page
-app.get("/register", function(req, res) {
+app.get("/sys/register", function(req: express.Request, res: express.Response) {
   //var register = renderer.render('', 'html/register.html', 'Register', loginInfo(req));
   //res.send(register);
 
@@ -211,36 +207,36 @@ app.get("/register", function(req, res) {
 	       (d) => {res.send(d);});
 });
 
-var onEmailVerify = function(username, pwHash, email) {
-  validate.add_new_user(username, email, pwHash, (i, err) => {
+var onEmailVerify = function(username: string, pwHash: string, email: string): void {
+  validate.add_new_user(username, email, pwHash, (i: number, err: Error) => {
     console.log("Err: " + i + "\n" + err);
   });
 };
 
 // process registration
-app.post("/process-register", function(req, res) {
-  var username = req.body.username;
-  var pwHash = req.body.pwHash;
-  var email = req.body.email;
+app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
+  let username = req.body.username;
+  let pwHash = req.body.pwHash;
+  let email = req.body.email;
 
   // make sure neither the username nor the email exist
-  validate.check_user_existence(username, function(result, err) {
+  validate.check_user_existence(username, function(result: any, err: Error): void {
     //console.log(err);
     if (result == validate.INTERNAL_ERROR) {
       console.log(err);
-      res.redirect('/register?errors=512');
+      res.redirect('/sys/register?errors=512');
     } else if (result !== validate.USER_NOT_FOUND) {
-      res.redirect('/register?errors=128')
+      res.redirect('/sys/register?errors=128')
     } else {
-      validate.check_email_usage(email, function(result, err) {
+      validate.check_email_usage(email, function(result: number, err: Error) {
         if (result === validate.INTERNAL_ERROR) {
           //console.log(err);
-          res.redirect('/register?errors=512');
+	  res.redirect('/sys/register?errors=512');
         } else if (result !== validate.EMAIL_NOT_FOUND)
-          res.redirect('/register?errors=256');
+	  res.redirect('/sys/register?errors=256');
         else {
           // TODO: verify via email
-          res.redirect('/login');
+	  res.redirect('/sys/login');
           onEmailVerify(username, pwHash, email);
         }
       });
@@ -249,12 +245,12 @@ app.post("/process-register", function(req, res) {
 });
 
 // log a user out of the system
-app.use("/process-logout", function(req, res) {
+app.use("/sys/process-logout", function(req: express.Request, res: express.Response) {
   //var username = loginInfo(req);
   //var ip_addr = getIPAddress(req);
 
-  var user_id = req.cookies["session_id"];
-  var new_location = req.query.new_url || "";
+  let user_id = req.cookies["session_id"];
+  let new_location = req.query.new_url || "";
   ut.logout(user_id);
   
   res.redirect('/' + new_location);
@@ -263,7 +259,8 @@ app.use("/process-logout", function(req, res) {
 // get generic page
 app.get("/:pageid", function(req, res) {
   // TODO: render username
-  var pageid = req.params.pageid;
+  const params: Params = req.params as Params;
+  let pageid = params['pageid'];
 
   render_page(req, false, pageid, '', 
 	        (d) => {
@@ -273,12 +270,13 @@ app.get("/:pageid", function(req, res) {
 });
 
 // load javascript files
-app.get("/js/:script", function(req, res) {
-  var scriptName = req.params.script;
-  var scriptPath = "js/" + scriptName;
+app.get("/sys/js/:script", function(req, res) {
+  const params: Params = req.params as Params;
+  let scriptName = params['script'];
+  let scriptPath = "js/" + scriptName;
   if (!fs.existsSync(scriptPath)) scriptPath = "js/404.js";
 
-  var script = fs.readFileSync(scriptPath);
+  let script = fs.readFileSync(scriptPath);
   res.send(script);
 });
 
@@ -288,8 +286,8 @@ app.get("/", function(req, res) {
 });
 
 // initialize http servers
-var httpServer = http.createServer(app);
-var httpsServer = https.createServer(certs, app);
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(certs, app);
 
 httpServer.listen(8000);
 httpsServer.listen(s_port);
