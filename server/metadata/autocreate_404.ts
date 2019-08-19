@@ -19,57 +19,58 @@
  */
 
 // automatically create the 404 and main pages
-var config = require('./../../../config.json');
-var diff = require('diff');
-var fs = require('fs');
-var metadata = require('./metadata');
-var path = require('path');
-var validate = require('./../user/validate');
+import * as diff from 'diff';
+import * as fs from 'fs';
+import * as metadata from './metadata';
+import * as path from 'path';
+import * as validate from './../user/validate';
+
+const config = require(path.join(process.cwd(), "config.json"));
 
 // just create a raw revision - good for pages
-var raw_revision = function(article_id, article_name, user_id) {
-  var dataLoc = path.join(config.scp_cont_location, article_name);
-  var data = fs.readFileSync(dataLoc) + "";
-  var patch = diff.createPatch(dataLoc, "", data, "", "");
-  var revision = new metadata.revision(article_id, user_id);
+function raw_revision(article_id: number, article_name: string, user_id: number): metadata.revision {
+  let dataLoc = path.join(config.scp_cont_location, article_name);
+  let data = fs.readFileSync(dataLoc) + "";
+  let patch = diff.createPatch(dataLoc, "", data, "", "");
+  let revision = new metadata.revision(article_id, user_id);
 
   fs.writeFileSync(revision.diff_link, patch);
   return revision;
 }
 
 // put more pages in this if we need them
-module.exports.autocreate = function(next) {
+export function autocreate(next: (r: number) => any) {
   // add system user
-  validate.add_new_user("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", (user_id, err) => {
+  validate.add_new_user("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", (user_id: number, err: Error) => {
     if (err) {
       // failed to add user; already exists
       console.error("Failed to add user: already exists");
       return;
     }
 
-    var _404 = new metadata.metadata("_404");
+    let _404 = new metadata.metadata("_404");
     _404.title = "404";
     _404.locked_at = new Date();
 
     // save the page to the database so that we have a page id to work with
     _404.submit().then(() => {
-      var article_id = _404.article_id;
-      var _404_author = new metadata.author(article_id, user_id, "author");
-      var _404_revision = raw_revision(article_id, _404.slug, user_id);
+      let article_id = _404.article_id;
+      let _404_author = new metadata.author(article_id, user_id, "author");
+      let _404_revision = raw_revision(article_id, _404.slug, user_id);
 
       _404.authors.push(_404_author);
       _404.revisions.push(_404_revision);
 
       _404.submit(true).then(() => {
         // we also need the main page
-        var mainpage = new metadata.metadata("main");
+        let mainpage = new metadata.metadata("main");
         mainpage.title = "";
         mainpage.locked_at = new Date();
 
         mainpage.submit().then(() => {
-          var article_id = mainpage.article_id;
-          var mainpage_author = new metadata.author(article_id, user_id, "author");
-          var mainpage_revision = raw_revision(article_id, mainpage.slug, user_id);
+          let article_id = mainpage.article_id;
+          let mainpage_author = new metadata.author(article_id, user_id, "author");
+          let mainpage_revision = raw_revision(article_id, mainpage.slug, user_id);
 
           mainpage.authors.push(mainpage_author);
           mainpage.revisions.push(mainpage_revision);

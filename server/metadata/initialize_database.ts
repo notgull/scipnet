@@ -1,5 +1,5 @@
 /*
- * initialize_database.js
+ * initialize_database.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,10 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var  query  = require('./../sql').query;
+import { query } from './../sql';
 
-module.exports.initialize_pages = function(next) {
-  var metadata_table_sql = "CREATE TABLE IF NOT EXISTS Pages (" +
+// initialize the database for metadata storage
+export function initialize_pages(next: (n: number) => any) {
+  const metadata_table_sql = "CREATE TABLE IF NOT EXISTS Pages (" +
 		             "article_id BIGSERIAL PRIMARY KEY," +
 		             "slug TEXT NOT NULL UNIQUE," +
 		             "title TEXT NOT NULL," +
@@ -29,14 +30,12 @@ module.exports.initialize_pages = function(next) {
 		             "editlock_id TEXT," +
 		             "discuss_page_link TEXT," +
 		             "locked_at TIMESTAMP" +
-		             //"files TEXT[]," +
-		             //"parent TEXT" +
 		           ");";
-  query(metadata_table_sql, [], (err, res) => {
+  query(metadata_table_sql, [], (err: any, res: any) => {
     if (err) throw new Error(err);
     
     // also create the revision table
-    var revision_table_sql = "CREATE TABLE IF NOT EXISTS Revisions (" +
+    const revision_table_sql = "CREATE TABLE IF NOT EXISTS Revisions (" +
 		               "revision_id BIGSERIAL PRIMARY KEY," +
 		               "article_id INTEGER REFERENCES Pages(article_id)," +
 		               "user_id INTEGER REFERENCES Users(user_id)," +
@@ -44,39 +43,39 @@ module.exports.initialize_pages = function(next) {
 		               "description TEXT," +
 		               "created_at TIMESTAMP NOT NULL" +
 		             ");";
-    query(revision_table_sql, [], (err, res) => {
+    query(revision_table_sql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
       // also create the ratings table
-      var rating_table_sql = "CREATE TABLE IF NOT EXISTS Ratings (" +
+      const rating_table_sql = "CREATE TABLE IF NOT EXISTS Ratings (" +
 		               "article_id INTEGER REFERENCES Pages(article_id)," +
 		               "user_id INTEGER REFERENCES Users(user_id)," +
                                "rating SMALLINT NOT NULL CHECK(abs(rating) <= 1)" +
 		             ");";
-      query(rating_table_sql, [], (err, res) => {
+      query(rating_table_sql, [], (err: any, res: any) => {
         if (err) throw new Error(err);
 
-        var author_table_sql = "CREATE TABLE IF NOT EXISTS Authors (" +
+        const author_table_sql = "CREATE TABLE IF NOT EXISTS Authors (" +
 		                 "author_id BIGSERIAL PRIMARY KEY," +
 		                 "article_id INTEGER REFERENCES Pages(article_id)," +
 		                 "user_id INTEGER REFERENCES Users(user_id)," +
 		                 "author_type TEXT NOT NULL," +
 		                 "created_at TIMESTAMP NOT NULL" +
 		               ");";
-	query(author_table_sql, [], (err, res) => {
+	query(author_table_sql, [], (err: any, res: any) => {
           if (err) throw new Error(err);
 
-          var file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
+          const file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
 			         "file_id BIGSERIAL PRIMARY KEY," +
 			         "article_id INTEGER REFERENCES Pages(article_id)," +
 			         "description TEXT NOT NULL," +
 			         "file_uri TEXT NOT NULL," +
 			         "filename TEXT NOT NULL" +
 			       ");";
-          query(file_table_sql, [], (err, res) => {
+          query(file_table_sql, [], (err: any, res: any) => {
             if (err) throw new Error(err);
 
-            var parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
+            const parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
 			             "article_id INTEGER REFERENCES Pages(article_id)," +
 			             "parent_article_id INTEGER REFERENCES Pages(article_id)" +
 			           ");";

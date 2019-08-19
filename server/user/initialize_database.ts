@@ -1,5 +1,5 @@
 /*
- * initialize_database.js
+ * initialize_database.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -19,13 +19,14 @@
  */
 
 // create the initial database
-var config = require('./../../../config.json');
-//var sqlite3 = require('sqlite3').verbose();
-var { query } = require('./../sql');
+import { query } from './../sql';
+import * as path from 'path';
 
-module.exports.initialize_users = function(next) {
+const config = require(path.join(process.cwd(), 'config.json'));
+
+export function initialize_users(next: (n: number) => any) {
   // create user and pwhash tables
-  var user_table_sql = "CREATE TABLE IF NOT EXISTS Users (" +
+  const user_table_sql = "CREATE TABLE IF NOT EXISTS Users (" +
 		            "user_id BIGSERIAL PRIMARY KEY," +
 		            "username TEXT NOT NULL UNIQUE," +
 		            "email TEXT NOT NULL UNIQUE," +
@@ -38,18 +39,18 @@ module.exports.initialize_users = function(next) {
 		            "avatar TEXT NOT NULL," +
 		            "gender TEXT" +
 	                  ");";
-  query(user_table_sql, (err, res) => {
+  query(user_table_sql, [], (err: any, res: any) => {
     if (err) throw new Error(err);
-    var pwHash_table_sql = "CREATE TABLE IF NOT EXISTS Passwords (" +
+    const pwHash_table_sql = "CREATE TABLE IF NOT EXISTS Passwords (" +
                                "hash_id BIGSERIAL PRIMARY KEY," +
 			       "user_id INTEGER REFERENCES Users(user_id)," +
 		               "salt JSONB NOT NULL UNIQUE," +
 			       "pwhash TEXT NOT NULL" +
 			     ");";
-    query(pwHash_table_sql, (err, res) => {
+    query(pwHash_table_sql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
-      next();	
+      next(0);	
     });
   });
 };
