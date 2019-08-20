@@ -21,8 +21,15 @@
 // this file renders html from markdown stored in data files
 import { get_markdown } from './ftml/markdown';
 import * as metadata from './metadata/metadata';
+import * as nunjucks from 'nunjucks';
 import * as fs from 'fs';
 import * as path from 'path';
+
+// nunjucks environment
+const templates_folder = path.join(process.cwd(), "html");
+let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folder), {
+  autoescape: false,
+});
 
 const config = require(path.join(process.cwd(), "config.json"));
 
@@ -35,12 +42,18 @@ export async function render_rating_module(metadata: any): Promise<string> {
   return get_markdown("Rating Module", rating_mod_src, metadata);
 };
 
+// add a filter used for rendering usernames
+env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
+  // TODO: process username and create a username module
+  return str;
+});
+
 export async function render(modName: string, 
                              htmlFileName: string = '', 
 			     title: string = 'Testing Page', 
 			     loginInfo: any = false, 
 			     metadata: any = null): Promise<string> {
-  let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
+  //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
   const replacement_string = "[INSERT_CONTENT_HERE]";
  
   // get username, if it exists
@@ -97,18 +110,30 @@ export async function render(modName: string,
     rater = await exports.render_rating_module(metadata);
   }
 
-  //var replacements = {
-  //
-  //};
+  const first_stage_replacements = {
+    ftml_content: content,
+    ul_vanishing: ulv_replacement,
+    meta_title: meta_title,
+    title: title,
+    page_rating: rating,
+    login_bar: loginBar
+  };
+
+  const second_stage_replacements = {
+    username: username
+  };
   
-  let page = template.split(replacement_string).join(content) + "";
+  /*let page = template.split(replacement_string).join(content) + "";
   page = page.split(mt_replacement_string).join(meta_title);
   page = page.split(t_replacement_string).join(title);
   page = page.split(lb_replacement_string).join(loginBar);
   page = page.split(u_replacement_string).join(username);
   page = page.split(ulv_replacement_string).join(ulv_replacement);
   page = page.split(r_replacement_string).join(String(rating));
-  page = page.split(rr_replacement_string).join(rater);
+  page = page.split(rr_replacement_string).join(rater);*/
+
+  let page = env.render("template.html", first_stage_replacements);
+  page = env.renderString(page, second_stage_replacements);
 
   return page;
 }

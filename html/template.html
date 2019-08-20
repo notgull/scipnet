@@ -25,7 +25,7 @@
 <!-- meta information -->
 
 <head>
-    <title>[INSERT_META_TITLE_HERE]SCP Wiki</title>
+    <title>{{ meta_title }}SCP Wiki</title>
     <meta charset="UTF-8">
     <style type="text/css">
         /*@import "localhost:8000/special/css";*/
@@ -248,11 +248,11 @@
         }
         
         #utility-links {
-          margin: 4px 0;
+          margin: 10px;
           text-align: right;
           height: 1%;
           line-height: 150%;
-          [INSERT_UL_VANISHING_HERE]
+	  {{ ul_vanishing }}
         }
         
         #utility-links a {
@@ -284,7 +284,7 @@
             <p>Hello!</p>
         </div>
         <div id="login-bar">
-            [INSERT_LOGINBAR_HERE]
+            {{ login_bar }}
         </div>
     </div>
     <div class="main-body">
@@ -295,56 +295,63 @@
         </div>
         <div class="user-content-container">
             <div class="user-content">
-                <div class="page-title">[INSERT_TITLE_HERE]</div>
+                <div class="page-title">{{ title }}</div>
                 <div class="generated-markdown">
-                    [INSERT_CONTENT_HERE]
+                    {{ ftml_content }}
                 </div>
-            </div>
-            <div id="utility-links">
-                <!-- begin utility block -->
-                <a onclick="editpage()">Edit</a>&nbsp;
-                <a onclick="showrater()">Rate ([INSERT_RATING_HERE])</a>&nbsp;
-		<a>Tags</a>&nbsp;
-	        <a>Discuss</a>&nbsp;
-		<a>History</a>&nbsp;
-		<a>Files</a>&nbsp;
-		<a>Page Source</a>&nbsp;
-		<a id="options_link">+ Options</a>
-            </div>
-            <div id="utility-block">
-                <div id="editor" class="vanished">
-                    <h1>Edit Page</h1>
-                    <form>
-                        <p>
-                            <!-- table for titlebox -->
-                            <table style="width: 100%">
-                                <tr>
-                                    <td style="width: 30%">
-                                        <p>Page Title:</p>
-                                    </td>
-                                    <td style="width: 60%">
-                                        <input id="titlebox" style="width: 100%; text-align: left;" name="titlebox" /><br />
-                                    </td>
-                                </tr>
-                            </table>
-                        </p>
-                        <p>
-                            <textarea name="srcbox" id="srcbox" style="width: 95%; height: 400px;" cols="50" rows="10"></textarea><br />
-                        </p>
-                        <div id="edit-buttons">
-                            <input type="button" id="cancel_button" name="cancel" value="Cancel" onclick="canceleditpage();" />
-                            <input type="button" id="sac_button" name="sac" value="Save and Continue" onclick="savepage(false);" />
-                            <input type="button" id="save_button" name="save" value="Save" onclick="savepage(true);" />
+                <div id="utility-links">
+                    <!-- begin utility block -->
+                    <a onclick="editpage()">Edit</a>&nbsp;
+                    <a onclick="showrater()">Rate ({{ page_rating }})</a>&nbsp;
+                    <a>Tags</a>&nbsp;
+                    <a>Discuss</a>&nbsp;
+                    <a>History</a>&nbsp;
+                    <a>Files</a>&nbsp;
+                    <a>Page Source</a>&nbsp;
+                    <a id="options_link">+ Options</a>
+                </div>
+                <div id="utility-block">
+                    <div id="editor" class="vanished">
+                        <h1>Edit Page</h1>
+                        <form>
+                            <p>
+                                <!-- table for titlebox -->
+                                <table style="width: 100%">
+                                    <tr>
+                                        <td style="width: 30%">
+                                            <p>Page Title:</p>
+                                        </td>
+                                        <td style="width: 60%">
+                                            <input id="titlebox" style="width: 100%; text-align: left;" name="titlebox" /><br />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </p>
+                            <p>
+                                <textarea name="srcbox" id="srcbox" style="width: 95%; height: 400px;" cols="50" rows="10"></textarea><br />
+                            </p>
+                            <div id="edit-buttons">
+                                <input type="button" id="cancel_button" name="cancel" value="Cancel" onclick="canceleditpage();" />
+                                <input type="button" id="sac_button" name="sac" value="Save and Continue" onclick="savepage(false);" />
+                                <input type="button" id="save_button" name="save" value="Save" onclick="savepage(true);" />
+                            </div>
+                        </form>
+                    </div>
+                    <div id="rater" class="vanished">
+			<h1>Rating Module</h1>
+                        <div id="utils_rating_module">
+                            <!-- rating module will be generated here -->
                         </div>
-                    </form>
-                </div>
-                <div id="rater" class="vanished">
-                    <div id="utils_rating_module">
-                        [INSERT_RATER_HERE]
+                    </div>
+                    <div id="tags" class="vanished">
+                    </div>
+                    <div id="revisions" class="vanished">
+                    </div>
+                    <div id="pagesrc" class="vanished">
                     </div>
                 </div>
+                <!-- end utility block -->
             </div>
-            <!-- end utility block -->
         </div>
     </div>
 </body>

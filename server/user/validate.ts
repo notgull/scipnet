@@ -75,6 +75,7 @@ export function getFormattedDate(date: Date): string {
 
 // check to see if a username already exists
 export function check_user_existence(user: string, next: (res: any, err: Nullable<Error>) => any) {
+  console.log("Checking for user " + user);
   const check_user_sql = "SELECT username FROM Users WHERE username=$1;";
   query(check_user_sql, [user], (err: Nullable<Error>, row: any) => {
     if (err) next(INTERNAL_ERROR, err);
@@ -107,15 +108,17 @@ export function get_user_id(user: string, next: (res: any, err: Nullable<Error>)
 // validate a user and password
 export function validate_user(user: string, pwHash: string, next: (res: any, err: Nullable<Error>) => any) {
   // check for use existence first 
-  check_user_existence(user, (row: any, err: any) => {
+  check_user_existence(user, (res: number, err: any) => {
     if (err) next(INTERNAL_ERROR, err);
-    else if (!row) next(USER_NOT_FOUND, null);
+    else if (res) next(USER_NOT_FOUND, null);
     else {
+      console.log("User exists");
       // get the user id
       get_user_id(user, (res: any, err: any) => {
         if (err) { next(res, err); return; }
 
         // get the proper password hash
+	console.log("User id exists");
         const get_pwhash_sql = "SELECT salt, pwhash FROM Passwords WHERE user_id=$1;";
         query(get_pwhash_sql, [res], (err: Error, row: any) => {
           if (err) next(INTERNAL_ERROR, err);
@@ -124,8 +127,12 @@ export function validate_user(user: string, pwHash: string, next: (res: any, err
             row = row.rows[0];
 	    crypto.pbkdf2(pwHash, new Buffer(row.salt.data), 
 	                  100000, 64, 'sha512', (err: Error, derivedKey: Buffer) => {
+              let derivedText = derivedKey.toString("hex");
+	      //console.log("Provided: " + derivedText);
+	      //console.log("Database: " + row.pwhash);
+
 	      if (err) next(INTERNAL_ERROR, err);
-              else if (derivedKey.toString("hex") === row.pwhash) next(0, null);
+              else if (derivedText === row.pwhash) next(0, null);
               else next(PASSWORD_INCORRECT, null);
 	    });
           }

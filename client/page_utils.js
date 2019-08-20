@@ -74,7 +74,7 @@ var toggle_404_param = function() {
 }
 
 var savepage = function(refresh, use_404_param=false) {
-  args = {};
+  var args = {};
   args.pagename = get_slug();
   args.src = document.getElementById('srcbox').value;
   args.title = document.getElementById('titlebox').value;
