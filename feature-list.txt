@@ -1,0 +1,10 @@
+Current Features:
+
+- Can convert FTML into HTML and display it
+- Can create accounts
+- Can log in
+- Can give pages metadata (title, rating, etc)
+- Can rate pages
+- Can edit pages
+- Can show page history.
+- Can create new pages.
