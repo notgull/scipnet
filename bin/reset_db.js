@@ -28,7 +28,7 @@ if (!should_tables_be_deleted) {
   process.exit();
 }
 
-var sql = require('./../nodejs/sql');
+var sql = require('./../dist/server/sql');
 
 var remove_all_query = "DROP TABLE Users CASCADE; DROP TABLE Pages CASCADE;" +
 		         "DROP TABLE passwords; DROP TABLE authors;" +

@@ -59,9 +59,9 @@ export class author {
     let authors = [];
     let row;
     for (row of res) {
-      let authorInst = new exports.revision(article_id, row.user_id, row.diff_link);
+      let authorInst = new author(article_id, row.user_id, row.diff_link);
       authorInst.created_at = row.created_at;
-      authorInst.revision_id = row.author_id;
+      authorInst.author_id = row.author_id;
       authors.push(authorInst);
     }
 

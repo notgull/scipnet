@@ -158,7 +158,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   validate.validate_user(username, pwHash, (result: number, err: Error) => {
     if (result === 3) console.log(err);
 
-    if (result !== 0) res.redirect("/login?errorCode=" + result);
+    if (result !== 0) res.redirect("/sys/login?errorCode=" + result);
     else {
       // add user to user table
       let ip_addr = getIPAddress(req);
@@ -274,10 +274,11 @@ app.get("/:pageid", function(req, res) {
 app.get("/sys/js/:script", function(req, res) {
   const params: Params = req.params as Params;
   let scriptName = params['script'];
-  let scriptPath = path.join("../client", scriptName);
-  if (!fs.existsSync(scriptPath)) scriptPath = "js/404.js";
+  let scriptPath = path.join("dist/client", scriptName);
+  if (!fs.existsSync(scriptPath)) scriptPath = "dist/client/404.js";
 
   let script = fs.readFileSync(scriptPath);
+  res.type("application/javascript");
   res.send(script);
 });
 

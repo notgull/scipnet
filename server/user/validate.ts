@@ -64,7 +64,7 @@ export function getFormattedDate(date: Date): string {
   let seconds = date.getSeconds().toString(); 
   seconds = seconds.length > 1 ? seconds : '0' + seconds;
   
-  return year + '-' + month + '-' + day + ' ' + hour + ':' + minutes + ':' + seconds;
+  return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
 }
 
 //const options = {

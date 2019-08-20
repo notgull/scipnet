@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-'use strict';
 
 // this file renders html from markdown stored in data files
 import { get_markdown } from './ftml/markdown';
@@ -36,7 +35,11 @@ export async function render_rating_module(metadata: any): Promise<string> {
   return get_markdown("Rating Module", rating_mod_src, metadata);
 };
 
-export async function render(modName: string, htmlFileName: string = '', title: string = 'Testing Page', loginInfo: any = false, metadata: any = null): Promise<string> {
+export async function render(modName: string, 
+                             htmlFileName: string = '', 
+			     title: string = 'Testing Page', 
+			     loginInfo: any = false, 
+			     metadata: any = null): Promise<string> {
   let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
   const replacement_string = "[INSERT_CONTENT_HERE]";
  

@@ -17,10 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-"use strict";
-
+ 
 // metadata properties, add more if necessary
+
 // url
 // title
 // rating (+ ratings from users)
@@ -65,9 +64,11 @@ export {editlock, add_editlock, remove_editlock, check_editlock} from './editloc
 
 // define an asynchronous foreach loop
 async function async_foreach(arr: Array<any>, iter: any): Promise<void> {
+  let promises = [];
   for (var i = 0; i < arr.length; i++) {
-    await iter(arr[i]);
+    promises.push(iter(arr[i]));
   }
+  await Promise.all(promises);  
 };
 
 // metadata belonging to a particular page
@@ -129,20 +130,21 @@ export class metadata {
     }
 
     // load ratings
-    mObj.ratings = await exports.rating.load_array_by_article(res.article_id);
+    mObj.ratings = await rating.load_array_by_article(res.article_id);
   
     // load authors
-    mObj.authors = await exports.author.load_array_by_article(res.article_id);
-    if (mObj.authors.length > 1)
+    mObj.authors = await author.load_array_by_article(res.article_id);
+    if (mObj.authors.length > 1) {
       mObj.author = null;
-    else
+    } else {
       mObj.author = mObj.authors[0];
+    }
   
     // load revisions
-    mObj.revisions = await exports.revision.load_array_by_article(res.article_id);
+    mObj.revisions = await revision.load_array_by_article(res.article_id);
 
     // load parents
-    mObj.parents = await exports.parent_.load_array_by_child(res.article_id);
+    mObj.parents = await parent_.load_array_by_child(res.article_id);
 
     // TODO: load files once we have that system up and running
     return mObj;
