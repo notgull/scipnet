@@ -16,10 +16,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-program: dist/client/404.js dist/server/index.js
+program: rust/target/release/libscipnetrust.so dist/client/404.js dist/server/index.js 
   
 dist/client/404.js: client/*
 	npm run babel -- client --out-dir dist/client
 
 dist/server/index.js: server/* server/**/*
 	gulp
+
+rust/target/release/libscipnetrust.so: rust/src/*
+	cd rust; \
+	cargo build --release

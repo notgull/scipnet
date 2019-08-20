@@ -19,6 +19,7 @@
  */
 
 // function to hash a password via the PBKDF2 algorithm
+// TODO: this file is obsolete, refactor it out
 
 // convert an ascii string to a byte array
 function str_to_bytes(str) {

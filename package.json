@@ -26,6 +26,7 @@
     "@types/pg": "^7.11.0",
     "@types/uuid": "^3.4.5",
     "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "gulp": "^4.0.0",
     "gulp-typescript": "^5.0.1",
     "mocha": "^6.2.0",
@@ -36,5 +37,11 @@
     "gulp": "node node_modules/gulp/bin/gulp.js",
     "babel": "node node_modules/babel-cli/bin/babel.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ],
+    "plugins": []
   }
 }

@@ -273,7 +273,7 @@ app.get("/:pageid", function(req, res) {
 app.get("/sys/js/:script", function(req, res) {
   const params: Params = req.params as Params;
   let scriptName = params['script'];
-  let scriptPath = "js/" + scriptName;
+  let scriptPath = path.join("../client", scriptName);
   if (!fs.existsSync(scriptPath)) scriptPath = "js/404.js";
 
   let script = fs.readFileSync(scriptPath);
