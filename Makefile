@@ -22,7 +22,7 @@ dist/client/404.js: client/*
 	npm run babel -- client --out-dir dist/client
 
 dist/server/index.js: server/* server/**/*
-	gulp
+	npm run gulp
 
 rust/target/release/libscipnetrust.so: rust/src/*
 	cd rust; \

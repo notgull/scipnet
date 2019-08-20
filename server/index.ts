@@ -207,7 +207,7 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
 	       (d) => {res.send(d);});
 });
 
-var onEmailVerify = function(username: string, pwHash: string, email: string): void {
+function onEmailVerify(username: string, pwHash: string, email: string): void {
   validate.add_new_user(username, email, pwHash, (i: number, err: Error) => {
     console.log("Err: " + i + "\n" + err);
   });
@@ -215,9 +215,10 @@ var onEmailVerify = function(username: string, pwHash: string, email: string): v
 
 // process registration
 app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
-  let username = req.body.username;
-  let pwHash = req.body.pwHash;
-  let email = req.body.email;
+  //let username = req.body.username;
+  //let pwHash = req.body.pwHash;
+  //let email = req.body.email;
+  let { username, pwHash, email } = req.body;
 
   // make sure neither the username nor the email exist
   validate.check_user_existence(username, function(result: any, err: Error): void {

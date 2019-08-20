@@ -5,7 +5,6 @@
   "author": "not_a_seagull",
   "license": "AGPL-3.0",
   "dependencies": {
-    "argon2": "^0.23.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "diff": "^4.0.1",
