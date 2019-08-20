@@ -24,6 +24,7 @@
 var hidePageUtilities = function() {
   document.getElementById("editor").classList.add("vanished");
   document.getElementById("rater").classList.add("vanished");
+  document.getElementById("revisions").classList.add("vanished");
 };
 
 var editpage = function(use_404_param=false) {
@@ -146,8 +147,17 @@ var tagpage = function() {
 
 };
 
-var pagehistory = function() {
+var pagehistory = function(pagenum=1, perpage=20) {
+  hidePageUtilities();
+  prsRequest("pageHistory", {pagename: get_slug(), pagenum: pagenum, perpage: perpage}, (d) => {
+    if ('result' in d && !d.result) {
+      createDialog("Failed to open page history.");
+      return;
+    }
 
+    document.getElementById("history-table").innerHTML = d.src;
+    document.getElementById("revisions").classList.remove("vanished");
+  });
 };
 
 var pagefiles = function() {

@@ -21,6 +21,7 @@
 // page request system - for things like upvoting, creating pages, etc.
 import * as diff from 'diff';
 import * as fs from 'fs';
+import * as nunjucks from 'nunjucks';
 import { Nullable } from './../helpers';
 import { get_user_id } from './../user/validate';
 import * as metadata from './../metadata/metadata';
@@ -228,6 +229,63 @@ function changePage(username: string, args: ArgsMapping, next: PRSCallback) {
   });
 }
 
+let history_header = '<table class="page-history"><tbody>';
+history_header += "<tr><td>rev.</td><td>&nbsp;&nbsp;&nbsp;</td><td>flags</td><td>actions</td><td>by</td><td>date</td><td>comments</td></tr>";
+const history_row = "<tr><td>{{ rev_number }}</td><td></td><td>{{ flags }}</td><td>{{ buttons }}</td><td>{{ author }}</td><td>{{ date }}</td><td>{{ comments }}</td></tr>";
+const history_footer = '</tbody></table>';
+
+// get the history of a page
+function pageHistory(args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
+
+  metadata.metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.metadata>) => {
+    if (!mObj) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    } 
+
+    let revisions = [];
+    if (args.perpage > mObj.revisions.length)
+      revisions = mObj.revisions;
+    else {
+      // get all of the revisions needed
+      let start = args.perpage * args.pagenum;
+      if (start > mObj.revisions.length) {
+        next(genErrorVal(new Error("Page count mismatch")));
+        return;
+      }
+
+      let end = start + args.perpage;
+      if (end > mObj.revisions.length)
+        end = mObj.revisions.length;
+
+      revisions = mObj.revisions.slice(start, end);
+    }
+
+    // compile into html
+    let history = history_header;
+    let revision;
+    for (let i = 0; i < revisions.length; i++) {
+      revision = revisions[i];
+      history += nunjucks.renderString(history_row, {
+        rev_number: 1,
+	buttons: "V S R",
+	flags: "N",
+	author: "somebodyx",
+	date: revision.created_at.toLocaleDateString("en-US"),
+	comments: ""
+      });
+    }
+    history += history_footer;
+
+    returnVal.result = true;
+    returnVal.src = history;
+    next(returnVal);
+  }).catch((err) => { next(genErrorVal(err)); });
+}
+
 // vote on a page
 function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
@@ -320,10 +378,14 @@ export function request(name: string, username: string, args: ArgsMapping, next:
   get_user_id(username, (user_id: number, err: Error) => {
     if (err && username) { next(genErrorVal(err)); return; }
 
+    if (!args["pagename"] || args["pagename"].length === 0)
+      args["pagename"] = "main";
+
     args['user_id'] = user_id;
 
     // functions that don't need the username
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
+    else if (name === "pageHistory") { pageHistory(args, next); return; }
 
     if (!username) {
       returnVal.not_logged_in = true;

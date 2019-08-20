@@ -64,11 +64,11 @@ export {editlock, add_editlock, remove_editlock, check_editlock} from './editloc
 
 // define an asynchronous foreach loop
 async function async_foreach(arr: Array<any>, iter: any): Promise<void> {
-  let promises = [];
+  //let promises = []; 
   for (var i = 0; i < arr.length; i++) {
-    promises.push(iter(arr[i]));
+    await iter(arr[i]);
   }
-  await Promise.all(promises);  
+  // await Promise.all(promises);  <- causing some issues ATM, fix later?
 };
 
 // metadata belonging to a particular page
