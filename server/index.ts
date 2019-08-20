@@ -29,6 +29,7 @@ import * as path from 'path';
 import { autocreate } from './metadata/autocreate_404';
 import { initialize_users }  from './user/initialize_database';
 import { initialize_pages } from './metadata/initialize_database';
+import { validate_password } from './authdetails';
 
 import { Nullable } from './helpers'
 import * as metadata from './metadata/metadata';
@@ -154,6 +155,9 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   let change_ip = (req.body.change_ip === "true");
   let new_url = req.query.new_url || "";
 
+  // check the password before anything else
+  if (!validate_password(pwHash)) { res.redirect("/"); return; }
+
   // firstly, validate both whether the user exists and whether the password is correct
   validate.validate_user(username, pwHash, (result: number, err: Error) => {
     if (result === 3) console.log(err);
@@ -219,6 +223,16 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   //let pwHash = req.body.pwHash;
   //let email = req.body.email;
   let { username, pwHash, email } = req.body;
+
+  function redirectErr(errCode: number) { res.redirect("/sys/register?errors=" + errCode); }
+
+  // check to ensure that there aren't any errors
+  if (username.length === 0) { redirectErr(4); return; }
+  if (pwHash.length === 0) { redirectErr(16); return; }
+  if (email.length === 0) { redirectErr(8); return; }
+  if (!validate_password(username)) { redirectErr(1024); return; }
+  if (!validate_password(pwHash)) { redirectErr(64); return; }
+  if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
   validate.check_user_existence(username, function(result: any, err: Error): void {

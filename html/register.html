@@ -77,6 +77,8 @@ window.onload = function() {
       addError('Email address already exists within the database, please choose another');
     if (errorId === 512)
       addError('An internal error occurred. Please contact a site administrator.');
+    if (errorId & 1024)
+      addError("Invalid username - must be alphanumeric");
 
     errorList.innerHTML += "</ul>\n";
     errorList.innerHTML += "<p>Please correct these errors, then resubmit.</p>";
@@ -101,6 +103,8 @@ var process_details = function() {
     errCode = errCode & 32;
   if (!check_password_compat(data.password.value))
     errCode = errCode & 64;
+  if (!check_password_compat(data.username.value))
+    errCode = errCode & 1024;
   
   if (errCode !== 0) {
     var errUrl = window.location.href + "?errors=" + errCode;
