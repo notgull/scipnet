@@ -35,6 +35,7 @@ import { Nullable } from './helpers'
 import * as metadata from './metadata/metadata';
 import * as prs from './prs/prs';
 import * as renderer from './renderer';
+import { slugify } from './slug';
 import { usertable } from './user/usertable';
 import * as validate from './user/validate';
 
@@ -273,9 +274,14 @@ app.use("/sys/process-logout", function(req: express.Request, res: express.Respo
 
 // get generic page
 app.get("/:pageid", function(req, res) {
-  // TODO: render username
   const params: Params = req.params as Params;
   let pageid = params['pageid'];
+
+  let slug = slugify(pageid);
+  if (slug !== pageid) {
+    res.redirect('/' + slug);
+    return;
+  }
 
   render_page(req, false, pageid, '', 
 	        (d) => {
