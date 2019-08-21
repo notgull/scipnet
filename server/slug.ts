@@ -36,7 +36,7 @@ const isNumber = (c: string): boolean => {
   return 48 <= charcode && charcode <= 57;
 };
 
-const allowed_chars = ['-', '_', ':'];
+const allowed_chars = ['-', ':'];
 
 export function slugify(slug: string): string {
   let newSlug = "";
@@ -47,7 +47,12 @@ export function slugify(slug: string): string {
       newSlug += ch.toLowerCase();
     else if (isLowerCase(ch) || isNumber(ch) || allowed_chars.indexOf(ch) !== -1)
       newSlug += ch;
-    else
+    else if (ch === '_') {
+      if (i === 0)
+        newSlug += '_';
+      else
+        newSlug += '-';
+    } else
       newSlug += '-';
   }
   return newSlug;

@@ -35,7 +35,7 @@ const config = require(path.join(process.cwd(), "config.json"));
 
 //nunjucks.configure('../../html', { autoescape: true });
 
-const rating_mod_src = "[[module Rate]]";
+const rating_mod_src = "[[=]]\n[[module Rate]]\n[[/=]]";
 
 export async function render_rating_module(metadata: any): Promise<string> {
   // render a rating module

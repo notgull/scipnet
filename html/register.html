@@ -26,7 +26,7 @@
 <script type="text/javascript" src="/sys/js/get_param.js"></script>
 <script type="text/javascript">
 var check_field_empty = function(field) {
-  return field.value.trim().length > 0;
+  return !(field.value.trim().length > 0);
 }
 
 var check_password_compat = function(pw) {
@@ -90,24 +90,24 @@ var process_details = function() {
   
   var errCode = 0;
   if (data.email.value !== data.c_email.value)
-    errCode = errCode & 1;
+    errCode = errCode | 1;
   if (data.password.value !== data.c_password.value)
-    errCode = errCode & 2;
+    errCode = errCode | 2;
   if (check_field_empty(data.username))
-    errCode = errCode & 4;
+    errCode = errCode | 4;
   if (check_field_empty(data.email))
-    errCode = errCode & 8;
+    errCode = errCode | 8;
   if (check_field_empty(data.password))
-    errCode = errCode & 16;
+    errCode = errCode | 16;
   if (data.password.value.length > 8)
-    errCode = errCode & 32;
+    errCode = errCode | 32;
   if (!check_password_compat(data.password.value))
-    errCode = errCode & 64;
+    errCode = errCode | 64;
   if (!check_password_compat(data.username.value))
-    errCode = errCode & 1024;
+    errCode = errCode | 1024; 
   
   if (errCode !== 0) {
-    var errUrl = window.location.href + "?errors=" + errCode;
+    var errUrl = "/sys/register?errors=" + errCode;
     window.location.href = errUrl;
   } else {
     hash_password(data.password.value, data.username.value, function(pwHash) {
