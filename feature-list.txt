@@ -1,10 +1,9 @@
 Current Features:
 
-- Can convert FTML into HTML and display it
-- Can create accounts
-- Can log in
-- Can give pages metadata (title, rating, etc)
-- Can rate pages
-- Can edit pages
+- Can utilize FTML to process page sources
+- Account creation
+- Session Management (log in, log out, expiration, verification)
+- Can create and edit pages
+- Can give pages metadata (title, rating, authorship)
 - Can show page history.
-- Can create new pages.
+- Can display a basic theme (sigma9)
