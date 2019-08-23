@@ -26,7 +26,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // nunjucks environment
-const templates_folder = path.join(process.cwd(), "html");
+const templates_folder = path.join(process.cwd(), "templates");
 let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folder), {
   autoescape: false,
 });
@@ -61,9 +61,9 @@ export async function render(modName: string,
   let loginBar;
   if (loginInfo) {
     username = loginInfo;
-    loginBar = fs.readFileSync(path.join(process.cwd(), 'html/lbar_li.html')) + "";
+    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_li.html')) + "";
   } else
-    loginBar = fs.readFileSync(path.join(process.cwd(), 'html/lbar_nli.html')) + "";
+    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_nli.html')) + "";
 
   let content;
   if (!htmlFileName || htmlFileName.length === 0) {
