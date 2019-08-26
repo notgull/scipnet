@@ -29,6 +29,7 @@ import * as path from 'path';
 import { autocreate } from './metadata/autocreate_404';
 import { initialize_users }  from './user/initialize_database';
 import { initialize_pages } from './metadata/initialize_database';
+import { initialize_forums } from './forums/initialize_database';
 import { validate_password } from './authdetails';
 
 import { Nullable } from './helpers'
@@ -66,7 +67,9 @@ async function check_dir(dirname: string) {
   // load up the SQL before we start up
   initialize_users((_o: any) => {
     initialize_pages((_o: any) => {
-      autocreate((_o: any) => {});
+      initialize_forums((_o: any) => {
+        autocreate((_o: any) => {});
+      });
     });
   });
 }).catch((err: Error) => { throw err; });

@@ -38,7 +38,6 @@ function get_diff_link(article_id: number): string {
   return path.join(diff_col, uuidv4()) + ".patch";
 }
 
-
 // represents a revision made to a page by a user
 export class revision {
   article_id: number;
