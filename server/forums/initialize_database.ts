@@ -25,12 +25,12 @@ const query = queryPromise;
 
 async function initialize_forums_async(): Promise<number> {
   const superboard_table_sql = "CREATE TABLE IF NOT EXISTS Superboards (" +
-                                 "superboard_id BIGSERIAL PRIMARY KEY," +
+                                 "superboard_id string PRIMARY KEY," +
                                  "name TEXT NOT NULL UNIQUE," +
                                  "description TEXT NOT NULL" +
                                ");";
   const board_table_sql = "CREATE TABLE IF NOT EXISTS Boards (" +
-                            "board_id BIGSERIAL PRIMARY KEY," +
+                            "board_id string PRIMARY KEY," +
                             "name TEXT NOT NULL UNIQUE," +
 			    "description TEXT NOT NULL," +
 			    "superboard INTEGER REFERENCES Superboards(superboard_id)" +

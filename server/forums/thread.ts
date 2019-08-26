@@ -89,9 +89,10 @@ export class Thread {
   async submit(): Promsie<void> {
     if (this.thread_id === "") this.thread_id = uuid().replace('-', '');
     
-    const upsert_query = "INSERT INTO Threads VALUES ($1, $2, $3, $4, $5) " +
+    const upsert_query = "INSERT INTO Threads VALUES ($6, $1, $2, $3, $4, $5) " +
                          "ON CONFLICT (thread_id) DO UPDATE SET " +
 			 "author=$1, board=$2, name=$3, description=$4, created_at=$5;";
-    await query(upsert_query, [this.author_id, this.board.board_id, this.name, this.description, this.created_at]);
+    await query(upsert_query, [this.author_id, this.board.board_id, this.name, 
+                               this.description, this.created_at, this.thread_id]);
   }
 };

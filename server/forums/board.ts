@@ -24,9 +24,10 @@ const query = queryPromise;
 
 import { Nullable } from './../utils';
 import { Superboard } from './superboard';
+import * as uuid from 'uuid/v4';
 
 export class Board {
-  board_id: number;
+  board_id: string;
   name: string;
   description: string;
   superboard: Superboard;
@@ -35,7 +36,7 @@ export class Board {
     this.name = name;
     this.description = description;
     this.superboard = superboard;
-    this.board_id = -1;
+    this.board_id = "";
   }
 
   // get a board by its board id
@@ -94,5 +95,15 @@ export class Board {
 
     const update_query = "UPDATE Threads SET board = $1 WHERE board = $2;";
     await query(update_query, [this.board_id, old_id]);
+  }
+
+  // submit board to database
+  async submit(): Promise<void> {
+    if (this.board_id === "") this.board_id = uuid().replace('-', '');
+
+    const upsert_query = "INSERT INTO Boards VALUES ($1, $2, $3, $4) " +
+                         "ON CONFLICT (board_id) DO UPDATE SET " + 
+                         "name=$2, description=$3, superboard=$4;";
+    await query(upset_query, [this.board_id, this.name, this.description, this.superboard.superboard_id]);
   }
 };

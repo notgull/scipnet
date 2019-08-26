@@ -23,16 +23,17 @@ import { queryPromise } from './../sql';
 const query = queryPromise;
 
 import { Nullable } from './../utils';
+import * as uuid from 'uuid/v4';
 
 export class Superboard {
-  superboard_id: number;
+  superboard_id: string;
   name: string;
   description: string;
 
   constructor(name: string, description: string) {
     this.name = name;
     this.description = description;
-    this.superboard_id = -1;
+    this.superboard_id = "";
   }
 
   static async load_by_id(superboard_id: number): Promise<Nullable<Superboard>> {
@@ -47,18 +48,13 @@ export class Superboard {
     return superboard;
   }
 
+  // submit superboard to database
   async submit(): Promise<void> {
-    let old_id = this.superboard_id;
-    const remove_query = "DELETE FROM Superboards WHERE superboard_id=$1;";
-    const insert_query = "INSERT INTO Superboards (name, description) VALUES ($1, $2) " +
-                         "RETURNING superboard_id;";
-    await query(remove_query, [this.superboard_id]);
+    if (this.superboard_id === "") this.superboard_id = uuid().replace('-', '');
 
-    let res = await query(insert_query, [this.name, this.description]);
-    if (res.rowCount === 0) throw new Error("Unable to update row");
-    else this.superboard_id = res.rows[0].superboard_id;
-
-    const update_query = "UPDATE Boards SET superboard=$1 WHERE superboard=$2;";
-    await query(update_query, [this.superboard_id, old_id]);
+    const upsert_query = "INSERT INTO Superboards VALUES ($1, $2, $3) " +
+                         "ON CONFLICT (superboard_id) DO UPDATE SET " +
+                         "name=$2, description=$3;";
+    await query(upset_query, [this.superboard_id, this.name, this.description]);
   }
 };
