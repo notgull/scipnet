@@ -45,7 +45,7 @@ export class Thread {
   }
 
   // load a thread by its id
-  static async load_by_id(thread_id: number): Promise<Nullable<Thread>> {
+  static async load_by_id(thread_id: string): Promise<Nullable<Thread>> {
     let res = await query("SELECT * FROM Threads WHERE thread_id = $1;", [thread_id]);
     let row;
     if (res.rowCount === 0) return null;

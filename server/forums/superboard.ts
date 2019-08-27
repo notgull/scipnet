@@ -36,7 +36,7 @@ export class Superboard {
     this.superboard_id = "";
   }
 
-  static async load_by_id(superboard_id: number): Promise<Nullable<Superboard>> {
+  static async load_by_id(superboard_id: string): Promise<Nullable<Superboard>> {
     let res = await query("SELECT * FROM Superboards WHERE superboard_id = $1;", [superboard_id]);
     let row;
 

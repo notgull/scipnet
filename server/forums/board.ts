@@ -40,7 +40,7 @@ export class Board {
   }
 
   // get a board by its board id
-  static async load_by_id(board_id: number): Promise<Nullable<Board>> {
+  static async load_by_id(board_id: string): Promise<Nullable<Board>> {
     let res = await query("SELECT * FROM Boards WHERE board_id = $1;", [board_id]);
     let row;
 
@@ -56,7 +56,7 @@ export class Board {
   }
 
   // get a list of boards by a superboard
-  static async load_by_superboard(superboard: Superboard | number): Promise<Array<Board>> {
+  static async load_by_superboard(superboard: Superboard | string): Promise<Array<Board>> {
     let superboard_id;
     if (superboard.superboard_id) superboard_id = superboard.superboard_id;
     else { 
@@ -79,22 +79,6 @@ export class Board {
     }
 
     return boards;
-  }
-
-  // submit board to database
-  async submit(): Promise<void> {
-    let old_id = this.board_id;
-    const remove_query = "DELETE FROM Boards WHERE board_id=$1;";
-    const insert_query = "INSERT INTO Boards (name, description, superboard) VALUES ($1, $2, $3) " +
-                         "RETURNING board_id;";
-    await query(remove_query, [this.board_id]);
-
-    let res = await query(insert_query, [this.name, this.description. this.superboard.superboard_id]);
-    if (res.rowCount === 0) throw new Error("Unable to update board");
-    else this.board_id = res.rows[0].board_id;
-
-    const update_query = "UPDATE Threads SET board = $1 WHERE board = $2;";
-    await query(update_query, [this.board_id, old_id]);
   }
 
   // submit board to database
