@@ -95,5 +95,7 @@ export class Post {
     const insert_query = "INSERT INTO Posts VALUES ($1, $2, $3, $4, $5, $6, $7);";
     await query(insert_query, [this.post_id, this.author, this.thread, this.title, 
                                this.content, this.reply_to, this.created_at]);
+
+    this.submitted = true;
   }
 };

@@ -22,7 +22,7 @@
 import { queryPromise } from './../sql';
 const query = queryPromise;
 
-import { Nullable } from './../utils';
+import { Nullable } from './../helpers';
 import { Superboard } from './superboard';
 import * as uuid from 'uuid/v4';
 
@@ -56,10 +56,14 @@ export class Board {
   }
 
   // get a list of boards by a superboard
-  static async load_by_superboard(superboard: Superboard | string): Promise<Array<Board>> {
+  static async load_by_superboard(superboard_det: Superboard | string): Promise<Array<Board>> {
     let superboard_id;
-    if (superboard.superboard_id) superboard_id = superboard.superboard_id;
-    else { 
+    let superboard;
+
+    if (superboard_det.superboard_id) { 
+      superboard = superboard_det;
+      superboard_id = superboard.superboard_id;
+    } else { 
       superboard_id = superboard;
       superboard = Superboard.load_by_id(superboard_id);
     }

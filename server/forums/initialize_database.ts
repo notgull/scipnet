@@ -1,4 +1,4 @@
-*
+/*
  * initialize_database.ts
  *
  * scipnet - SCP Hosting Platform
@@ -56,6 +56,7 @@ async function initialize_forums_async(): Promise<number> {
                                "post_revision_id BIGSERAL PRIMARY KEY," +
                                "post_id TEXT REFERENCES Posts(post_id)," + 
                                "author INTEGER REFERENCES Users(user_id)," +
+			       "title TEXT," +
                                "content TEXT," +
                                "created_at TIMESTAMP NOT NULL" +
                              ");";
