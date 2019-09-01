@@ -22,7 +22,7 @@
 import { queryPromise } from './../sql';
 const query = queryPromise;
 
-import { Nullable } from './../utils';
+import { Nullable } from './../helpers';
 import * as uuid from 'uuid/v4';
 
 export class Superboard {
@@ -48,6 +48,26 @@ export class Superboard {
     return superboard;
   }
 
+  // just get all of the superboards
+  static async load_all(): Promise<Array<Superboard>> {
+    let res = await query("SELECT * FROM Superboards;", []);
+    let rows;
+
+    if (res.rowCount === 0) return [];
+    else rows = res.rows;
+
+    let row: any;
+    let superboards = [];
+    let superboard;
+    for (row in rows) {
+      superboard = new Superboard(row.name, row.description);
+      superboard.superboard_id = row.superboard_id;
+      superboards.push(superboard);
+    }
+
+    return superboards;
+  }
+
   // submit superboard to database
   async submit(): Promise<void> {
     if (this.superboard_id === "") this.superboard_id = uuid().replace('-', '');
@@ -55,6 +75,6 @@ export class Superboard {
     const upsert_query = "INSERT INTO Superboards VALUES ($1, $2, $3) " +
                          "ON CONFLICT (superboard_id) DO UPDATE SET " +
                          "name=$2, description=$3;";
-    await query(upset_query, [this.superboard_id, this.name, this.description]);
+    await query(upsert_query, [this.superboard_id, this.name, this.description]);
   }
 };

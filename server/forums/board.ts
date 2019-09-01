@@ -60,12 +60,12 @@ export class Board {
     let superboard_id;
     let superboard;
 
-    if (superboard_det.superboard_id) { 
+    if (superboard_det instanceof Superboard) { 
       superboard = superboard_det;
       superboard_id = superboard.superboard_id;
     } else { 
       superboard_id = superboard;
-      superboard = Superboard.load_by_id(superboard_id);
+      superboard = await Superboard.load_by_id(superboard_id);
     }
 
     let res = await query("SELECT * FROM Boards WHERE superboard = $1;", [superboard_id]);
@@ -74,7 +74,7 @@ export class Board {
     else rows = res.rows;
 
     let boards = [];
-    let row;
+    let row: any;
     let board;
     for (row in rows) {
       board = new Board(row.name, row.description, superboard);
@@ -92,6 +92,6 @@ export class Board {
     const upsert_query = "INSERT INTO Boards VALUES ($1, $2, $3, $4) " +
                          "ON CONFLICT (board_id) DO UPDATE SET " + 
                          "name=$2, description=$3, superboard=$4;";
-    await query(upset_query, [this.board_id, this.name, this.description, this.superboard.superboard_id]);
+    await query(upsert_query, [this.board_id, this.name, this.description, this.superboard.superboard_id]);
   }
 };

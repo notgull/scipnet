@@ -22,7 +22,7 @@
 import { queryPromise } from './../sql';
 const query = queryPromise;
 
-import { Nullable } from './../utils';
+import { Nullable } from './../helpers';
 import { Thread } from './thread';
 import * as uuid from 'uuid/v4';
 
@@ -37,14 +37,17 @@ export class Post {
   created_at: Date;
   submitted: boolean;
 
-  constructor(author_id: number, thread_id: stringtitle: string, content: string, reply_to: string, created_at: Nullable<Date> = null) {
+  constructor(author_id: number, thread_id: string, title: string, content: string, reply_to: string, created_at: Nullable<Date> = null) {
     this.author_id = author_id;
     this.thread_id = thread_id; 	  
     this.title = title;
     this.content = content;
     this.replies = [];
     this.reply_to = reply_to;
-    this.created_at = created_at | new Date();
+    if (created_at === null)
+      this.created_at = new Date();
+    else
+      this.created_at = created_at;
     this.post_id = "";
     this.submitted = false;
   }
@@ -56,7 +59,7 @@ export class Post {
     if (res.rowCount === 0) return null;
     else row = res.rows[0];  
 
-    let post = new Post(row.author, row.thread, row.title | "", row.content | "", row.reply_to, row.created_at);
+    let post = new Post(row.author, row.thread, row.title, row.content, row.reply_to, row.created_at);
     post.post_id = post_id;
     return post;
   }
@@ -64,7 +67,7 @@ export class Post {
   // load array by thread
   static async load_array_by_thread(thread: Thread | string): Promise<Array<Post>> {
     let thread_id;
-    if (thread.thread_id) thread_id = thread.thread_id;
+    if (thread instanceof Thread) thread_id = thread.thread_id;
     else {
       thread_id = thread;
     }
@@ -74,11 +77,11 @@ export class Post {
     if (res.rowCount === 0) return [];
     else rows = res.rows;
 
-    let row;
+    let row: any;
     let post;
     let posts = [];
     for (row in rows) {
-      post = new Post(row.author, row.thread, row.title | "", row.content | "", row.reply_to, row.created_at);
+      post = new Post(row.author, row.thread, row.title, row.content, row.reply_to, row.created_at);
       post.post_id = row.post_id;
       posts.push(post);
     }
@@ -93,7 +96,7 @@ export class Post {
     if (this.post_id === "") this.post_id = uuid().replace('-', '');
 
     const insert_query = "INSERT INTO Posts VALUES ($1, $2, $3, $4, $5, $6, $7);";
-    await query(insert_query, [this.post_id, this.author, this.thread, this.title, 
+    await query(insert_query, [this.post_id, this.author_id, this.thread_id, this.title, 
                                this.content, this.reply_to, this.created_at]);
 
     this.submitted = true;

@@ -22,7 +22,7 @@
 import { queryPromise } from './../sql';
 const query = queryPromise;
 
-import { Nullable } from './../utils';
+import { Nullable } from './../helpers';
 import { Post } from './post';
 import * as uuid from 'uuid/v4';
 
@@ -35,12 +35,15 @@ export class PostRevision {
   created_at: Date;
   submitted: boolean;
 
-  constructor(post_id: string, author_id: string, title: stringcontent: string, created_at: Nullable<Date> = null) {
+  constructor(post_id: string, author_id: string, title: string, content: string, created_at: Nullable<Date> = null) {
     this.post_id = post_id;
     this.author_id = author_id;
     this.title = title;
     this.content = content;
-    this.created_at = created_at | new Date();
+    if (created_at)
+      this.created_at = created_at;
+    else
+      this.created_at = new Date(); 
     this.submitted = false;
     this.post_revision_id = -1;
   }
@@ -60,9 +63,34 @@ export class PostRevision {
   // load array of revisions by the post it belongs to
   static async load_array_by_post(post: Post | string): Promise<Array<PostRevision>> {
     let post_id;
-    if (post.post_id) post_id = post.post_id;
+    if (post instanceof Post) post_id = post.post_id;
     else post_id = post;
 
     let res = await query("SELECT * FROM PostRevisions WHERE post_id = $1;", [post_id]);
+    let rows;
+    if (res.rowCount === 0) return [];
+    else rows = res.rows;
+
+    let row: any;
+    let revisions = [];
+    let revision;
+    for (row in rows) {
+      revision = new PostRevision(row.post_id, row.author, row.title, row.content, row.created_at);
+      revision.post_revision_id = row.post_revision_id;
+      revisions.push(revision);
+    }
+
+    return revisions;
+  }
+
+  // submit revision to database
+  // should only be called once
+  async submit(): Promise<void> {
+    if (this.submitted) throw new Error("Revision already submitted");
+
+    this.post_revision_id = await query("INSERT INTO PostRevisions (post_id, author, title, content, created_at)" +
+                                        "VALUES ($1, $2, $3, $4, $5) RETURNING post_revision_id;", 
+                                        [this.post_id, this.author_id, this.title, this.content, this.created_at]);
+    this.submitted = true;
   }
 };

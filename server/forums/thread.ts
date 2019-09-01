@@ -22,7 +22,7 @@
 import { queryPromise } from './../sql';
 const query = queryPromise;
 
-import { Nullable } from './../utils';
+import { Nullable } from './../helpers';
 import { Board } from './board';
 import * as uuid from 'uuid/v4';
 
@@ -37,10 +37,13 @@ export class Thread {
   constructor(author_id: number, board: Board, name: string, description: string,
               created_at: Nullable<Date> = null) {
     this.author_id = author_id;
-    this.board = Board;
+    this.board = board;
     this.name = name;
     this.description = description;
-    this.created_at = created_at | new Date();
+    if (created_at)
+      this.created_at = created_at;
+    else
+      this.created_at = new Date();
     this.thread_id = "";
   }
 
@@ -60,11 +63,14 @@ export class Thread {
   }
 
   // load a list of threads by board
-  static async load_by_board(board: Board | number): Promise<Array<Board>> {
+  static async load_by_board(board_det: Board | number): Promise<Array<Thread>> {
     let board_id;
-    if (board.board_id) board_id = board.board_id;
-    else {
-      board_id = board;
+    let board;
+    if (board_det instanceof Board) {
+      board_id = board_det.board_id;
+      board = board_det;
+    } else {
+      board_id = board_det;
       board = Board.load_by_id(board_id);
     }
 
