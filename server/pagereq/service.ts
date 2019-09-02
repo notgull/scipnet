@@ -1,5 +1,5 @@
 /*
- * service_wrapper.ts
+ * service.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -18,23 +18,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as net from 'net';
+import * as pagereq from './pagereq';
 
-// run a module as a service
-function runservice(modname: string, port: number) {
-  let service = require(modname);
-
-  net.createServer((sock: net.Socket) => {
-    sock.on('data', (data: Buffer | string) => {
-      let realdata: string;
-      if (data instanceof Buffer) realdata = "" + data;
-      else realdata = data;
-
-      service.servicify(realdata).then((retval: string) => {
-        sock.write(retval);
-      }).catch((err: Error) => { throw err; });
-    });
-  }).listen("127.0.0.1", port);
+// asynchronous pr
+async function async_pr(name: string, username: string, args: pagereq.ArgsMapping): Promise<pagereq.PRSReturnVal> {
+  return new Promise((resolve: (r: pagereq.PRSReturnVal) => any, reject: any) => {
+    pagereq.request(name, username, args, resolve);
+  });
 }
 
-runservice(process.argv[2], Number(process.argv[3]));
+// run pagereq as a service
+export async function service(data: string): Promise<string> {
+  const input = JSON.parse(data);
+  let args: pagereq.ArgsMapping = input;
+  let name = args["name"];
+  let username = "";
+  
+  // TODO: figure out a way to get the username right w/o access to the UT
+  return JSON.stringify(await async_pr(name, username, args));
+}

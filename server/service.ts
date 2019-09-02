@@ -28,11 +28,11 @@ const module_root = 'dist/server';
 // with the input of a module and a port, run a service
 export function runservice(modname: string, port: number) {
   // get path of module
-  let module_path = path.join(module_root, modname);
+  let module_path = path.join(process.cwd(), module_root, modname);
   let module_service = path.join(module_path, "service.js");
   if (!(fs.existsSync(module_service))) {
     throw new Error("Service not found: " + modname);
   }
 
-  fork(module_service, [modname, String(port)]);
+  fork(path.join(process.cwd(), "dist/server/service_wrapper.ts"), [module_service, String(port)]);
 }
