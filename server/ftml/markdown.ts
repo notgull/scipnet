@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ftml is now a port-based service
+
 import * as ffi from 'ffi';
 import * as path from 'path';
 

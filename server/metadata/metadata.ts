@@ -33,8 +33,7 @@
 // locked (y/n)
 // parent page
 
-import { error_codes, getFormattedDate } from './../user/validate';
-import { Nullable } from './../helpers';
+import { error_codes, getFormattedDate, Nullable } from './../helpers';
 import { queryPromise } from './../sql';
 import * as path from 'path';
 import * as pg from 'pg';

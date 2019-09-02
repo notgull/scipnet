@@ -31,9 +31,9 @@ import { initialize_users }  from './user/initialize_database';
 import { initialize_pages } from './metadata/initialize_database';
 import { validate_password } from './authdetails';
 
-import { Nullable } from './helpers'
+import { INTERNAL_ERROR, USER_NOT_FOUND, EMAIL_NOT_FOUND, Nullable } from './helpers'
 import * as metadata from './metadata/metadata';
-import * as prs from './prs/prs';
+import * as prs from './pagereq/pagereq';
 import * as renderer from './renderer';
 import { slugify } from './slug';
 import { usertable } from './user/usertable';
@@ -46,7 +46,7 @@ console.log("SCPWiki v" + version);
 // if we can't access config.json, error out
 const config = require(path.join(process.cwd(), 'config.json'));
 
-let s_port = process.env.PORT || 8443;
+let s_port = config.scipnet_port || process.env.PORT || 8443;
 
 // create folders before sql initialization
 async function check_dir(dirname: string) {
@@ -254,17 +254,17 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   // make sure neither the username nor the email exist
   validate.check_user_existence(username, function(result: any, err: Error): void {
     //console.log(err);
-    if (result == validate.INTERNAL_ERROR) {
+    if (result == INTERNAL_ERROR) {
       console.log(err);
       res.redirect('/sys/register?errors=512');
-    } else if (result !== validate.USER_NOT_FOUND) {
+    } else if (result !== USER_NOT_FOUND) {
       res.redirect('/sys/register?errors=128')
     } else {
       validate.check_email_usage(email, function(result: number, err: Error) {
-        if (result === validate.INTERNAL_ERROR) {
+        if (result === INTERNAL_ERROR) {
           //console.log(err);
 	  res.redirect('/sys/register?errors=512');
-        } else if (result !== validate.EMAIL_NOT_FOUND)
+        } else if (result !== EMAIL_NOT_FOUND)
 	  res.redirect('/sys/register?errors=256');
         else {
           // TODO: verify via email

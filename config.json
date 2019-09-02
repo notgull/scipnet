@@ -8,5 +8,9 @@
   "postgres_password": "GoodPassword222",
   "postgres_database": "scipnet",
 
-  "editlock_timeout": 900
+  "editlock_timeout": 900,
+
+  "scipnet_port": 8443,
+  "ftml_port": 3865,
+  "prs_port": 7243
 }
