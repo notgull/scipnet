@@ -32,8 +32,15 @@ export async function service(data: string): Promise<string> {
   const input = JSON.parse(data);
   let args: pagereq.ArgsMapping = input;
   let name = args["name"];
-  let username = "";
-  
-  // TODO: figure out a way to get the username right w/o access to the UT
+
+  /*
+
+    IMPORTANT NOTE:
+
+    When servicify is eventually put in, make sure "username" is put into the args.
+
+  */
+  let username = args["username"];
+   
   return JSON.stringify(await async_pr(name, username, args));
 }

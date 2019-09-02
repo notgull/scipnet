@@ -124,3 +124,5 @@ export class usertable {
     }
   } 
 }
+
+exports.global_usertable = new usertable();
