@@ -29,16 +29,17 @@ import { Post } from './post';
 import { PostRevision } from './revision';
 
 // load an array of boards by the superboard
-export async function get_boards_by_superboard(superboard_det: Superboard | number): Promise<Array<Board>> {
+export async function get_boards_by_superboard(superboard_det: Superboard | string): Promise<Array<Board>> {
   let superboard_id;
   let superboard;
-  if (superboard_det.superboard_id) {
+  if (superboard_det instanceof Superboard) {
     superboard_id = superboard_det.superboard_id;
     superboard = superboard_det;
   } else {
     superboard_id = superboard_det;
-    superboard = Superboard.load_by_id(superboard_det);
+    superboard = await Superboard.load_by_id(superboard_det);
   }
 
+  let res = await query("SELECT * FROM Boards WHERE superboard=$1;", [superboard_id]);
   return [];
 }

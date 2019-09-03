@@ -63,7 +63,7 @@ export class Thread {
   }
 
   // load a list of threads by board
-  static async load_by_board(board_det: Board | number): Promise<Array<Thread>> {
+  static async load_by_board(board_det: Board | string): Promise<Array<Thread>> {
     let board_id;
     let board;
     if (board_det instanceof Board) {
@@ -71,7 +71,7 @@ export class Thread {
       board = board_det;
     } else {
       board_id = board_det;
-      board = Board.load_by_id(board_id);
+      board = await Board.load_by_id(board_id);
     }
 
     let res = await query("SELECT * FROM Threads WHERE board = $1;", [board_id]);
@@ -80,7 +80,7 @@ export class Thread {
     else rows = res.rows;
 
     let threads = [];
-    let row;
+    let row: any;
     let thread;
     for (row in rows) {
       thread = new Thread(row.author, board, row.name, row.description, row.created_at);
@@ -92,7 +92,7 @@ export class Thread {
   }
 
   // submit thread to database
-  async submit(): Promsie<void> {
+  async submit(): Promise<void> {
     if (this.thread_id === "") this.thread_id = uuid().replace('-', '');
     
     const upsert_query = "INSERT INTO Threads VALUES ($6, $1, $2, $3, $4, $5) " +
