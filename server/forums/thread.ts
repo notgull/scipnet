@@ -62,8 +62,12 @@ export class Thread {
     return thread;
   }
 
+  const REALLY_HIGH_NUMBER = 1000000;
+
   // load a list of threads by board
-  static async load_by_board(board_det: Board | string): Promise<Array<Thread>> {
+  static async load_by_board(board_det: Board | string,
+                             limit: number = REALLY_HIGH_NUMBER,
+			     pagenum: number = 0): Promise<Array<Thread>> {
     let board_id;
     let board;
     if (board_det instanceof Board) {
@@ -74,7 +78,10 @@ export class Thread {
       board = await Board.load_by_id(board_id);
     }
 
-    let res = await query("SELECT * FROM Threads WHERE board = $1;", [board_id]);
+    const offset = pagenum * limit;
+
+    let res = await query("SELECT * FROM Threads WHERE board = $1 OFFSET $2 LIMIT $3;", 
+                          [board_id, offset, limit]);
     let rows;
     if (res.rowCount === 0) return [];
     else rows = res.rows;

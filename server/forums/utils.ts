@@ -28,6 +28,8 @@ import { Thread } from './thread';
 import { Post } from './post';
 import { PostRevision } from './revision';
 
+// NOTE: THIS FILE IS OBSOLETE (for now)
+
 // load an array of boards by the superboard
 export async function get_boards_by_superboard(superboard_det: Superboard | string): Promise<Array<Board>> {
   let superboard_id;
@@ -41,5 +43,87 @@ export async function get_boards_by_superboard(superboard_det: Superboard | stri
   }
 
   let res = await query("SELECT * FROM Boards WHERE superboard=$1;", [superboard_id]);
-  return [];
+  let rows;
+
+  if (res.rowCount === 0) return [];
+  else rows = res.rows;
+
+  let row: any;
+  let board;
+  let boards = [];
+  for (row in rows) {
+    board = new Board(row.name, row.description, superboard);
+    board.board_id = row.board_id;
+    boards.push(board);
+  }
+
+  return boards;
+}
+
+const REALLY_HIGH_NUMBER = 1000000;
+
+// load an array of threads by board, with optional argument to limit the start and end of threads
+export async function get_threads_by_board(board_det: Board | string, 
+                                           limit: number = REALLY_HIGH_NUMBER,
+					   pagenum: number = 0): Promise<Array<Thread>> {
+  let board_id;
+  let board;
+  if (board_det instanceof Board) {
+    board_id = board_det.board_id;
+    board = board_det;
+  } else {
+    board_id = board_det;
+    board = await Board.load_by_id(board_id);
+  }
+
+  const offset = limit * pagenum;
+  let res = await query("SELECT * FROM Threads WHERE board=$1 OFFSET $2 LIMIT $3;", [board_id, offset, limit]);
+  let rows;
+
+  if (res.rowCount === 0) return [];
+  else rows = res.rows;
+
+  let row: any;
+  let thread;
+  let threads = [];
+  for (row in rows) {
+    thread = new Thread(row.author, board, row.name, row.description, row.created_at);
+    thread.thread_id = row.thread_id;
+    threads.push(thread);
+  }
+
+  return threads;
+}
+
+// load an array of posts by thread, with optional argument to limit start and end of threads
+export async function get_posts_by_thread(thread_det: Thread | string,
+                                          limit: number = REALLY_HIGH_NUMBER,
+					  pagenum: number = 0): Promise<Array<Post>> {
+  let thread_id;
+  let thread;
+  if (thread_det instanceof Thread) {
+    thread_id = thread_det.thread_id;
+    thread = thread_det;
+  } else {
+    thread_id = thread_det;
+    thread = await Thread.load_by_id(thread_id);
+  }
+
+  const offset = pagenum * limit;
+  let res = await query("SELECT * FROM Posts WHERE thread=$1 OFFSET $2 LIMIT $3;", [thread_id, offset, limit]);
+  let rows;
+
+  if (res.rowCount === 0) return [];
+  else rows = res.rows;
+
+  let row: any;
+  let post;
+  let posts = [];
+  for (row in rows) {
+    post = new Post(row.author, row.thread, row.title, row.content, row.reply_to, row.created_at);
+    post.post_id = row.post_id;
+    posts.push(post);
+  }
+
+  return posts;
 }

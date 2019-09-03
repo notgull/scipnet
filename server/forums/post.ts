@@ -64,15 +64,22 @@ export class Post {
     return post;
   }
 
+  const REALLY_HIGH_NUMBER = 1000000;
+
   // load array by thread
-  static async load_array_by_thread(thread: Thread | string): Promise<Array<Post>> {
+  static async load_array_by_thread(thread: Thread | string,
+                                    limit: number = REALLY_HIGH_NUMBER,
+				    pagenum: number = 0): Promise<Array<Post>> {
     let thread_id;
     if (thread instanceof Thread) thread_id = thread.thread_id;
     else {
       thread_id = thread;
     }
 
-    let res = await query("SELECT * FROM Posts WHERE thread = $1;", [thread_id]);
+    const offset = limit * pagenum;
+
+    let res = await query("SELECT * FROM Posts WHERE thread = $1 OFFSET $1 LIMIT $2;", 
+                          [thread_id, offset, limit]);
     let rows;
     if (res.rowCount === 0) return [];
     else rows = res.rows;
