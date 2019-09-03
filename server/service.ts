@@ -19,14 +19,16 @@
  */
 
 // run certain modules as services
-import { fork } from 'child_process';
+import { ChildProcess, fork } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { ServiceConfig } from './service_wrapper';
 
 const module_root = 'dist/server';
 
 // with the input of a module and a port, run a service
-export function runservice(modname: string, port: number) {
+export function runservice(modname: string, serv_config: ServiceConfig): ChildProcess {
   // get path of module
   let module_path = path.join(process.cwd(), module_root, modname);
   let module_service = path.join(module_path, "service.js");
@@ -34,5 +36,6 @@ export function runservice(modname: string, port: number) {
     throw new Error("Service not found: " + modname);
   }
 
-  fork(path.join(process.cwd(), "dist/server/service_wrapper.ts"), [module_service, String(port)]);
+  return fork(path.join(process.cwd(), "dist/server/service_wrapper.js"), 
+              [module_service, JSON.stringify(serv_config)]);
 }

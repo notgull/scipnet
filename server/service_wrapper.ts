@@ -19,10 +19,25 @@
  */
 
 import * as net from 'net';
+import { JSONRPCServer, JSONRPCResponse } from 'json-rpc-2.0';
+
+export interface ServiceAddress {
+  address: string;
+  port: number;
+  family?: string;
+};
+
+export interface ServiceConfig {
+  hosts: Array<ServiceAddress>;
+};
+
 
 // run a module as a service
-function runservice(modname: string, port: number) {
+function runservice(modname: string, serv_config: ServiceConfig) {
   let service = require(modname);
+  let serv_addr = serv_config.hosts[0];
+  let ip_addr = serv_addr.address; 
+  let port = serv_addr.port;
 
   net.createServer((sock: net.Socket) => {
     sock.on('data', (data: Buffer | string) => {
@@ -34,7 +49,8 @@ function runservice(modname: string, port: number) {
         sock.write(retval);
       }).catch((err: Error) => { throw err; });
     });
-  }).listen("127.0.0.1", port);
+  }).listen(ip_addr, port);
 }
 
-runservice(process.argv[2], Number(process.argv[3]));
+if (require.main === module)
+  runservice(process.argv[2], JSON.parse(process.argv[3]));

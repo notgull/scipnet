@@ -7,6 +7,7 @@
   "postgres_username": "scipnet",
   "postgres_password": "GoodPassword222",
   "postgres_database": "scipnet",
+  "postgres_host": "127.0.0.1",
 
   "editlock_timeout": 900,
 
