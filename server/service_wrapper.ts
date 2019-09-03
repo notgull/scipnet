@@ -31,7 +31,6 @@ export interface ServiceConfig {
   hosts: Array<ServiceAddress>;
 };
 
-
 // run a module as a service
 function runservice(modname: string, serv_config: ServiceConfig) {
   let service = require(modname);
