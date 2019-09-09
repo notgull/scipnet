@@ -26,17 +26,17 @@ import { Nullable } from './../helpers';
 import * as uuid from 'uuid/v4';
 
 export class Superboard {
-  superboard_id: string;
+  superboard_id: number;
   name: string;
   description: string;
 
   constructor(name: string, description: string) {
     this.name = name;
     this.description = description;
-    this.superboard_id = "";
+    this.superboard_id = 0;
   }
 
-  static async load_by_id(superboard_id: string): Promise<Nullable<Superboard>> {
+  static async load_by_id(superboard_id: number): Promise<Nullable<Superboard>> {
     let res = await query("SELECT * FROM Superboards WHERE superboard_id = $1;", [superboard_id]);
     let row;
 
@@ -70,11 +70,12 @@ export class Superboard {
 
   // submit superboard to database
   async submit(): Promise<void> {
-    if (this.superboard_id === "") this.superboard_id = uuid().replace('-', '');
+	  //if (this.superboard_id === "") this.superboard_id = uuid().replace('-', '');
 
-    const upsert_query = "INSERT INTO Superboards VALUES ($1, $2, $3) " +
+    const upsert_query = "INSERT INTO Superboards (name, description) VALUES ($1, $2) " +
                          "ON CONFLICT (superboard_id) DO UPDATE SET " +
-                         "name=$2, description=$3;";
-    await query(upsert_query, [this.superboard_id, this.name, this.description]);
+			 "name=$1, description=$2 " + 
+			 "RETURNING superboard_id;";
+    this.superboard_id = await query(upsert_query, [this.name, this.description]);
   }
 };

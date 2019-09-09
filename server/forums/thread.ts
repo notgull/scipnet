@@ -27,7 +27,7 @@ import { Board } from './board';
 import * as uuid from 'uuid/v4';
 
 export class Thread {
-  thread_id: string;
+  thread_id: number;
   author_id: number;
   board: Board;
   name: string;
@@ -44,29 +44,29 @@ export class Thread {
       this.created_at = created_at;
     else
       this.created_at = new Date();
-    this.thread_id = "";
+    this.thread_id = -1;
   }
 
   // load a thread by its id
-  static async load_by_id(thread_id: string): Promise<Nullable<Thread>> {
+  static async load_by_id(thread_id: number): Promise<Nullable<Thread>> {
     let res = await query("SELECT * FROM Threads WHERE thread_id = $1;", [thread_id]);
     let row;
     if (res.rowCount === 0) return null;
     else row = res.rows[0];
 
-    let board = await Board.load_by_id(row.board);
+    let board = await Board.load_by_id(row.board_id);
     if (!board) return null;
 
-    let thread = new Thread(row.author, board, row.name, row.description, row.created_at);
+    let thread = new Thread(row.author_id, board, row.name, row.description, row.created_at);
     thread.thread_id = thread_id;
     return thread;
   }
 
-  const REALLY_HIGH_NUMBER = 1000000;
+  static REALLY_HIGH_NUMBER = 1000000;
 
   // load a list of threads by board
-  static async load_by_board(board_det: Board | string,
-                             limit: number = REALLY_HIGH_NUMBER,
+  static async load_by_board(board_det: Board | number,
+                             limit: number = Thread.REALLY_HIGH_NUMBER,
 			     pagenum: number = 0): Promise<Array<Thread>> {
     let board_id;
     let board;
@@ -90,7 +90,7 @@ export class Thread {
     let row: any;
     let thread;
     for (row in rows) {
-      thread = new Thread(row.author, board, row.name, row.description, row.created_at);
+      thread = new Thread(row.author_id, board, row.name, row.description, row.created_at);
       thread.thread_id = row.thread_id;
       threads.push(thread);
     } 
@@ -100,12 +100,14 @@ export class Thread {
 
   // submit thread to database
   async submit(): Promise<void> {
-    if (this.thread_id === "") this.thread_id = uuid().replace('-', '');
+	  //if (this.thread_id === "") this.thread_id = uuid().replace('-', '');
     
-    const upsert_query = "INSERT INTO Threads VALUES ($6, $1, $2, $3, $4, $5) " +
-                         "ON CONFLICT (thread_id) DO UPDATE SET " +
-			 "author=$1, board=$2, name=$3, description=$4, created_at=$5;";
-    await query(upsert_query, [this.author_id, this.board.board_id, this.name, 
-                               this.description, this.created_at, this.thread_id]);
+  const upsert_query = "INSERT INTO Threads (author_id, board_id, name, description, created_at) " +
+                       "VALUES ($1, $2, $3, $4, $5) " +
+                       "ON CONFLICT (thread_id) DO UPDATE SET " +
+                       "author=$1, board=$2, name=$3, description=$4, created_at=$5 " + 
+                       "RETURNING thread_id;";
+    this.thread_id = await query(upsert_query, [this.author_id, this.board.board_id, this.name, 
+                               this.description, this.created_at]);
   }
 };

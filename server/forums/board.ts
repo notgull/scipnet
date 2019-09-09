@@ -27,7 +27,7 @@ import { Superboard } from './superboard';
 import * as uuid from 'uuid/v4';
 
 export class Board {
-  board_id: string;
+  board_id: number;
   name: string;
   description: string;
   superboard: Superboard;
@@ -36,18 +36,18 @@ export class Board {
     this.name = name;
     this.description = description;
     this.superboard = superboard;
-    this.board_id = "";
+    this.board_id = 0;
   }
 
   // get a board by its board id
-  static async load_by_id(board_id: string): Promise<Nullable<Board>> {
+  static async load_by_id(board_id: number): Promise<Nullable<Board>> {
     let res = await query("SELECT * FROM Boards WHERE board_id = $1;", [board_id]);
     let row;
 
     if (res.rowCount === 0) return null;
     else row = res.rows[0];
 
-    let superboard = await Superboard.load_by_id(row.superboard);
+    let superboard = await Superboard.load_by_id(row.superboard_id);
     if (!superboard) return null;
 
     let board = new Board(row.name, row.description, superboard);
@@ -56,7 +56,7 @@ export class Board {
   }
 
   // get a list of boards by a superboard
-  static async load_by_superboard(superboard_det: Superboard | string): Promise<Array<Board>> {
+  static async load_array_by_superboard(superboard_det: Superboard | number): Promise<Array<Board>> {
     let superboard_id;
     let superboard;
 
@@ -68,7 +68,7 @@ export class Board {
       superboard = await Superboard.load_by_id(superboard_id);
     }
 
-    let res = await query("SELECT * FROM Boards WHERE superboard = $1;", [superboard_id]);
+    let res = await query("SELECT * FROM Boards WHERE superboard_id = $1;", [superboard_id]);
     let rows;
     if (res.rowCount === 0) return [];
     else rows = res.rows;
@@ -85,13 +85,32 @@ export class Board {
     return boards;
   }
 
+  // get number of threads
+  async get_num_threads(): Promise<number> {
+    let res = await query("SELECT COUNT(*) FROM Threads WHERE board_id = $1;", [this.board_id]);
+    if (res.rowCount === 0) return 0;
+    else return res.rows[0].count;
+  }
+
+  // get number of posts
+  async get_num_posts(): Promise<number> {
+    const posts_query = "SELECT Threads.thread_id, Threads.author, Threads.name, Threads.description, Threads.created_at," +
+                  "thread_counts.replies FROM Threads JOIN (SELECT thread_id, COUNT(post_id) AS replies FROM Posts " +
+                  "WHERE board_id = $1 GROUP BY thread_id ORDER BY thread_id) AS thread_counts ON Threads.thread_id = " +
+                  "thread_counts.thread_id WHERE board_id = $1 AND thread_id > $2 ORDER BY created_at DESC LIMIT $3;";  
+    let res = await query(posts_query, [this.board_id, 0, 999999999]);
+    if (res.rowCount === 0) return 0;
+    else return res.rows[0].replies;
+  }
+
   // submit board to database
   async submit(): Promise<void> {
-    if (this.board_id === "") this.board_id = uuid().replace('-', '');
+	  //if (this.board_id === "") this.board_id = uuid().replace('-', '');
 
-    const upsert_query = "INSERT INTO Boards VALUES ($1, $2, $3, $4) " +
+    const upsert_query = "INSERT INTO Boards (name, description, superboard_id) VALUES ($2, $3, $4) " +
                          "ON CONFLICT (board_id) DO UPDATE SET " + 
-                         "name=$2, description=$3, superboard=$4;";
-    await query(upsert_query, [this.board_id, this.name, this.description, this.superboard.superboard_id]);
+			 "name=$2, description=$3, superboard=$4 "
+			 "RETURNING board_id;";
+    this.board_id = await query(upsert_query, [-1, this.name, this.description, this.superboard.superboard_id]);
   }
 };

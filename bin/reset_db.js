@@ -33,5 +33,7 @@ var sql = require('./../dist/server/sql');
 var remove_all_query = "DROP TABLE Users CASCADE; DROP TABLE Pages CASCADE;" +
 		         "DROP TABLE passwords; DROP TABLE authors;" +
 		         "DROP TABLE files; DROP TABLE revisions;" +
-		         "DROP TABLE ratings; DROP TABLE parents;";
+		         "DROP TABLE ratings; DROP TABLE parents;" + 
+                         "DROP TABLE superboards CASCADE; DROP TABLE Boards CASCADE;" + 
+                         "DROP TABLE threads CASCADE;";
 sql.queryPromise(remove_all_query, []).then((_)=>{process.exit();}).catch((err) => { throw err; });

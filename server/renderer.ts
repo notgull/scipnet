@@ -52,7 +52,8 @@ export async function render(modName: string,
                              htmlFileName: string = '', 
 			     title: string = 'Testing Page', 
 			     loginInfo: any = false, 
-			     metadata: any = null): Promise<string> {
+			     metadata: any = null,
+			     customContent: string = ''): Promise<string> {
   //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
   const replacement_string = "[INSERT_CONTENT_HERE]";
  
@@ -66,7 +67,8 @@ export async function render(modName: string,
     loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_nli.html')) + "";
 
   let content;
-  if (!htmlFileName || htmlFileName.length === 0) {
+  if (customContent && customContent.length > 0) content = customContent;
+  else if (!htmlFileName || htmlFileName.length === 0) {
     //var markdown_tree = markdown(modName);
     //content = markdown_tree.flatten(username);
 	 
@@ -100,7 +102,7 @@ export async function render(modName: string,
   const rr_replacement_string = "[INSERT_RATER_HERE]";
 
   let ulv_replacement = "";
-  if (htmlFileName !== '' || modName === "_404")
+  if (htmlFileName !== '' || customContent !== '' || modName === "_404")
     ulv_replacement = "display: none;"
 
   let rating = 0;

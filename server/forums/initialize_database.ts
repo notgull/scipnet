@@ -25,37 +25,37 @@ const query = queryPromise;
 
 async function initialize_forums_async(): Promise<number> {
   const superboard_table_sql = "CREATE TABLE IF NOT EXISTS Superboards (" +
-                                 "superboard_id TEXT PRIMARY KEY," +
+                                 "superboard_id BIGSERIAL PRIMARY KEY," +
                                  "name TEXT NOT NULL UNIQUE," +
                                  "description TEXT NOT NULL" +
                                ");";
   const board_table_sql = "CREATE TABLE IF NOT EXISTS Boards (" +
-                            "board_id TEXT PRIMARY KEY," +
+                            "board_id BIGSERIAL PRIMARY KEY," +
                             "name TEXT NOT NULL UNIQUE," +
 			    "description TEXT NOT NULL," +
-			    "superboard string REFERENCES Superboards(superboard_id)" +
+			    "superboard_id INTEGER REFERENCES Superboards(superboard_id)" +
 			  ");";
   const thread_table_sql = "CREATE TABLE IF NOT EXISTS Threads (" +
-                             "thread_id TEXT PRIMARY KEY," +
-                             "author INTEGER REFERENCES Users(user_id)," +
-			     "board string REFERENCES Boards(board_id)," +
+                             "thread_id BIGSERIAL PRIMARY KEY," +
+                             "author_id INTEGER REFERENCES Users(user_id)," +
+			     "board_id INTEGER REFERENCES Boards(board_id)," +
                              "name TEXT NOT NULL," +
 			     "description TEXT NOT NULL," +
 			     "created_at TIMESTAMP NOT NULL" +
                            ");";
   const post_table_sql = "CREATE TABLE IF NOT EXISTS Posts (" +
-                           "post_id TEXT PRIMARY KEY," +
-                           "author INTEGER REFERENCES Users(user_id)," +
-			   "thread TEXT REFERENCES Threads(thread_id)," +
+                           "post_id BIGSERIAL PRIMARY KEY," +
+                           "author_id INTEGER REFERENCES Users(user_id)," +
+			   "thread_id INTEGER REFERENCES Threads(thread_id)," +
                            "title TEXT," +
                            "content TEXT," +
-                           "reply_to string REFERENCES Posts(post_id)," +
+                           "reply_to INTEGER REFERENCES Posts(post_id)," +
                            "created_at TIMESTAMP NOT NULL" +
                          ");";
   const revision_table_sql = "CREATE TABLE IF NOT EXISTS PostRevisions (" +
-                               "post_revision_id BIGSERAL PRIMARY KEY," +
-                               "post_id TEXT REFERENCES Posts(post_id)," + 
-                               "author INTEGER REFERENCES Users(user_id)," +
+                               "post_revision_id BIGSERIAL PRIMARY KEY," +
+                               "post_id INTEGER REFERENCES Posts(post_id)," + 
+                               "author_id INTEGER REFERENCES Users(user_id)," +
 			       "title TEXT," +
                                "content TEXT," +
                                "created_at TIMESTAMP NOT NULL" +

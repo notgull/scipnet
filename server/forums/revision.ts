@@ -28,14 +28,14 @@ import * as uuid from 'uuid/v4';
 
 export class PostRevision {
   post_revision_id: number;
-  post_id: string;
-  author_id: string;
+  post_id: number;
+  author_id: number;
   title: string;
   content: string;
   created_at: Date;
   submitted: boolean;
 
-  constructor(post_id: string, author_id: string, title: string, content: string, created_at: Nullable<Date> = null) {
+  constructor(post_id: number, author_id: number, title: string, content: string, created_at: Nullable<Date> = null) {
     this.post_id = post_id;
     this.author_id = author_id;
     this.title = title;
@@ -55,13 +55,13 @@ export class PostRevision {
     if (res.rowCount === 0) return null;
     else row = res.rows[0];
 
-    let revision = new PostRevision(row.post_id, row.author, row.title, row.content, row.created_at);
+    let revision = new PostRevision(row.post_id, row.author_id, row.title, row.content, row.created_at);
     revision.post_revision_id = post_revision_id;
     return revision;
   }
 
   // load array of revisions by the post it belongs to
-  static async load_array_by_post(post: Post | string): Promise<Array<PostRevision>> {
+  static async load_array_by_post(post: Post | number): Promise<Array<PostRevision>> {
     let post_id;
     if (post instanceof Post) post_id = post.post_id;
     else post_id = post;
@@ -75,7 +75,7 @@ export class PostRevision {
     let revisions = [];
     let revision;
     for (row in rows) {
-      revision = new PostRevision(row.post_id, row.author, row.title, row.content, row.created_at);
+      revision = new PostRevision(post_id, row.author_id, row.title, row.content, row.created_at);
       revision.post_revision_id = row.post_revision_id;
       revisions.push(revision);
     }

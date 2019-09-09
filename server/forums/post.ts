@@ -27,9 +27,9 @@ import { Thread } from './thread';
 import * as uuid from 'uuid/v4';
 
 export class Post {
-  post_id: string;
+  post_id: number;
   author_id: number;
-  thread_id: string;
+  thread_id: number;
   reply_to: string;
   title: string;
   content: string;
@@ -37,7 +37,7 @@ export class Post {
   created_at: Date;
   submitted: boolean;
 
-  constructor(author_id: number, thread_id: string, title: string, content: string, reply_to: string, created_at: Nullable<Date> = null) {
+  constructor(author_id: number, thread_id: number, title: string, content: string, reply_to: string, created_at: Nullable<Date> = null) {
     this.author_id = author_id;
     this.thread_id = thread_id; 	  
     this.title = title;
@@ -48,27 +48,27 @@ export class Post {
       this.created_at = new Date();
     else
       this.created_at = created_at;
-    this.post_id = "";
+    this.post_id = 0;
     this.submitted = false;
   }
 
   // load by id
-  static async load_by_id(post_id: string): Promise<Nullable<Post>> {
+  static async load_by_id(post_id: number): Promise<Nullable<Post>> {
     let res = await query("SELECT * FROM Posts WHERE post_id = $1;", [post_id]);
     let row;
     if (res.rowCount === 0) return null;
     else row = res.rows[0];  
 
-    let post = new Post(row.author, row.thread, row.title, row.content, row.reply_to, row.created_at);
+    let post = new Post(row.author_id, row.thread_id, row.title, row.content, row.reply_to, row.created_at);
     post.post_id = post_id;
     return post;
   }
 
-  const REALLY_HIGH_NUMBER = 1000000;
+  static REALLY_HIGH_NUMBER = 1000000;
 
   // load array by thread
-  static async load_array_by_thread(thread: Thread | string,
-                                    limit: number = REALLY_HIGH_NUMBER,
+  static async load_array_by_thread(thread: Thread | number,
+                                    limit: number = Thread.REALLY_HIGH_NUMBER,
 				    pagenum: number = 0): Promise<Array<Post>> {
     let thread_id;
     if (thread instanceof Thread) thread_id = thread.thread_id;
@@ -88,7 +88,7 @@ export class Post {
     let post;
     let posts = [];
     for (row in rows) {
-      post = new Post(row.author, row.thread, row.title, row.content, row.reply_to, row.created_at);
+      post = new Post(row.author_id, thread_id, row.title, row.content, row.reply_to, row.created_at);
       post.post_id = row.post_id;
       posts.push(post);
     }
@@ -99,11 +99,12 @@ export class Post {
   // submit to database
   // NOTE: this should only be called once in a prod context
   async submit(): Promise<void> {
-    if (this.submitted) throw new Error("Post has already been submitted");
-    if (this.post_id === "") this.post_id = uuid().replace('-', '');
+    //if (this.submitted) throw new Error("Post has already been submitted");
+    //if (this.post_id === "") this.post_id = uuid().replace('-', '');
 
-    const insert_query = "INSERT INTO Posts VALUES ($1, $2, $3, $4, $5, $6, $7);";
-    await query(insert_query, [this.post_id, this.author_id, this.thread_id, this.title, 
+    const insert_query = "INSERT INTO Posts (author_id, thread_id, title, content, reply_to, created_at) " +
+                         "VALUES ($1, $2, $3, $4, $5, $6) RETURNING thread_id;";
+    this.thread_id = await query(insert_query, [this.author_id, this.thread_id, this.title, 
                                this.content, this.reply_to, this.created_at]);
 
     this.submitted = true;

@@ -40,6 +40,9 @@ import { slugify } from './slug';
 import { usertable } from './user/usertable';
 import * as validate from './user/validate';
 
+import * as forum_htmlify from './forums/htmlify';
+import * as forum_autocreate from './forums/autocreate';
+
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
@@ -68,7 +71,9 @@ async function check_dir(dirname: string) {
   initialize_users((_o: any) => {
     initialize_pages((_o: any) => {
       initialize_forums((_o: any) => {
-        autocreate((_o: any) => {});
+        autocreate((_o: any) => {
+          forum_autocreate.autocreate((_o: any) => {}); 
+        });
       });
     });
   });
@@ -124,9 +129,15 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
 }
 
 function render_page(req: express.Request, isHTML: boolean, name: string, pageTitle: string, next: (s: Nullable<string>) => any): void {
-  render_page_async(req, isHTML, name, pageTitle).then((r) => {
+  render_page_async(req, isHTML, name, pageTitle).then((r: string) => {
     next(r);
   }).catch((err) => {throw err;});
+}
+
+function render_content(req: any, content: string, pageTitle: string, next: (s: Nullable<string>) => any): void {
+  renderer.render('', '', pageTitle, loginInfo(req), null, content).then((r: string) => {
+    next(r);
+  }).catch((err: any) => { throw err; });
 }
 
 // if the css theme is requested, return it
@@ -229,6 +240,15 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
 
   render_page(req, true, 'html/register.html', 'Register', 
 	       (d) => {res.send(d);});
+});
+
+// get main forum page
+app.post("/forum", function(req: express.Request, res: express.Response) {
+  forum_htmlify.load_start_page().then((r: string) => {
+    render_content(req, r, "Forum Categories", (r2: string) => {
+      res.send(r2);
+    });
+  }).catch((err: Error) => { throw err; });
 });
 
 function onEmailVerify(username: string, pwHash: string, email: string): void {
