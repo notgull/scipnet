@@ -1,5 +1,5 @@
 /*
- * prs.js
+ * pagereq.js
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull
@@ -49,7 +49,7 @@ var prsRequest = function(name, args, next) {
   var req = new XMLHttpRequest();
   req.onload = xhrCallback;
  
-  req.open("POST", "/sys/prs");
+  req.open("POST", "/sys/pagereq");
   req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
   req.send(new URLSearchParams(args));

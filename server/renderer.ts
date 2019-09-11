@@ -79,7 +79,7 @@ export async function render(modName: string,
       return exports.render("_404", '', "404", loginInfo);
 	
     let src = fs.readFileSync(filepath) + "";
-    content = get_markdown(modName, src, metadata);
+    content = await get_markdown(modName, src, metadata);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
   }

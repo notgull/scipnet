@@ -39,6 +39,8 @@ import { slugify } from './slug';
 import { usertable } from './user/usertable';
 import * as validate from './user/validate';
 
+import * as service from './service';
+
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
@@ -126,6 +128,28 @@ function render_page(req: express.Request, isHTML: boolean, name: string, pageTi
   }).catch((err) => {throw err;});
 }
 
+/* 
+ Services
+
+ This is DEFINITELY going to go in a different file sometime soon, once we get an actual
+ service manager and such up and running.
+*/
+
+const services = [
+//{modname: "pagereq", config: {hosts: [{port: config.pagereq_port, address: config.pagereq_ip}]}},
+  {modname: "ftml", config: {}},
+];
+
+let sel_service: any;
+for (let i = 0; i < services.length; i++) {
+  sel_service = services[i];
+  console.log("Modname: " + sel_service.modname);
+  if (sel_service.modname !== "ftml")
+    service.runservice(sel_service.modname, sel_service.config);
+  else
+    service.runftmlservice();
+}
+
 // if the css theme is requested, return it
 //app.get("/special/css", function(req, res) {
 //  res.send(fs.readFileSync("css/scp-sigma-9.css"));
@@ -155,10 +179,10 @@ app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  //var login = renderer.render('', 'html/login.html', 'Login', loginInfo(req)); 
+  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req)); 
   //res.send(login);
 
- render_page(req, true, 'html/login.html', "Login",
+ render_page(req, true, 'templates/login.html', "Login",
 	  (d) => {res.send(d)});
 });
 
@@ -198,7 +222,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 });
 
 // hookup to PRS system
-app.post("/sys/prs", function(req: express.Request, res: express.Response) {
+app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   let ip_addr = getIPAddress(req); 
 
   //console.log("PRS Request: " + JSON.stringify(req.body));
@@ -221,10 +245,10 @@ app.post("/sys/prs", function(req: express.Request, res: express.Response) {
 
 // get registration page
 app.get("/sys/register", function(req: express.Request, res: express.Response) {
-  //var register = renderer.render('', 'html/register.html', 'Register', loginInfo(req));
+  //var register = renderer.render('', 'templates/register.html', 'Register', loginInfo(req));
   //res.send(register);
 
-  render_page(req, true, 'html/register.html', 'Register', 
+  render_page(req, true, 'templates/register.html', 'Register', 
 	       (d) => {res.send(d);});
 });
 

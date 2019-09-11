@@ -26,7 +26,7 @@ const config = require(path.join(process.cwd(), "config.json"));
 
 const pool = new Pool({
   user: config.postgres_username,
-  host: "localhost",
+  host: config.postgres_host,
   database: config.postgres_database,
   password: config.postgres_password,
 }); // TODO: set up port?

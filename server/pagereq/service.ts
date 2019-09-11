@@ -19,6 +19,7 @@
  */
 
 import * as pagereq from './pagereq';
+import { ServiceCallback, ServiceParams, Service } from './../service_wrapper';
 
 // asynchronous pr
 async function async_pr(name: string, username: string, args: pagereq.ArgsMapping): Promise<pagereq.PRSReturnVal> {
@@ -28,8 +29,8 @@ async function async_pr(name: string, username: string, args: pagereq.ArgsMappin
 }
 
 // run pagereq as a service
-export async function service(data: string): Promise<string> {
-  const input = JSON.parse(data);
+function request(data: ServiceParams, callback: ServiceCallback): void {
+  const input = data;
   let args: pagereq.ArgsMapping = input;
   let name = args["name"];
 
@@ -42,5 +43,11 @@ export async function service(data: string): Promise<string> {
   */
   let username = args["username"];
    
-  return JSON.stringify(await async_pr(name, username, args));
+  pagereq.request(name, username, args, function(r: pagereq.PRSReturnVal) {
+    callback(null, r);
+  });
+}
+
+export function service(): Service {
+  return { 'pagereq': request };
 }

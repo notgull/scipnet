@@ -19,7 +19,8 @@
  */
 
 import * as net from 'net';
-import { JSONRPCServer, JSONRPCResponse } from 'json-rpc-2.0';
+//import { JSONRPCServer, JSONRPCResponse } from 'json-rpc-2.0';
+import * as jayson from 'jayson';
 
 export interface ServiceAddress {
   address: string;
@@ -31,6 +32,10 @@ export interface ServiceConfig {
   hosts: Array<ServiceAddress>;
 };
 
+export type ServiceParams = { [key: string]: any };
+export type ServiceCallback = (a: any, b: any) => any;
+export type Service = { [key: string]: (params: ServiceParams, callback: ServiceCallback) => void};
+
 // run a module as a service
 function runservice(modname: string, serv_config: ServiceConfig) {
   let service = require(modname);
@@ -38,17 +43,18 @@ function runservice(modname: string, serv_config: ServiceConfig) {
   let ip_addr = serv_addr.address; 
   let port = serv_addr.port;
 
-  net.createServer((sock: net.Socket) => {
-    sock.on('data', (data: Buffer | string) => {
-      let realdata: string;
-      if (data instanceof Buffer) realdata = "" + data;
-      else realdata = data;
+  let modified_service: Service = {};
+  let service_method: any;
+  let service_methods = service.service();
 
-      service.servicify(realdata).then((retval: string) => {
-        sock.write(retval);
-      }).catch((err: Error) => { throw err; });
-    });
-  }).listen(ip_addr, port);
+  // note: this is just in case we have to wrap any methods with something in the future
+  for (service_method in service_methods)
+    modified_service[service_method] = (data: ServiceParams, callback: ServiceCallback) => {
+      service_method(data, callback);
+    };
+
+  const server = new jayson.Server(modified_service);
+  server.http().listen(port);
 }
 
 if (require.main === module)

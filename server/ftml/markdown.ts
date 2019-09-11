@@ -20,26 +20,37 @@
 
 // ftml is now a port-based service
 
-import * as ffi from 'ffi';
+import * as jayson from 'jayson/promise';
 import * as path from 'path';
 
-const ftml_path = path.join(process.cwd(), "rust/target/release/libscipnetrust.so");
-const ftml = ffi.Library(ftml_path, {
-  scipnet_transform: ['char *', ['char *', 'char *', 'int', 'char *', 'char *']]
+const config = require(path.join(process.cwd(), 'config.json'));
+
+const client = jayson.Client.http({
+  port: config.ftml_port,
+  host: config.ftml_ip
 });
 
-function str_to_buffer(val: string): Buffer {
-  var buffer = Buffer.from(val);
-  var ending = Buffer.from([0x00]);
-  return Buffer.concat([buffer, ending]);
-}
+interface PageInfo {
+  title: string;
+  alt_title: string;
+  header: any;
+  subheader: any;
+  rating: number;
+  tags: Array<string>;
+};
 
-export function get_markdown(url: string, src: string, metadata: any): string {
-  //console.log("URL: " + url);
-  //console.log("SRC: " + src);
+export async function get_markdown(url: string, src: string, metadata: any): Promise<string> {
+  let page_info: PageInfo = {
+    title: metadata.title,
+    alt_title: "",
+    header: null,
+    subheader: null,
+    rating: metadata.rating,
+    tags: metadata.tags,
+  };
 
-  var url_buffer = str_to_buffer(url);
-  var src_buffer = str_to_buffer(src);
-  return ftml.scipnet_transform(url_buffer, src_buffer, metadata.get_rating(),
-	                        str_to_buffer(metadata.title), str_to_buffer(metadata.tags.join(';'))).readCString();
+  let response = await client.request("render", [page_info, src]);
+  console.log("Received response: " + JSON.stringify(response));
+   
+  return response;
 }
