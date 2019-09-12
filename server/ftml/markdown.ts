@@ -45,12 +45,12 @@ export async function get_markdown(url: string, src: string, metadata: any): Pro
     alt_title: "",
     header: null,
     subheader: null,
-    rating: metadata.rating,
+    rating: metadata.get_rating(),
     tags: metadata.tags,
   };
 
   let response = await client.request("render", [page_info, src]);
   console.log("Received response: " + JSON.stringify(response));
    
-  return response;
+  return response.result.html;
 }
