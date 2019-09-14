@@ -20,7 +20,7 @@
 
 // this file renders html from markdown stored in data files
 import { get_markdown } from './ftml/markdown';
-import * as metadata from './metadata/metadata';
+import * as md from './metadata/metadata';
 import * as nunjucks from 'nunjucks';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -55,6 +55,7 @@ export async function render(modName: string,
 			     metadata: any = null): Promise<string> {
   //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
   const replacement_string = "[INSERT_CONTENT_HERE]";
+  console.log("S-RENDERING: " + modName);
  
   // get username, if it exists
   let username;
@@ -71,12 +72,13 @@ export async function render(modName: string,
     //content = markdown_tree.flatten(username);
 	 
     if (!metadata)
-      throw new Error("Expected metadata");
+      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
 
     // test for existence first
     let filepath = path.join(config.scp_cont_location, modName);
-    if (!fs.existsSync(filepath))
-      return exports.render("_404", '', "404", loginInfo);
+    if (!fs.existsSync(filepath)) {
+      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+    }
 	
     let src = fs.readFileSync(filepath) + "";
     content = await get_markdown(modName, src, metadata);
@@ -107,7 +109,7 @@ export async function render(modName: string,
   let rater = "";
   if (metadata) {
     rating = metadata.get_rating();
-    rater = await exports.render_rating_module(metadata);
+    //rater = await exports.render_rating_module(metadata);
   }
 
   const first_stage_replacements = {

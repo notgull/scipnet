@@ -70,8 +70,8 @@ var editpage = function(use_404_param=false) {
 };
 
 var toggle_404_param = function() {
-  document.getElementById("sac_button").onclick = function() { savepage(false, true); };
-  document.getElementById("save_button").onclick = function() { savepage(true, true); };
+  //document.getElementById("sac_button").onclick = function() { savepage(false, true); };
+  //document.getElementById("save_button").onclick = function() { savepage(true, true); };
 }
 
 var savepage = function(refresh, use_404_param=false) {

@@ -50,7 +50,7 @@ function runservice(modname: string, serv_config: ServiceConfig) {
   // note: this is just in case we have to wrap any methods with something in the future
   for (service_method in service_methods)
     modified_service[service_method] = (data: ServiceParams, callback: ServiceCallback) => {
-      service_method(data, callback);
+      (service_methods[service_method])(data, callback);
     };
 
   const server = new jayson.Server(modified_service);

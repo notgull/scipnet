@@ -31,7 +31,7 @@ import { initialize_users }  from './user/initialize_database';
 import { initialize_pages } from './metadata/initialize_database';
 import { validate_password } from './authdetails';
 
-import { INTERNAL_ERROR, USER_NOT_FOUND, EMAIL_NOT_FOUND, Nullable } from './helpers'
+import { INTERNAL_ERROR, USER_NOT_FOUND, EMAIL_NOT_FOUND, Nullable, send_jsonrpc_message} from './helpers'
 import * as metadata from './metadata/metadata';
 import * as prs from './pagereq/pagereq';
 import * as renderer from './renderer';
@@ -112,11 +112,13 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
     return await renderer.render('', name, pageTitle, loginInfo(req));
   } else {
     var md = await metadata.metadata.load_by_slug(name);
-    if (!md) return null;
 
     let title = pageTitle;
     if (pageTitle.length === 0)
-      title = md.title;
+      if (md)
+        title = md.title;
+      else
+        title = "404";
 
     return await renderer.render(name, '', title, loginInfo(req), md);
   }
@@ -136,7 +138,7 @@ function render_page(req: express.Request, isHTML: boolean, name: string, pageTi
 */
 
 const services = [
-//{modname: "pagereq", config: {hosts: [{port: config.pagereq_port, address: config.pagereq_ip}]}},
+  {modname: "pagereq", config: {hosts: [{port: config.pagereq_port, address: config.pagereq_ip}]}},
   {modname: "ftml", config: {}},
 ];
 
@@ -225,7 +227,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   let ip_addr = getIPAddress(req); 
 
-  //console.log("PRS Request: " + JSON.stringify(req.body));
+  console.log("PRS Request: " + JSON.stringify(req.body));
 
   // get username
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
@@ -234,11 +236,23 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   let args: prs.ArgsMapping = {};
   for (var key in req.body)
     args[key] = req.body[key];
-  prs.request(args["name"], username, args, function(result: prs.PRSReturnVal) {
+  args["username"] = username;
+  /*prs.request(args["name"], username, args, function(result: prs.PRSReturnVal) {
   if (result.errorCode === -1) {
       console.log(result.error);
       result.error = "An internal error occurred. Please contact a site administrator.";
     }
+    res.send(JSON.stringify(result));
+    });*/
+
+  // TODO: replace this with whatever event bus system we come up with
+  send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
+    let result = response.result;
+    if (result.errorCode === -1) {
+      console.error(result.error);
+      result.error = "An internal error occurred. Please contact a site administrator.";
+    }
+    console.log("RESULT: " + JSON.stringify(result));
     res.send(JSON.stringify(result));
   });
 });
@@ -323,9 +337,11 @@ app.get("/:pageid", function(req, res) {
     return;
   }
 
+  console.log("RENDERING: " + slug);
+
   render_page(req, false, pageid, '', 
 	        (d) => {
-		  if (!d) res.redirect("/_404?original_page=" + pageid);	
+		  if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");	
 		  else res.send(d);
 		});
 });

@@ -61,3 +61,17 @@ export function getFormattedDate(date: Date): string {
   return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
 }
 
+// function to send a json message to a port via JSON-rpc
+import * as jayson from 'jayson/promise';
+export async function send_jsonrpc_message(name: string, message: any, ip: string, port: number): Promise<any> {
+  const client = jayson.Client.http({
+    port: port,
+    host: ip
+  });
+
+  console.log("JSON REQUEST: " + name + ", " + JSON.stringify(message));
+
+  let response = await client.request(name, message);
+  console.log("JSON RESPONSE: " + JSON.stringify(response));
+  return response;
+}

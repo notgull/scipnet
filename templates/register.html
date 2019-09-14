@@ -30,20 +30,8 @@ var check_field_empty = function(field) {
 }
 
 var check_password_compat = function(pw) {
-  var ch, code;
-  var specialChars = ['-', '_', '?', '!'];
-  for (var i = 0; i < pw.length; i++) {
-    ch = pw[i];
-    code = ch.charCodeAt(ch);
-    var isUppercaseLetter = 65 <= code && code <= 90;
-    var isLowercaseLetter = 97 <= code && code <= 122;
-    var isNumber = 48 <= code && code <= 57;
-    var isSpecialChar = specialChars.indexOf(ch) !== -1;
-
-    if (!(isUppercaseLetter || isLowercaseLetter || isNumber || isSpecialChar)) return false;
-  }
-
-  return true;
+  const regex = /^[a-zA-Z0-9_?!\- ]+$/i;
+  return regex.test(pw);
 }
 
 var addError = function(error) {
