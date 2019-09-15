@@ -48,12 +48,13 @@ env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
   return str;
 });
 
-export async function render(modName: string,
-                             htmlFileName: string = '',
-			     title: string = 'Testing Page',
-			     loginInfo: any = false,
-			     metadata: any = null): Promise<string> {
-  //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html'));
+export async function render(
+  modName: string,
+  htmlFileName: string = '',
+  title: string = 'Testing Page',
+  loginInfo: any = false,
+  metadata: any = null,
+): Promise<string> {
   const replacement_string = "[INSERT_CONTENT_HERE]";
   console.log("S-RENDERING: " + modName);
 
@@ -72,15 +73,15 @@ export async function render(modName: string,
     //content = markdown_tree.flatten(username);
 
     if (!metadata)
-      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+      return exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
 
     // test for existence first
     let filepath = path.join(config.scp_cont_location, modName);
     if (!fs.existsSync(filepath)) {
-      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+      return exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
     }
 
-    let src = fs.readFileSync(filepath) + "";
+    let src = `${fs.readFileSync(filepath)}`;
     content = await get_markdown(modName, src, metadata);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
@@ -93,7 +94,9 @@ export async function render(modName: string,
   if (modName === "main") {
     meta_title = '';
     title = '';
-  } else meta_title = title + " - ";
+  } else {
+    meta_title = `${title} - `;
+  }
 
   const t_replacement_string = "[INSERT_TITLE_HERE]";
   const u_replacement_string = "[INSERT_USERNAME_HERE]";
@@ -102,8 +105,9 @@ export async function render(modName: string,
   const rr_replacement_string = "[INSERT_RATER_HERE]";
 
   let ulv_replacement = "";
-  if (htmlFileName !== '' || modName === "_404")
+  if (htmlFileName !== '' || modName === "_404") {
     ulv_replacement = "display: none;"
+  }
 
   let rating = 0;
   let rater = "";
@@ -115,24 +119,13 @@ export async function render(modName: string,
   const first_stage_replacements = {
     ftml_content: content,
     ul_vanishing: ulv_replacement,
-    meta_title: meta_title,
-    title: title,
+    meta_title,
+    title,
     page_rating: rating,
-    login_bar: loginBar
+    login_bar: loginBar,
   };
 
-  const second_stage_replacements = {
-    username: username
-  };
-
-  /*let page = template.split(replacement_string).join(content) + "";
-  page = page.split(mt_replacement_string).join(meta_title);
-  page = page.split(t_replacement_string).join(title);
-  page = page.split(lb_replacement_string).join(loginBar);
-  page = page.split(u_replacement_string).join(username);
-  page = page.split(ulv_replacement_string).join(ulv_replacement);
-  page = page.split(r_replacement_string).join(String(rating));
-  page = page.split(rr_replacement_string).join(rater);*/
+  const second_stage_replacements = { username };
 
   let page = env.render("template.html", first_stage_replacements);
   page = env.renderString(page, second_stage_replacements);

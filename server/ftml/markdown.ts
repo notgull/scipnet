@@ -27,10 +27,10 @@ const config = require(path.join(process.cwd(), 'config.json'));
 
 const client = jayson.Client.http({
   port: config.ftml_port,
-  host: config.ftml_ip
+  host: config.ftml_ip,
 });
 
-interface PageInfo {
+export interface PageInfo {
   title: string;
   alt_title: string;
   header: any;
@@ -50,7 +50,7 @@ export async function get_markdown(url: string, src: string, metadata: any): Pro
   };
 
   let response = await client.request("render", [page_info, src]);
-  console.log("Received response: " + JSON.stringify(response));
+  console.log(`Received response: ${JSON.stringify(response)}`);
 
   return response.result.html;
 }
