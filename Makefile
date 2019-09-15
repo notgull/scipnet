@@ -25,5 +25,4 @@ dist/server/index.js: server/* server/**/*
 	npm run gulp
 
 ftml-json/target/release/ftml-json: ftml-json/src/*
-	cd ftml-json &&
-	cargo build --release
+	cd ftml-json && cargo build --release
