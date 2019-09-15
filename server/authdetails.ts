@@ -39,14 +39,17 @@ const isSpecialChar = (c: string): boolean => { return specialChars.indexOf(c) !
 
 export function validate_password(test: string): boolean {
   let isValidChar = true;
-  if (test.length === 0) return false;
-  let ch;
+  if (test.length === 0) {
+    return false;
+  }
 
   for (let i = 0; i < test.length; i++) {
-    ch = test[i];
+    const ch = test[i];
     isValidChar = isUpperCase(ch) || isLowerCase(ch) || isNumber(ch) || isSpecialChar(ch);
-    //console.log("Ch is " + ch + ", isValidChar is " + isValidChar);
-    if (!isValidChar) return false;
+    if (!isValidChar) {
+      return false;
+    }
   }
+
   return true;
 }
