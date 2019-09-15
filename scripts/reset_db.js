@@ -20,7 +20,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 // this file will drop all of the tables if executed
 // change this to "false" if this is ever run in a production environment. we shouldn't take the chance.
 const should_tables_be_deleted = true;
@@ -30,10 +29,21 @@ if (!should_tables_be_deleted) {
   process.exit();
 }
 
-var sql = require('./../dist/server/sql');
+const sql = require('./../dist/server/sql');
 
-var remove_all_query = "DROP TABLE Users CASCADE; DROP TABLE Pages CASCADE;" +
-		         "DROP TABLE passwords; DROP TABLE authors;" +
-		         "DROP TABLE files; DROP TABLE revisions;" +
-		         "DROP TABLE ratings; DROP TABLE parents;";
-sql.queryPromise(remove_all_query, []).then((_)=>{process.exit();}).catch((err) => { throw err; });
+const remove_all_query = `
+  DROP TABLE Users CASCADE;
+  DROP TABLE Pages CASCADE;
+  DROP TABLE passwords;
+  DROP TABLE authors;
+  DROP TABLE files;
+  DROP TABLE revisions;
+  DROP TABLE ratings;
+  DROP TABLE parents;
+`;
+
+async function runQuery() {
+  await sql.queryPromise(remove_all_query, []);
+}
+
+runQuery();
