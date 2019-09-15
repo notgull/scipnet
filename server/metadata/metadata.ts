@@ -61,6 +61,9 @@ export { parent_ } from './parent';
 import {editlock, add_editlock, remove_editlock, check_editlock} from './editlock';
 export {editlock, add_editlock, remove_editlock, check_editlock} from './editlock';
 
+import { Tenant } from './tenant';
+export { Tenant } from './tenant';
+
 // define an asynchronous foreach loop
 async function async_foreach(arr: Array<any>, iter: any): Promise<void> {
   //let promises = []; 
@@ -85,6 +88,7 @@ export class metadata {
   attached_files: Array<any>;
   locked_at: Nullable<Date>
   parents: Array<parent_>;
+  tenant: Nullable<Tenant>;
 
   constructor(slug: string) {
     this.article_id = -1;
@@ -100,6 +104,7 @@ export class metadata {
     this.attached_files = []; 
     this.locked_at = null;
     this.parents = [];
+    this.tenant = null;
   }
 
   // get the composite rating of the article
@@ -145,13 +150,22 @@ export class metadata {
     // load parents
     mObj.parents = await parent_.load_array_by_child(res.article_id);
 
+    // load tenant
+    if (!(mObj.tenant)) {
+      mObj.tenant = await Tenant.load_by_id(res.tenant_id);
+    }
+
     // TODO: load files once we have that system up and running
     return mObj;
   }
 
   // load metadata by its slug
-  static async load_by_slug(slug: string): Promise<Nullable<metadata>> {
-    let res = await query("SELECT * FROM Pages WHERE slug=$1;", [slug]);
+  static async load_by_slug(slug: string, tenant: string = ""): Promise<Nullable<metadata>> {
+    let tenant_res = Tenant.load_by_site_name(tenant);
+    if (!tenant_res)
+      throw new Error("Tenant is null - This is probably a database error");
+
+    let res = await query("SELECT * FROM Pages WHERE slug=$1 AND tenant_id=$2;", [slug, tenant_res.tenant_id]);
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
