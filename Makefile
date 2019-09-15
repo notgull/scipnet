@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-program: ftml-json/target/release/ftml-json dist/client/404.js dist/server/index.js 
-  
+program: ftml-json/target/release/ftml-json dist/client/404.js dist/server/index.js
+
 dist/client/404.js: client/*
 	npm run babel -- client --out-dir dist/client
 
@@ -25,5 +25,5 @@ dist/server/index.js: server/* server/**/*
 	npm run gulp
 
 ftml-json/target/release/ftml-json: ftml-json/src/*
-	cd ftml-json; \
+	cd ftml-json &&
 	cargo build --release
