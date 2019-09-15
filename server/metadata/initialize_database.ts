@@ -18,19 +18,32 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { query } from './../sql';
+import { query, queryPromise } from './../sql';
+
+// create the tenant table
+async function create_tenant_table(): Promise<number> {
+  const tenant_table_sql = "CREATE TABLE IF NOT EXISTS Tenants (" +
+                             "tenant_id BIGSERIAL PRIMARY KEY," +
+                             "site_name TEXT NOT NULL," +
+                             "stylesheet TEXT NOT NULL," +
+                             "name TEXT NOT NULL," +
+                           ");";
+  await queryPromise(tenant_table_sql, []);
+  return 0;
+}
 
 // initialize the database for metadata storage
-export function initialize_pages(next: (n: number) => any) {
+function initialize_pages_nonasync(next: (n: number) => any) {
   const metadata_table_sql = "CREATE TABLE IF NOT EXISTS Pages (" +
-		             "article_id BIGSERIAL PRIMARY KEY," +
-		             "slug TEXT NOT NULL UNIQUE," +
-		             "title TEXT NOT NULL," +
-		             "tags TEXT[]," +
-		             "editlock_id TEXT," +
-		             "discuss_page_link TEXT," +
-		             "locked_at TIMESTAMP" +
-		           ");";
+		               "article_id BIGSERIAL PRIMARY KEY," +
+		               "slug TEXT NOT NULL UNIQUE," +
+		               "title TEXT NOT NULL," +
+                               "tenant_id INTEGER REFERENCES Tenants(tenant_id)," +
+		               "tags TEXT[]," +
+		               "editlock_id TEXT," +
+		               "discuss_page_link TEXT," +
+		               "locked_at TIMESTAMP" +
+		             ");";
   query(metadata_table_sql, [], (err: any, res: any) => {
     if (err) throw new Error(err);
     
@@ -76,11 +89,12 @@ export function initialize_pages(next: (n: number) => any) {
             if (err) throw new Error(err);
 
             const parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
-			             "article_id INTEGER REFERENCES Pages(article_id)," +
-			             "parent_article_id INTEGER REFERENCES Pages(article_id)" +
-			           ");";
+                                       "article_id INTEGER REFERENCES Pages(article_id)," +
+                                       "parent_article_id INTEGER REFERENCES Pages(article_id)" +
+                                     ");";
 	    query(parent_table_sql, [], (err, res) => {
               if (err) throw new Error(err);
+		    
 	      next(0);
 	    });
 	  });
@@ -88,4 +102,12 @@ export function initialize_pages(next: (n: number) => any) {
       });
     });
   });
+}
+
+export function initialize_database(next: (n: number) => any) {
+  create_tenants_table().then((n: any) => {
+    initialize_database_nonasyn((n: any) => {
+      next(n);
+    });
+  }
 }
