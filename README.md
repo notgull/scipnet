@@ -14,7 +14,7 @@ $ git submodule update
 
 Initialize database:
 ```
-$ bin/setup_db.js | psql
+$ scripts/setup_db.js | psql
 ```
 
 (`sudo -u postgres psql` or similar if you're running Postgres as another user)
