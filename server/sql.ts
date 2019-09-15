@@ -21,7 +21,7 @@
 // exposes basic SQL functionality
 import { Pool } from 'pg';
 import * as path from 'path';
-//import * as config from path.join(process.cwd(), "config.json");
+
 const config = require(path.join(process.cwd(), "config.json"));
 
 const pool = new Pool({
@@ -31,10 +31,12 @@ const pool = new Pool({
   password: config.postgres_password,
 }); // TODO: set up port?
 
-export function query(sql: string, args: any, callback: (err: any, res: any) => void): void {
+export type CallbackFn = (err: any, res: any) => void;
+
+export function query(sql: string, args: any, callback: CallbackFn): void {
   pool.query(sql, args, callback);
 }
 
 export async function queryPromise(sql: string, args: any): Promise<any> {
-  return await pool.query(sql, args);
+  return pool.query(sql, args);
 }
