@@ -42,7 +42,7 @@ export class rating {
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    let vote = new rating(article_id, user_id, res.rating); 
+    let vote = new rating(article_id, user_id, res.rating);
     return vote;
   }
 

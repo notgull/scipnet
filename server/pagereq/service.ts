@@ -42,7 +42,7 @@ function request(data: ServiceParams, callback: ServiceCallback): void {
 
   */
   let username = args["username"];
-   
+
   pagereq.request(name, username, args, function(r: pagereq.PRSReturnVal) {
     callback(null, r);
   });

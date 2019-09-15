@@ -51,6 +51,6 @@ export async function get_markdown(url: string, src: string, metadata: any): Pro
 
   let response = await client.request("render", [page_info, src]);
   console.log("Received response: " + JSON.stringify(response));
-   
+
   return response.result.html;
 }

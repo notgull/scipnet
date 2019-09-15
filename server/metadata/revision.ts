@@ -64,7 +64,7 @@ export class revision {
     let revisionInst = new revision(res.article_id, res.user_id, res.diff_link);
     revisionInst.created_at = res.created_at;
     revisionInst.revision_id = revision_id;
-    return revisionInst; 
+    return revisionInst;
   }
 
   // load array of revisions by the article
@@ -88,7 +88,7 @@ export class revision {
   // submit revision to article
   // NOTE: this should not be run more than once
   async submit(): Promise<void> {
-    let revision_id = await query("INSERT INTO Revisions (article_id, user_id, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.diff_link, this.created_at]); 
+    let revision_id = await query("INSERT INTO Revisions (article_id, user_id, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.diff_link, this.created_at]);
     if (revision_id.rowCount > 0)
       this.revision_id = revision_id.rows[0].revision_id;
   }

@@ -32,7 +32,7 @@ export class parent_ {
     this.parent_id = parent_id;
   }
 
-  // load by the ids of the child and parent 
+  // load by the ids of the child and parent
   static async load_by_id(child_id: number, parent_id: number): Promise<Nullable<parent_>> {
     let res = await query("SELECT * FROM Parents WHERE article_id=$1 AND parent_article_id=$2",
                           [child_id, parent_id]);
@@ -56,7 +56,7 @@ export class parent_ {
     }
 
     return parents;
-  } 
+  }
 
   // submit a parent object to the database
   async submit(): Promise<void> {

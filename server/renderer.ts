@@ -48,15 +48,15 @@ env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
   return str;
 });
 
-export async function render(modName: string, 
-                             htmlFileName: string = '', 
-			     title: string = 'Testing Page', 
-			     loginInfo: any = false, 
+export async function render(modName: string,
+                             htmlFileName: string = '',
+			     title: string = 'Testing Page',
+			     loginInfo: any = false,
 			     metadata: any = null): Promise<string> {
-  //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
+  //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html'));
   const replacement_string = "[INSERT_CONTENT_HERE]";
   console.log("S-RENDERING: " + modName);
- 
+
   // get username, if it exists
   let username;
   let loginBar;
@@ -70,7 +70,7 @@ export async function render(modName: string,
   if (!htmlFileName || htmlFileName.length === 0) {
     //var markdown_tree = markdown(modName);
     //content = markdown_tree.flatten(username);
-	 
+
     if (!metadata)
       return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
 
@@ -79,7 +79,7 @@ export async function render(modName: string,
     if (!fs.existsSync(filepath)) {
       return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
     }
-	
+
     let src = fs.readFileSync(filepath) + "";
     content = await get_markdown(modName, src, metadata);
   } else {
@@ -124,7 +124,7 @@ export async function render(modName: string,
   const second_stage_replacements = {
     username: username
   };
-  
+
   /*let page = template.split(replacement_string).join(content) + "";
   page = page.split(mt_replacement_string).join(meta_title);
   page = page.split(t_replacement_string).join(title);

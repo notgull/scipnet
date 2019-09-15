@@ -33,7 +33,7 @@ export function initialize_pages(next: (n: number) => any) {
 		           ");";
   query(metadata_table_sql, [], (err: any, res: any) => {
     if (err) throw new Error(err);
-    
+
     // also create the revision table
     const revision_table_sql = "CREATE TABLE IF NOT EXISTS Revisions (" +
 		               "revision_id BIGSERIAL PRIMARY KEY," +

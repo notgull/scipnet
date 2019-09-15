@@ -54,7 +54,7 @@ export class usertable {
 	return chckUser.id;
       }
     }
-	  
+
     let id = this.prevId;
     id += randomInt(2, 9);
     if (id > 2999999) id -= this.prevId;
@@ -113,7 +113,7 @@ export class usertable {
       let chckUser = this.userset[i];
       if (now > chckUser.expiry) {
         this.userset.splice(1, i);
-      } 
+      }
     }
   }
 
@@ -122,7 +122,7 @@ export class usertable {
     for (let i = 0; i < this.userset.length; i++) {
       console.log(JSON.stringify(this.userset[i]));
     }
-  } 
+  }
 }
 
 exports.global_usertable = new usertable();

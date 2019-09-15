@@ -50,7 +50,7 @@ export function initialize_users(next: (n: number) => any) {
     query(pwHash_table_sql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
-      next(0);	
+      next(0);
     });
   });
 };
