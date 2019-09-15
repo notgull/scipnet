@@ -18,7 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//var uuid = require('uuid/v4');
 import { randomInt } from './../random';
 import { Nullable } from './../helpers';
 
@@ -30,7 +29,6 @@ interface User {
 }
 
 export class usertable {
-
   userset: Array<User>;
   prevId: number;
 
@@ -45,13 +43,13 @@ export class usertable {
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.user === user) {
-	if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
-	  if (!change_ip)
-	    chckUser.ip_addrs.push(ip_addr);
-	  else
-	    chckUser.ip_addrs = [ip_addr];
-	}
-	return chckUser.id;
+      if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
+        if (!change_ip)
+          chckUser.ip_addrs.push(ip_addr);
+        else
+          chckUser.ip_addrs = [ip_addr];
+      }
+      return chckUser.id;
       }
     }
 
@@ -61,15 +59,8 @@ export class usertable {
     this.prevId = id;
 
     // it's much more random to use the UUID algoritm
-    //var id = uuid();
-
-    let userObj = {id: id,
-                   user: user,
-		   expiry: expiry,
-		   ip_addrs: [ip_addr]};
+    let userObj = { id, user, expirty, ip_addrs: [ip_addr] };
     this.userset.push(userObj);
-
-    // console.log("Added id " + id + " to table");
 
     return id;
   }
