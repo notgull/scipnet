@@ -30,9 +30,9 @@ import { ServiceConfig } from './service_wrapper';
 const module_root = 'dist/server';
 
 export interface ServiceInfo {
-  process: ChildProcess,
-  port: number,
-  ip_addr: string
+  process: ChildProcess;
+  port: number;
+  ip_addr: string;
 };
 
 // with the input of a module and a port, run a service
@@ -41,13 +41,19 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
   let module_path = path.join(process.cwd(), module_root, modname);
   let module_service = path.join(module_path, "service.js");
   if (!(fs.existsSync(module_service))) {
-    throw new Error("Service not found: " + modname);
+    throw new Error(`Service not found: ${modname}`);
   }
 
-  return {process: fork(path.join(process.cwd(), "dist/server/service_wrapper.js"), 
-                        [module_service, JSON.stringify(serv_config)]),
-          port: serv_config.hosts[0].port,
-	  ip_addr: serv_config.hosts[0].address}
+  const process = fork(
+    path.join(process.cwd(), "dist/server/service_wrapper.js"),
+    [module_service, JSON.stringify(serv_config)],
+  );
+
+  return {
+    process,
+    port: serv_config.hosts[0].port,
+    ip_addr: serv_config.hosts[0].address,
+  };
 }
 
 // ftml-json is built in rust, thus we need a special function to run it
@@ -57,14 +63,12 @@ export function runftmlservice(): ServiceInfo {
   let config_path = path.join(process.cwd(), 'ftml-json/misc/config.toml');
 
   let ftml = spawn(ftml_path, [config_path]);
-  ftml.stdout.on('data', (data: any) => {
-    console.log("FTML Process: " + data);
-  });
-  ftml.stderr.on('data', (data: any) => {
-    console.log("FTML Process Error: " + data);
-  });
+  ftml.stdout.on('data', (data: string) => console.log(`FTML Process: ${data}`));
+  ftml.stderr.on('data', (data: string) => console.log(`FTML Process Error: ${data}`));
 
-  return {process: ftml,
-          port: config.ftml_port,
-          ip_addr: config.ftml_ip};
+  return {
+    process: ftml,
+    port: config.ftml_port,
+    ip_addr: config.ftml_ip,
+  };
 }
