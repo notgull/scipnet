@@ -35,7 +35,6 @@ import { INTERNAL_ERROR, USER_NOT_FOUND, EMAIL_NOT_FOUND, Nullable, send_jsonrpc
 import * as metadata from './metadata/metadata';
 import * as prs from './pagereq/pagereq';
 import * as renderer from './renderer';
-import { slugify } from './slug';
 import { usertable } from './user/usertable';
 import * as validate from './user/validate';
 
@@ -99,7 +98,7 @@ function getIPAddress(req: express.Request): string {
 
 // function that puts together login info for user
 function loginInfo(req: express.Request): Nullable<string> {
-  var ip_addr = getIPAddress(req); 
+  var ip_addr = getIPAddress(req);
   return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
 }
 
@@ -130,7 +129,7 @@ function render_page(req: express.Request, isHTML: boolean, name: string, pageTi
   }).catch((err) => {throw err;});
 }
 
-/* 
+/*
  Services
 
  This is DEFINITELY going to go in a different file sometime soon, once we get an actual
@@ -181,7 +180,7 @@ app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req)); 
+  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req));
   //res.send(login);
 
  render_page(req, true, 'templates/login.html', "Login",
@@ -225,13 +224,13 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
 // hookup to PRS system
 app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
-  let ip_addr = getIPAddress(req); 
+  let ip_addr = getIPAddress(req);
 
   console.log("PRS Request: " + JSON.stringify(req.body));
 
   // get username
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
-  
+
   // pull all parameters from req.body and put them in args
   let args: prs.ArgsMapping = {};
   for (var key in req.body)
@@ -262,7 +261,7 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
   //var register = renderer.render('', 'templates/register.html', 'Register', loginInfo(req));
   //res.send(register);
 
-  render_page(req, true, 'templates/register.html', 'Register', 
+  render_page(req, true, 'templates/register.html', 'Register',
 	       (d) => {res.send(d);});
 });
 
@@ -322,28 +321,21 @@ app.use("/sys/process-logout", function(req: express.Request, res: express.Respo
   let user_id = req.cookies["session_id"];
   let new_location = req.query.new_url || "";
   ut.logout(user_id);
-  
+
   res.redirect('/' + new_location);
 });
 
 // get generic page
-app.get("/:pageid", function(req, res) {
+app.get("/:slug", function(req, res) {
   const params: Params = req.params as Params;
-  let pageid = params['pageid'];
+  const { slug } = params;
 
-  let slug = slugify(pageid);
-  if (slug !== pageid) {
-    res.redirect('/' + slug);
-    return;
-  }
+  console.log(`RENDERING: ${slug}`);
 
-  console.log("RENDERING: " + slug);
-
-  render_page(req, false, pageid, '', 
-	        (d) => {
-		  if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");	
-		  else res.send(d);
-		});
+  render_page(req, false, pageid, '', (d) => {
+    if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");
+    else res.send(d);
+  });
 });
 
 // load javascript files
