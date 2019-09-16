@@ -104,14 +104,14 @@ function loginInfo(req: express.Request): Nullable<string> {
 }
 
 // function to render a page
-async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
+async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string, tenant: string): Promise<Nullable<string>> {
   //console.log("Rendering page with: ");
   //console.log(Array.from(arguments));
 
   if (isHTML) {
     return await renderer.render('', name, pageTitle, loginInfo(req));
   } else {
-    var md = await metadata.metadata.load_by_slug(name);
+    var md = await metadata.metadata.load_by_slug(name, tenant);
 
     let title = pageTitle;
     if (pageTitle.length === 0)
@@ -124,10 +124,10 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
   }
 }
 
-function render_page(req: express.Request, isHTML: boolean, name: string, pageTitle: string, next: (s: Nullable<string>) => any): void {
-  render_page_async(req, isHTML, name, pageTitle).then((r) => {
+function render_page(req: express.Request, isHTML: boolean, name: string, pageTitle: string, tenant: string, next: (s: Nullable<string>) => any): void {
+    render_page_async(req, isHTML, name, pageTitle, tenant).then((r: Nullable<string>) => {
     next(r);
-  }).catch((err) => {throw err;});
+  }).catch((err: Error) => {throw err;});
 }
 
 /* 
