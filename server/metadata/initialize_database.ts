@@ -104,10 +104,10 @@ function initialize_pages_nonasync(next: (n: number) => any) {
   });
 }
 
-export function initialize_database(next: (n: number) => any) {
-  create_tenants_table().then((n: any) => {
-    initialize_database_nonasyn((n: any) => {
+export function initialize_pages(next: (n: number) => any) {
+  create_tenant_table().then((n: any) => {
+    initialize_pages_nonasync((n: any) => {
       next(n);
     });
-  }
+  }).catch((err) => { throw err; });
 }

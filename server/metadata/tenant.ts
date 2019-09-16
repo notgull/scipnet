@@ -40,14 +40,15 @@ export class Tenant {
   static async from_row(row: any): Promise<Tenant> {
     let tenant = new Tenant(row.site_name, row.stylesheet, row.name);
     if (row.tenant_id)
-      tenant.tenant_id = tow.tenant_id;
+      tenant.tenant_id = row.tenant_id;
     return tenant;
   }
 
   static async default_tenant(): Promise<Nullable<Tenant>> {
-    let res = await query("SELECT * FROM Tenants LIMIT 1;", []);
+	  /*let res = await query("SELECT * FROM Tenants LIMIT 1;", []);
     if (res.rowCount === 0) return null;
-    return Tenant.from_row(res.rows[0]);
+    return Tenant.from_row(res.rows[0]);*/
+    return null;
   }
 
   static async load_by_id(tenant_id: number): Promise<Nullable<Tenant>> {
@@ -64,9 +65,9 @@ export class Tenant {
 
   async submit(): Promise<void> {
     if (this.tenant_id === -1) {
-      this.tenant_id = await query("INSERT INTO Tenants (site_name, stylesheet, name) VALUES " +
-                                   "($1, $2, $3) RETURNING tenant_id;", [this.site_name, this.stylesheet,
-                                   this.name]).rows[0].tenant_id;
+      this.tenant_id = (await query("INSERT INTO Tenants (site_name, stylesheet, name) VALUES " +
+                                    "($1, $2, $3) RETURNING tenant_id;", [this.site_name, this.stylesheet,
+                                    this.name])).rows[0].tenant_id;
     } else {
       await query("UPDATE Tenants SET site_name=$1, stylesheet=$2, name=$3 WHERE tenant_id=$4;", 
                   [this.site_name, this.stylesheet, this.name, this.tenant_id]);

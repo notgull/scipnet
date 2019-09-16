@@ -152,6 +152,7 @@ export class metadata {
 
     // load tenant
     if (!(mObj.tenant)) {
+      if (!(res.tenant_id)) throw new Error("Unable to retrieve tenant");
       mObj.tenant = await Tenant.load_by_id(res.tenant_id);
     }
 
@@ -160,8 +161,8 @@ export class metadata {
   }
 
   // load metadata by its slug
-  static async load_by_slug(slug: string, tenant: string = ""): Promise<Nullable<metadata>> {
-    let tenant_res = Tenant.load_by_site_name(tenant);
+  static async load_by_slug(slug: string, tenant: string): Promise<Nullable<metadata>> {
+    let tenant_res = await Tenant.load_by_site_name(tenant);
     if (!tenant_res)
       throw new Error("Tenant is null - This is probably a database error");
 
