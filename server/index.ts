@@ -20,6 +20,7 @@
 
 import * as body_parser from 'body-parser';
 import * as cookie_parser from 'cookie-parser';
+import { Request, Response } from 'express';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as http from 'http';
@@ -76,13 +77,12 @@ async function check_dir(dirname: string) {
 const app = express();
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
-//app.use(express.json());
-//app.use(express.urlencoded());
 app.use(cookie_parser());
 
 // load ssl certs
-const certs = { key: fs.readFileSync('certs/scpwiki.key'),
-                cert: fs.readFileSync('certs/scpwiki.pem') };
+const key = fs.readFileSync('certs/scpwiki.key');
+const cert = fs.readFileSync('certs/scpwiki.pem');
+const certs = { key, cert };
 
 // create a table of user sessions
 let ut = new usertable();
@@ -91,19 +91,24 @@ let ut = new usertable();
 type Params = { [key: string]: string };
 
 // get an ip address from a request
-function getIPAddress(req: express.Request): string {
+function getIPAddress(req: Request): string {
   //return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   return req.ip;
 }
 
 // function that puts together login info for user
-function loginInfo(req: express.Request): Nullable<string> {
+function loginInfo(req: Request): Nullable<string> {
   var ip_addr = getIPAddress(req);
   return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
 }
 
 // function to render a page
-async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
+async function render_page_async(
+  req: Request,
+  isHTML: boolean,
+  name: string,
+  pageTitle: string,
+): Promise<Nullable<string>> {
   //console.log("Rendering page with: ");
   //console.log(Array.from(arguments));
 
@@ -123,10 +128,15 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
   }
 }
 
-function render_page(req: express.Request, isHTML: boolean, name: string, pageTitle: string, next: (s: Nullable<string>) => any): void {
-  render_page_async(req, isHTML, name, pageTitle).then((r) => {
-    next(r);
-  }).catch((err) => {throw err;});
+async function render_page(
+  req: Request,
+  isHTML: boolean,
+  name: string,
+  pageTitle: string,
+  next: (s: Nullable<string>) => any,
+): Promise<void> {
+  const rendered = await render_page_async(req, isHTML, name, pageTitle);
+  next(rendered);
 }
 
 /*
@@ -144,53 +154,44 @@ const services = [
 let sel_service: any;
 for (let i = 0; i < services.length; i++) {
   sel_service = services[i];
-  console.log("Modname: " + sel_service.modname);
+  console.log(`Modname: ${sel_service.modname}`);
   if (sel_service.modname !== "ftml")
     service.runservice(sel_service.modname, sel_service.config);
   else
     service.runftmlservice();
 }
 
-// if the css theme is requested, return it
-//app.get("/special/css", function(req, res) {
-//  res.send(fs.readFileSync("css/scp-sigma-9.css"));
-//});
-
 // special files
-app.get("/favicon.ico", function(req: express.Request, res: express.Response) {
+app.get("/favicon.ico", function(req: Request, res: Response) {
   res.send(fs.readFileSync("images/icon.ico"));
 });
 
-app.get("/sys/images/background.png", function(req: express.Request, res: express.Response) {
+app.get("/sys/images/background.png", function(req: Request, res: Response) {
   res.send(fs.readFileSync("images/body_bg.png"));
 });
 
 // bauhaus font css
-app.get("/sys/fonts/font-bauhaus.css", function(req: express.Request, res: express.Response) {
+app.get("/sys/fonts/font-bauhaus.css", function(req: Request, res: Response) {
   res.send(fs.readFileSync("css/font-bauhaus.css"));
 });
 
-app.get("/sys/fonts/itc-bauhaus-lt-demi.ttf", function(req: express.Request, res: express.Response) {
+app.get("/sys/fonts/itc-bauhaus-lt-demi.ttf", function(req: Request, res: Response) {
   res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.ttf"));
 });
 
-app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res: express.Response) {
+app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: Request, res: Response) {
   res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.eot"));
 });
 
 // get login page
-app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req));
-  //res.send(login);
-
- render_page(req, true, 'templates/login.html', "Login",
-	  (d) => {res.send(d)});
+app.get("/sys/login", function(req: Request, res: Response) {
+ render_page(req, true, 'templates/login.html', "Login", data => res.send(data));
 });
 
 const day_constant = 86400000;
 
 // post request - used for logging in
-app.post("/sys/process-login", function(req: express.Request, res: express.Response) {
+app.post("/sys/process-login", function(req: Request, res: Response) {
   let username = req.body.username;
   let pwHash = req.body.pwHash;
   let push_expiry = (req.body.remember === "true");
@@ -202,110 +203,127 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
   // firstly, validate both whether the user exists and whether the password is correct
   validate.validate_user(username, pwHash, (result: number, err: Error) => {
-    if (result === 3) console.log(err);
+    if (result === 3) {
+      console.log(err);
+    }
 
-    if (result !== 0) res.redirect("/sys/login?errorCode=" + result);
-    else {
+    if (result !== 0) {
+      res.redirect("/sys/login?errorCode=" + result);
+    } else {
       // add user to user table
       let ip_addr = getIPAddress(req);
       let expiry = new Date();
-      if (push_expiry)
-	expiry.setDate(expiry.getDate() + 7);
-      else
-	expiry.setDate(expiry.getDate() + 1);
+      if (push_expiry) {
+        expiry.setDate(expiry.getDate() + 7);
+      } else {
+        expiry.setDate(expiry.getDate() + 1);
+      }
 
       let sessionId = ut.register(username, ip_addr, expiry, change_ip);
-      console.log("Logged session " + sessionId);
+      console.log(`Logged session ${sessionId}`);
       res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
-      res.redirect('/' + new_url);
+      res.redirect(`/${new_url}`);
     }
   });
 });
 
 // hookup to PRS system
-app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
+app.post("/sys/pagereq", async function(req: Request, res: Response) {
   let ip_addr = getIPAddress(req);
 
-  console.log("PRS Request: " + JSON.stringify(req.body));
+  console.log(`pagereq request: ${JSON.stringify(req.body)}`);
 
   // get username
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
 
   // pull all parameters from req.body and put them in args
   let args: prs.ArgsMapping = {};
-  for (var key in req.body)
+  for (var key in req.body) {
     args[key] = req.body[key];
-  args["username"] = username;
-  /*prs.request(args["name"], username, args, function(result: prs.PRSReturnVal) {
-  if (result.errorCode === -1) {
-      console.log(result.error);
-      result.error = "An internal error occurred. Please contact a site administrator.";
-    }
-    res.send(JSON.stringify(result));
-    });*/
+  }
+  args.username = username;
 
   // TODO: replace this with whatever event bus system we come up with
-  send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
-    let result = response.result;
-    if (result.errorCode === -1) {
-      console.error(result.error);
-      result.error = "An internal error occurred. Please contact a site administrator.";
-    }
-    console.log("RESULT: " + JSON.stringify(result));
-    res.send(JSON.stringify(result));
-  });
+  const response = await send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port);
+  const { result } = response;
+  if (result.errorCode === -1) {
+    console.error(result.error);
+    result.error = "An internal error occurred. Please contact a site administrator.";
+  }
+
+  console.log(`RESULT: ${JSON.stringify(result)}`);
+  res.send(JSON.stringify(result));
 });
 
 // get registration page
-app.get("/sys/register", function(req: express.Request, res: express.Response) {
-  //var register = renderer.render('', 'templates/register.html', 'Register', loginInfo(req));
-  //res.send(register);
-
-  render_page(req, true, 'templates/register.html', 'Register',
-	       (d) => {res.send(d);});
+app.get("/sys/register", function(req: Request, res: Response) {
+  render_page(req, true, 'templates/register.html', 'Register', data => res.send(data));
 });
 
 function onEmailVerify(username: string, pwHash: string, email: string): void {
   validate.add_new_user(username, email, pwHash, (i: number, err: Error) => {
-    console.log("Err: " + i + "\n" + err);
+    console.log(`Err: ${i}\n${err}`);
   });
 };
 
 // process registration
-app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
+app.post("/sys/process-register", function(req: Request, res: Response) {
   //let username = req.body.username;
   //let pwHash = req.body.pwHash;
   //let email = req.body.email;
   let { username, pwHash, email } = req.body;
 
-  function redirectErr(errCode: number) { res.redirect("/sys/register?errors=" + errCode); }
+  function redirectErr(errCode: number) {
+    res.redirect("/sys/register?errors=" + errCode);
+  }
 
   // check to ensure that there aren't any errors
-  if (username.length === 0) { redirectErr(4); return; }
-  if (pwHash.length === 0) { redirectErr(16); return; }
-  if (email.length === 0) { redirectErr(8); return; }
-  if (!validate_password(username)) { redirectErr(1024); return; }
-  if (!validate_password(pwHash)) { redirectErr(64); return; }
-  if (pwHash.length < 8) { redirectErr(32); return; }
+  if (username.length === 0) {
+    redirectErr(4);
+    return;
+  }
+
+  if (pwHash.length === 0) {
+    redirectErr(16);
+    return;
+  }
+
+  if (email.length === 0) {
+    redirectErr(8);
+    return;
+  }
+
+  if (!validate_password(username)) {
+    redirectErr(1024);
+    return;
+  }
+
+  if (!validate_password(pwHash)) {
+    redirectErr(64);
+    return;
+  }
+
+  if (pwHash.length < 8) {
+    redirectErr(32);
+    return;
+  }
 
   // make sure neither the username nor the email exist
-  validate.check_user_existence(username, function(result: any, err: Error): void {
-    //console.log(err);
+  validate.check_user_existence(username, (result: any, err: Error) => {
     if (result == INTERNAL_ERROR) {
       console.log(err);
       res.redirect('/sys/register?errors=512');
     } else if (result !== USER_NOT_FOUND) {
       res.redirect('/sys/register?errors=128')
     } else {
-      validate.check_email_usage(email, function(result: number, err: Error) {
+      validate.check_email_usage(email, (result: number, err: Error) => {
         if (result === INTERNAL_ERROR) {
-          //console.log(err);
-	  res.redirect('/sys/register?errors=512');
-        } else if (result !== EMAIL_NOT_FOUND)
-	  res.redirect('/sys/register?errors=256');
-        else {
+          res.redirect('/sys/register?errors=512');
+        } else if (result !== EMAIL_NOT_FOUND) {
+          res.redirect('/sys/register?errors=256');
+        } else {
           // TODO: verify via email
-	  res.redirect('/sys/login');
+          res.redirect('/sys/login');
           onEmailVerify(username, pwHash, email);
         }
       });
@@ -314,11 +332,8 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
 });
 
 // log a user out of the system
-app.use("/sys/process-logout", function(req: express.Request, res: express.Response) {
-  //var username = loginInfo(req);
-  //var ip_addr = getIPAddress(req);
-
-  let user_id = req.cookies["session_id"];
+app.use("/sys/process-logout", function(req: Request, res: Response) {
+  let user_id = req.cookies.session_id;
   let new_location = req.query.new_url || "";
   ut.logout(user_id);
 
@@ -327,21 +342,24 @@ app.use("/sys/process-logout", function(req: express.Request, res: express.Respo
 
 // get generic page
 app.get("/:slug", function(req, res) {
-  const params: Params = req.params as Params;
+  const { params } = req;
   const { slug } = params;
 
   console.log(`RENDERING: ${slug}`);
 
-  render_page(req, false, pageid, '', (d) => {
-    if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");
-    else res.send(d);
+  render_page(req, false, pageid, '', data => {
+    if (data) {
+      res.send(data);
+    } else {
+      throw new Error("THIS SHOULD NOT RETURN NULL");
+    }
   });
 });
 
 // load javascript files
 app.get("/sys/js/:script", function(req, res) {
   const params: Params = req.params as Params;
-  let scriptName = params['script'];
+  let scriptName = params.script;
   let scriptPath = path.join("dist/client", scriptName);
   if (!fs.existsSync(scriptPath)) scriptPath = "dist/client/404.js";
 
@@ -351,8 +369,7 @@ app.get("/sys/js/:script", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  render_page(req, false, 'main', '',
-	        (d) => {res.send(d);});
+  render_page(req, false, 'main', '', data => res.send(data));
 });
 
 // initialize http servers
