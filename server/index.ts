@@ -109,9 +109,6 @@ async function render_page_async(
   name: string,
   pageTitle: string,
 ): Promise<Nullable<string>> {
-  //console.log("Rendering page with: ");
-  //console.log(Array.from(arguments));
-
   if (isHTML) {
     return await renderer.render('', name, pageTitle, loginInfo(req));
   } else {
@@ -341,9 +338,9 @@ app.use("/sys/process-logout", function(req: Request, res: Response) {
 });
 
 // get generic page
-app.get("/:slug", function(req, res) {
+app.get("/page", function(req, res) {
   const { params } = req;
-  const { slug } = params;
+  const { host, slug, categories, arguments } = params;
 
   console.log(`RENDERING: ${slug}`);
 
@@ -366,10 +363,6 @@ app.get("/sys/js/:script", function(req, res) {
   let script = fs.readFileSync(scriptPath);
   res.type("application/javascript");
   res.send(script);
-});
-
-app.get("/", function(req, res) {
-  render_page(req, false, 'main', '', data => res.send(data));
 });
 
 // initialize http servers
