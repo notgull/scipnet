@@ -36,6 +36,7 @@ var prsRequest = function(name, args, next) {
   //  fData.append(key, args[key]);
   args['name'] = name;
   args['sessionId'] = getCookie('sessionId');
+  args['tenant'] = window.tenant_id;
 
   // create callback
   var xhrCallback = function() {
