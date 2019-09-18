@@ -183,8 +183,9 @@ app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
   //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req)); 
   //res.send(login);
+ let params: any = req.params;
 
- render_page(req, true, 'templates/login.html', "Login",
+ render_page(req, true, 'templates/login.html', "Login", params.tenant,
 	  (d) => {res.send(d)});
 });
 
@@ -231,6 +232,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 
   // get username
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
+  let params: any = req.params;
   
   // pull all parameters from req.body and put them in args
   let args: prs.ArgsMapping = {};
@@ -239,7 +241,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: tenant
-  args["tenant"] = "tenant";
+  args["tenant"] = params.tenant;
 
   // TODO: replace this with whatever event bus system we come up with
   send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
@@ -256,9 +258,11 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 // get registration page
 app.get("/sys/register", function(req: express.Request, res: express.Response) {
   //var register = renderer.render('', 'templates/register.html', 'Register', loginInfo(req));
-  //res.send(register);
+	//res.send(register);
+  let params: any = req.params;
+  let tenant = params.tenant;
 
-  render_page(req, true, 'templates/register.html', 'Register', 
+  render_page(req, true, 'templates/register.html', 'Register', tenant,
 	       (d) => {res.send(d);});
 });
 
@@ -326,6 +330,7 @@ app.use("/sys/process-logout", function(req: express.Request, res: express.Respo
 app.get("/:pageid", function(req, res) {
   const params: Params = req.params as Params;
   let pageid = params['pageid'];
+  let tenant = params['tenant'];
 
   let slug = slugify(pageid);
   if (slug !== pageid) {
@@ -335,8 +340,8 @@ app.get("/:pageid", function(req, res) {
 
   console.log("RENDERING: " + slug);
 
-  render_page(req, false, pageid, '', 
-	        (d) => {
+  render_page(req, false, pageid, '', tenant,
+	        (d: string) => {
 		  if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");	
 		  else res.send(d);
 		});
@@ -355,8 +360,10 @@ app.get("/sys/js/:script", function(req, res) {
 });
 
 app.get("/", function(req, res) {
-  render_page(req, false, 'main', '',
-	        (d) => {res.send(d);});
+  let params: any = req.params;
+  let tenant = params.tenant;
+  render_page(req, false, 'main', '', tenant,
+	        (d: string) => {res.send(d);});
 });
 
 // initialize http servers
