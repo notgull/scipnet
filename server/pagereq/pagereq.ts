@@ -356,7 +356,7 @@ function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
 function getRatingModule(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
   
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: metadata.metadata) => {
+  metadata.metadata.load_by_slug(args.pagename, args.tenant).then((pMeta: metadata.metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;

@@ -74,12 +74,12 @@ export async function render(tenant: string,
     //content = markdown_tree.flatten(username);
 	 
     if (!metadata)
-      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404', tenant));
 
     // test for existence first
     let filepath = path.join(config.scp_cont_location, modName);
     if (!fs.existsSync(filepath)) {
-      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404', tenant));
     }
 	
     let src = fs.readFileSync(filepath) + "";
@@ -115,7 +115,7 @@ export async function render(tenant: string,
     //rater = await exports.render_rating_module(metadata);
     tenant_id = metadata.tenant.tenant_id;
   } else {
-    tenant_id = md.Tenant.load_by_site_name(tenant).tenant_id;
+    tenant_id = (await md.Tenant.load_by_site_name(tenant)).tenant_id;
   }
 
   const first_stage_replacements = {
