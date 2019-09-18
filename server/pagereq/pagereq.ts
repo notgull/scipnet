@@ -78,7 +78,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
   
   // fetch the metadata
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
+  metadata.metadata.load_by_slug(args.pagename, args.tenant).then((pMeta: Nullable<metadata.metadata>) => {
     //if (pMeta === 3) {
     //  next(pMeta, err);
     //  return;
@@ -122,7 +122,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
   
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
+  metadata.metadata.load_by_slug(args.pagename, args.tenant).then((pMeta: Nullable<metadata.metadata>) => {
     // get the edit lock
     let el = metadata.check_editlock(args.pagename); 
 	
@@ -170,7 +170,7 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
 async function changePageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
  
-  let pMeta = await metadata.metadata.load_by_slug(args.pagename);
+  let pMeta = await metadata.metadata.load_by_slug(args.pagename, args.tenant);
 
   // before anything, check to see if there's an editlock 
   // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
@@ -237,8 +237,9 @@ const history_footer = '</tbody></table>';
 // get the history of a page
 function pageHistory(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
+  let tenant = args.tenant;
 
-  metadata.metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.metadata>) => {
+  metadata.metadata.load_by_slug(args.pagename, tenant).then((mObj: Nullable<metadata.metadata>) => {
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -289,8 +290,9 @@ function pageHistory(args: ArgsMapping, next: PRSCallback) {
 // vote on a page
 function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
+  let tenant = args.tenant;
  
-  metadata.metadata.load_by_slug(args.pagename).then((mObj: metadata.metadata) => { 
+  metadata.metadata.load_by_slug(args.pagename, tenant).then((mObj: metadata.metadata) => { 
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -334,8 +336,9 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
 // get rating
 function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
+  let tenant = args.tenant;
 
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: metadata.metadata) => {
+  metadata.metadata.load_by_slug(args.pagename, tenant).then((pMeta: metadata.metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -383,21 +386,23 @@ export function request(name: string, username: string, args: ArgsMapping, next:
 
     args['user_id'] = user_id;
 
-    // functions that don't need the username
-    if (name === "getRatingModule") { getRatingModule(args, next); return; }
-    else if (name === "pageHistory") { pageHistory(args, next); return; }
+    metadata.Tenant.load_by_id(args.tenant).then((tenant) => {
+      // functions that don't need the username
+      if (name === "getRatingModule") { getRatingModule(args, next); return; }
+      else if (name === "pageHistory") { pageHistory(args, next); return; }
 
-    if (!username) {
-      returnVal.not_logged_in = true;
-      next(returnVal);
-      return;
-    }
+      if (!username) {
+        returnVal.not_logged_in = true;
+        next(returnVal);
+        return;
+      }
 
-    // function that do
-    if (name === 'changePage') changePage(username, args, next);
-    else if (name === 'removeEditLock') removeEditLock(username, args, next);
-    else if (name === 'beginEditPage') beginEditPage(username, args, next);
-    else if (name === 'voteOnPage') voteOnPage(username, args, next);
-    else throw new Error("Improper PRS request " + name);
+      // function that do
+      if (name === 'changePage') changePage(username, args, next);
+      else if (name === 'removeEditLock') removeEditLock(username, args, next);
+      else if (name === 'beginEditPage') beginEditPage(username, args, next);
+      else if (name === 'voteOnPage') voteOnPage(username, args, next);
+      else throw new Error("Improper PRS request " + name);
+    });
   });
 };

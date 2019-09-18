@@ -109,7 +109,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
   //console.log(Array.from(arguments));
 
   if (isHTML) {
-    return await renderer.render('', name, pageTitle, loginInfo(req));
+    return await renderer.render(tenant, '', name, pageTitle, loginInfo(req));
   } else {
     var md = await metadata.metadata.load_by_slug(name, tenant);
 
@@ -120,7 +120,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
       else
         title = "404";
 
-    return await renderer.render(name, '', title, loginInfo(req), md);
+    return await renderer.render(tenant, name, '', title, loginInfo(req), md);
   }
 }
 
@@ -237,13 +237,9 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   for (var key in req.body)
     args[key] = req.body[key];
   args["username"] = username;
-  /*prs.request(args["name"], username, args, function(result: prs.PRSReturnVal) {
-  if (result.errorCode === -1) {
-      console.log(result.error);
-      result.error = "An internal error occurred. Please contact a site administrator.";
-    }
-    res.send(JSON.stringify(result));
-    });*/
+
+  // TODO: tenant
+  args["tenant"] = "tenant";
 
   // TODO: replace this with whatever event bus system we come up with
   send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {

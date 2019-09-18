@@ -51,6 +51,12 @@ export class Tenant {
     return null;
   }
 
+  static async sys_tenant(): Promise<Nullable<Tenant>> {
+    let res = await query("SELECT * FROM Tenants ORDER BY tenant_id LIMIT 1;", []);
+    if (res.rowCount === 0) return null;
+    return Tenant.from_row(res.rows[0]);
+  }
+
   static async load_by_id(tenant_id: number): Promise<Nullable<Tenant>> {
     let res = await query("SELECT * FROM Tenants WHERE tenant_id=$1;", [tenant_id]);
     if (res.rowCount === 0) return Tenant.default_tenant();

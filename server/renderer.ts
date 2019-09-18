@@ -48,11 +48,13 @@ env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
   return str;
 });
 
-export async function render(modName: string, 
+export async function render(tenant: string,
+                             modName: string, 
                              htmlFileName: string = '', 
 			     title: string = 'Testing Page', 
-			     loginInfo: any = false, 
-			     metadata: any = null): Promise<string> {
+                             loginInfo: any = false,
+                             metadata: any = null,
+): Promise<string> {
   //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html')); 
   const replacement_string = "[INSERT_CONTENT_HERE]";
   console.log("S-RENDERING: " + modName);
@@ -107,9 +109,13 @@ export async function render(modName: string,
 
   let rating = 0;
   let rater = "";
+  let tenant_id = 0;
   if (metadata) {
     rating = metadata.get_rating();
     //rater = await exports.render_rating_module(metadata);
+    tenant_id = metadata.tenant.tenant_id;
+  } else {
+    tenant_id = md.Tenant.load_by_site_name(tenant).tenant_id;
   }
 
   const first_stage_replacements = {
@@ -118,7 +124,8 @@ export async function render(modName: string,
     meta_title: meta_title,
     title: title,
     page_rating: rating,
-    login_bar: loginBar
+    login_bar: loginBar,
+    tenant_id: metadata.tenant.tenant_id
   };
 
   const second_stage_replacements = {
