@@ -1,0 +1,1 @@
+{"rustc":5632553715040628694,"features":"[\"default\", \"min_sqlite_version_3_6_8\", \"pkg-config\", \"vcpkg\"]","target":2514424039656165110,"profile":2574335274271406459,"path":9412407652672946336,"deps":[[2064464131829220539,"build_script_build",false,4270764164598525937]],"local":[{"Precalculated":"0.15.0"}],"rustflags":[],"metadata":4950989174885161905}
