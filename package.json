@@ -5,6 +5,7 @@
   "author": "not_a_seagull",
   "license": "AGPL-3.0",
   "dependencies": {
+    "@babel/preset-env": "^7.6.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "diff": "^4.0.1",
@@ -28,7 +29,6 @@
     "@types/pg": "^7.11.0",
     "@types/uuid": "^3.4.5",
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
     "gulp": "^4.0.0",
     "gulp-typescript": "^5.0.1",
     "mocha": "^6.2.0",
