@@ -45,7 +45,7 @@ export class Tenant {
   }
 
   static async default_tenant(): Promise<Nullable<Tenant>> {
-	  /*let res = await query("SELECT * FROM Tenants LIMIT 1;", []);
+    /*let res = await query("SELECT * FROM Tenants LIMIT 1;", []);
     if (res.rowCount === 0) return null;
     return Tenant.from_row(res.rows[0]);*/
     return null;
