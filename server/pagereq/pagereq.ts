@@ -79,11 +79,6 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
   
   // fetch the metadata
   metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
-    //if (pMeta === 3) {
-    //  next(pMeta, err);
-    //  return;
-    //}
-
     // check for an edit lock
     if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== username)) {
       returnVal.error = "Page is locked by " + pMeta.editlock.username;
