@@ -12,6 +12,8 @@ $ git submodule init
 $ git submodule update
 ```
 
+TODO: add section about ssl certs
+
 Initialize database:
 ```
 $ bin/setup_db.js | psql
