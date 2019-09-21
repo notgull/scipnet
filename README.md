@@ -2,6 +2,8 @@
 
 ### Running
 
+Uses Node.JS version 8.0.0
+
 Provisional execution instructions:
 
 **Setup:**
@@ -22,5 +24,6 @@ $ bin/setup_db.js | psql
 **Build:**
 
 ```
+$ npm install
 $ make
 ```
