@@ -38,6 +38,10 @@ function raw_revision(article_id: number, article_name: string, user_id: number)
   return revision;
 }
 
+function copy_file(orig: string, dest: string) {
+  fs.createReadStream(orig).pipe(fs.createWriteStream(dest));
+}
+
 // put more pages in this if we need them
 export function autocreate(next: (r: number) => any) {
   // add system user
@@ -51,6 +55,9 @@ export function autocreate(next: (r: number) => any) {
     let _404 = new metadata.metadata("_404");
     _404.title = "404";
     _404.locked_at = new Date();
+
+    // copy source of default 404 to content dir
+    copy_file(path.join(process.cwd(), "templates/_404.ftml"), path.join(config.scp_cont_location, '_404'));
 
     // save the page to the database so that we have a page id to work with
     _404.submit().then(() => {
@@ -67,6 +74,7 @@ export function autocreate(next: (r: number) => any) {
         mainpage.title = "";
         mainpage.locked_at = new Date();
 
+        copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(config.scp_cont_location, 'main'));  
         mainpage.submit().then(() => {
           let article_id = mainpage.article_id;
           let mainpage_author = new metadata.author(article_id, user_id, "author");
