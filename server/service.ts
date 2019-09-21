@@ -44,7 +44,7 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
     throw new Error("Service not found: " + modname);
   }
 
-  return {process: fork(path.join(process.cwd(), "dist/server/service_wrapper.js"), 
+  return {process: fork(path.join(process.cwd(), "dist/server/service_wrapper.js"),
                         [module_service, JSON.stringify(serv_config)]),
           port: serv_config.hosts[0].port,
 	  ip_addr: serv_config.hosts[0].address}
@@ -58,10 +58,10 @@ export function runftmlservice(): ServiceInfo {
 
   let ftml = spawn(ftml_path, [config_path]);
   ftml.stdout.on('data', (data: any) => {
-    console.log("FTML Process: " + data);
+    console.log(`[ftml]\n${data}`);
   });
   ftml.stderr.on('data', (data: any) => {
-    console.log("FTML Process Error: " + data);
+    console.log(`[ftml]\n${data}`);
   });
 
   return {process: ftml,
