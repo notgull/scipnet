@@ -53,7 +53,7 @@ let s_port = config.scipnet_port || process.env.PORT || 8443;
 // create folders before sql initialization
 function check_dir(dirname: string) {
   if (!(fs.existsSync(dirname))) {
-    await fs.mkdirSync(dirname, { recursive: true });
+    fs.mkdirSync(dirname, { recursive: true });
   }
 }
 
