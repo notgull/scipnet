@@ -4,8 +4,6 @@
 
 Uses Node.JS version 8.0.0
 
-Provisional execution instructions:
-
 **Setup:**
 
 Initialize submodules:
@@ -26,4 +24,10 @@ $ bin/setup_db.js | psql
 ```
 $ npm install
 $ make
+```
+
+**Running:**
+
+```
+$ node dist/server/index.js
 ```
