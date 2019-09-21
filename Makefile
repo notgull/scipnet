@@ -18,10 +18,10 @@
 
 program: ftml-json/target/release/ftml-json dist/client/404.js dist/server/index.js
 
-dist/client/404.js: client/*
+dist/client/404.js: package.json client/*
 	npm run babel -- client --out-dir dist/client
 
-dist/server/index.js: server/* server/**/*
+dist/server/index.js: package.json server/* server/**/*
 	npm run gulp
 
 ftml-json/target/release/ftml-json: ftml-json/src/*
