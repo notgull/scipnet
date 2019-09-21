@@ -51,27 +51,23 @@ const config = require(path.join(process.cwd(), 'config.json'));
 let s_port = config.scipnet_port || process.env.PORT || 8443;
 
 // create folders before sql initialization
-async function check_dir(dirname: string) {
+function check_dir(dirname: string) {
   if (!(fs.existsSync(dirname))) {
-    await fs.promises.mkdir(dirname, { recursive: true });
+    await fs.mkdirSync(dirname, { recursive: true });
   }
 }
 
-(async function check_config() {
-  await Promise.all([
-    check_dir(config.scp_cont_location),
-    check_dir(config.scp_meta_location),
-    check_dir(config.scp_diff_location),
-    check_dir(config.scp_files_location)
-  ]);
-})().then(() => {
-  // load up the SQL before we start up
-  initialize_users((_o: any) => {
-    initialize_pages((_o: any) => {
-      autocreate((_o: any) => {});
-    });
+check_dir(config.scp_cont_location),
+check_dir(config.scp_meta_location),
+check_dir(config.scp_diff_location),
+check_dir(config.scp_files_location)
+
+// load up the SQL before we start up
+initialize_users((_o: any) => {
+  initialize_pages((_o: any) => {
+    autocreate((_o: any) => {});
   });
-}).catch((err: Error) => { throw err; });
+});
 
 // initialize node.js app
 const app = express();
