@@ -46,7 +46,7 @@ const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
 
 // if we can't access config.json, error out
-const config = require(path.join(process.cwd(), 'config.json'));
+import * as config from './config';
 
 let s_port = config.scipnet_port || process.env.PORT || 8443;
 
