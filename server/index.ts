@@ -233,16 +233,9 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   for (var key in req.body)
     args[key] = req.body[key];
   args["username"] = username;
-  /*prs.request(args["name"], username, args, function(result: prs.PRSReturnVal) {
-  if (result.errorCode === -1) {
-      console.log(result.error);
-      result.error = "An internal error occurred. Please contact a site administrator.";
-    }
-    res.send(JSON.stringify(result));
-    });*/
 
   // TODO: replace this with whatever event bus system we come up with
-  send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
+	send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);

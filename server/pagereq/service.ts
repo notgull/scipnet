@@ -30,6 +30,8 @@ async function async_pr(name: string, username: string, args: pagereq.ArgsMappin
 
 // run pagereq as a service
 function request(data: ServiceParams, callback: ServiceCallback): void {
+  console.log(data);
+
   const input = data;
   let args: pagereq.ArgsMapping = input;
   let name = args["name"];
