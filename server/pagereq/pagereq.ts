@@ -23,7 +23,7 @@ import * as diff from 'diff';
 import * as fs from 'fs';
 import * as nunjucks from 'nunjucks';
 import { Nullable } from './../helpers';
-import { get_user_id } from './../user/validate';
+import { get_user_id, get_username } from './../user/validate';
 import * as metadata from './../metadata/metadata';
 import * as path from 'path';
 import { render_rating_module } from './../renderer';
@@ -229,56 +229,77 @@ history_header += "<tr><td>rev.</td><td>&nbsp;&nbsp;&nbsp;</td><td>flags</td><td
 const history_row = "<tr><td>{{ rev_number }}</td><td></td><td>{{ flags }}</td><td>{{ buttons }}</td><td>{{ author }}</td><td>{{ date }}</td><td>{{ comments }}</td></tr>";
 const history_footer = '</tbody></table>';
 
+// history helper function: async version of get_username
+async function get_username_async(user_id: number): Promise<string> {
+  return new Promise((resolve: any, reject: any) => {
+    get_username(user_id, (res: any, err: Nullable<Error>) => {
+      if (err) reject(err);
+      else if (res instanceof String) resolve(res);
+      else reject('Unknown error');
+    });
+  });
+};
+
 // get the history of a page
-function pageHistory(args: ArgsMapping, next: PRSCallback) {
+async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.metadata>) => {
-    if (!mObj) {
-      returnVal.error = "Page does not exist";
-      returnVal.errorCode = 4;
-      next(returnVal);
-      return;
-    } 
+  let mObj = await metadata.metadata.load_by_slug(args.pagename);
+  if (!mObj) {
+    returnVal.error = "Page does not exist";
+    returnVal.errorCode = 4;
+    return returnVal;
+  } 
 
-    let revisions = [];
-    if (args.perpage > mObj.revisions.length)
-      revisions = mObj.revisions;
-    else {
-      // get all of the revisions needed
-      let start = args.perpage * args.pagenum;
-      if (start > mObj.revisions.length) {
-        next(genErrorVal(new Error("Page count mismatch")));
-        return;
-      }
-
-      let end = start + args.perpage;
-      if (end > mObj.revisions.length)
-        end = mObj.revisions.length;
-
-      revisions = mObj.revisions.slice(start, end);
+  let revisions = [];
+  if (args.perpage > mObj.revisions.length)
+    revisions = mObj.revisions;
+  else {
+    // get all of the revisions needed
+    let start = args.perpage * args.pagenum;
+    if (start > mObj.revisions.length) {
+      return genErrorVal(new Error("Page count mismatch"));
     }
 
-    // compile into html
-    let history = history_header;
-    let revision;
-    for (let i = 0; i < revisions.length; i++) {
-      revision = revisions[i];
-      history += nunjucks.renderString(history_row, {
-        rev_number: 1,
-	buttons: "V S R",
-	flags: "N",
-	author: "somebodyx",
-	date: revision.created_at.toLocaleDateString("en-US"),
-	comments: ""
-      });
-    }
-    history += history_footer;
+    let end = start + args.perpage;
+    if (end > mObj.revisions.length)
+      end = mObj.revisions.length;
 
-    returnVal.result = true;
-    returnVal.src = history;
-    next(returnVal);
-  }).catch((err) => { next(genErrorVal(err)); });
+    revisions = mObj.revisions.slice(start, end);
+  }
+
+  // compile into html
+  // we can take advantage of promises.all to run all of the needed promises at once
+  let history = [history_header];
+  async function render_revision(revision: metadata.revision, i: number) {
+    history[i] = nunjucks.renderString(history_row, {
+      rev_number: revision.revision_number,
+      buttons: "V S R",
+      flags: "N",
+      author: await get_username_async(revision.user_id),
+      date: revision.created_at.toLocaleDateString("en-US"),
+      comments: ""
+    }); 
+  };
+
+  let revision;
+  let revision_promises = [];
+  for (let i = 0; i < revisions.length; i++) {
+    revision = revisions[i];
+    revision_promises.push(render_revision(revision, i + 1));
+  }
+
+  await Promise.all(revision_promises);
+  history.push(history_footer);
+
+  returnVal.result = true;
+  returnVal.src = history.join('\n');
+  return returnVal;
+}
+
+function pageHistory(args: ArgsMapping, next: PRSCallback) {
+  pageHistoryAsync(args).then((retval: PRSReturnVal) => { next(retval); })
+    .catch((err: Error) => { next(genErrorVal(err)); });
 }
 
 // vote on a page

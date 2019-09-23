@@ -46,6 +46,7 @@ export class revision {
   diff_link: string;
   revision_id: number;
   created_at: Date;
+  revision_number: number;
 
   constructor(article_id: number, user_id: number, diff_link: Nullable<string> = null) {
     this.article_id = article_id;
@@ -53,6 +54,7 @@ export class revision {
     this.diff_link = diff_link || get_diff_link(article_id);
     this.revision_id = -1;
     this.created_at = new Date();
+    this.revision_number = -1;
   }
 
   // load revision by id
@@ -69,16 +71,19 @@ export class revision {
 
   // load array of revisions by the article
   static async load_array_by_article(article_id: number): Promise<Array<revision>> {
-    let res = await query("SELECT * FROM Revisions WHERE article_id = $1;", [article_id]);
+    let res = await query("SELECT * FROM Revisions WHERE article_id = $1 ORDER BY created_at;", [article_id]);
     if (res.rowCount === 0) return [];
     else res = res.rows;
 
     let revisions = [];
     let row;
-    for (row of res) {
+    for (var i = 0; i < res.length; i++) {
+      row = res[i];
+
       let revisionInst = new revision(article_id, row.user_id, row.diff_link);
       revisionInst.created_at = row.created_at;
       revisionInst.revision_id = row.revision_id;
+      revisionInst.revision_number = i;
       revisions.push(revisionInst);
     }
 
