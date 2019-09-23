@@ -22,7 +22,7 @@ import { Nullable } from './../helpers';
 import * as path from 'path';
 import * as uuidv4 from 'uuid/v4';
 
-const config = require(path.join(process.cwd(), 'config.json'));
+import * as config from './../config';
 
 export class editlock {
   slug: string;

@@ -23,7 +23,7 @@ import { ChildProcess, fork, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const config = require(path.join(process.cwd(), 'config.json'));
+import * as config from './config';
 
 import { ServiceConfig } from './service_wrapper';
 

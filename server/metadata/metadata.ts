@@ -38,7 +38,7 @@ import { queryPromise } from './../sql';
 import * as path from 'path';
 import * as pg from 'pg';
 
-const config = require(path.join(process.cwd(), 'config.json'));
+import * as config from './../config';
 const query = queryPromise;
 
 // export rating
