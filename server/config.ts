@@ -21,4 +21,5 @@
 // TODO: make this not a plaintext JSON file
 import * as path from 'path';
 
-module.exports = require(path.join(process.cwd(), 'config.json'));
+const config = require(path.join(process.cwd(), 'config.json'));
+export = config;

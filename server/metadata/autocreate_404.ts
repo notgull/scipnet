@@ -25,7 +25,7 @@ import * as metadata from './metadata';
 import * as path from 'path';
 import * as validate from './../user/validate';
 
-import * as config from './../comfig';
+import * as config from './../config';
 
 // just create a raw revision - good for pages
 function raw_revision(article_id: number, article_name: string, user_id: number): metadata.revision {
