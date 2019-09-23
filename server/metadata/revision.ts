@@ -24,7 +24,7 @@ import { queryPromise } from './../sql';
 import * as uuidv4 from 'uuid/v4';
 import * as path from 'path';
 
-const config = require(path.join(process.cwd(), 'config.json'));
+import * as config from './../config';
 const query = queryPromise;
 
 // generate a good place for a diff link

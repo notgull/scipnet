@@ -22,7 +22,7 @@
 import { query } from './../sql';
 import * as path from 'path';
 
-const config = require(path.join(process.cwd(), 'config.json'));
+import * as config from './../config';
 
 export function initialize_users(next: (n: number) => any) {
   // create user and pwhash tables

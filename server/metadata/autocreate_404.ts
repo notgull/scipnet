@@ -25,7 +25,7 @@ import * as metadata from './metadata';
 import * as path from 'path';
 import * as validate from './../user/validate';
 
-const config = require(path.join(process.cwd(), "config.json"));
+import * as config from './../comfig';
 
 // just create a raw revision - good for pages
 function raw_revision(article_id: number, article_name: string, user_id: number): metadata.revision {

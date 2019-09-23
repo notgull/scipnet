@@ -26,7 +26,7 @@ import { Nullable } from './../helpers';
 import { query } from './../sql';
 import * as path from 'path';
 
-const config = require(path.join(process.cwd(), "config.json"));
+import * as config from './../config';
 
 import { INTERNAL_ERROR, USER_NOT_FOUND, PASSWORD_INCORRECT, SESSION_MISMATCH, SESSION_EXPIRY, EMAIL_NOT_FOUND, error_codes, getFormattedDate } from './../helpers';
 
