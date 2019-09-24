@@ -94,7 +94,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
     if (pMeta) {
       pMeta.editlock = el;
 
-      let dataLoc = path.join(data_dir, args.pagename);
+      let dataLoc = path.join(data_dir, args.pagename, args.pagename); // folder is now in modname
       let data = "" + fs.readFileSync(dataLoc);
       returnVal.src = data;
       returnVal.title = pMeta.title;
@@ -181,8 +181,10 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
       pMeta.editlock = null;
   }
 
+  let isNewPage = false;
   if (!pMeta) {
     pMeta = new metadata.metadata(args.pagename); 
+    isNewPage = true;
 
     // submit so we get the metadata ID
     await pMeta.submit();
@@ -191,23 +193,28 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   pMeta.title = args.title || "";
 
   // get the old source
-  let dataLoc = path.join(data_dir, args.pagename);
+  let dataLoc = path.join(data_dir, args.pagename, args.pagename);
   let data = args.src;
   let oldData;
   if (fs.existsSync(dataLoc))
     oldData = "" + fs.readFileSync(dataLoc);
-  else
+  else {
     oldData = "";
+    fs.mkdirSync(path.join(data_dir, args.pagename));
+  }
   fs.writeFileSync(dataLoc, data);
 
   // write revision
   //console.log(dataLoc, oldData, data);
   let patch = diff.createPatch(dataLoc, oldData, data, "", "");
 
-  let revision = new metadata.revision(pMeta.article_id, args.user_id);
-  console.log("Revision loc: " + revision.diff_link);
-  fs.writeFileSync(revision.diff_link, patch);
-  //console.log(pMeta);
+  let comment = "";
+  if (args.comment)
+    comment = args.comment;
+  let flags = isNewPage ? "N" : "S";
+  let revision = new metadata.revision(pMeta.article_id, args.user_id, comment, pMeta.tags, flags);
+  
+  fs.writeFileSync(revision.diff_link, patch); 
   pMeta.revisions.push(revision);
  
   await pMeta.submit(true);
@@ -234,8 +241,7 @@ async function get_username_async(user_id: number): Promise<string> {
   return new Promise((resolve: any, reject: any) => {
     get_username(user_id, (res: any, err: Nullable<Error>) => {
       if (err) reject(err);
-      else if (res instanceof String) resolve(res);
-      else reject('Unknown error');
+      else resolve(res);
     });
   });
 };
@@ -268,6 +274,9 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
     revisions = mObj.revisions.slice(start, end);
   }
 
+  // revisions will be in order from oldest to newest, so reverse that
+  revisions.reverse();
+
   // compile into html
   // we can take advantage of promises.all to run all of the needed promises at once
   let history = [history_header];
@@ -275,10 +284,10 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
     history[i] = nunjucks.renderString(history_row, {
       rev_number: revision.revision_number,
       buttons: "V S R",
-      flags: "N",
+      flags: revision.flags,
       author: await get_username_async(revision.user_id),
       date: revision.created_at.toLocaleDateString("en-US"),
-      comments: ""
+      comments: revision.description
     }); 
   };
 

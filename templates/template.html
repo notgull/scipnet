@@ -330,6 +330,16 @@
                             <p>
                                 <textarea name="srcbox" id="srcbox" style="width: 95%; height: 400px;" cols="50" rows="10"></textarea><br />
                             </p>
+                            <table>
+                              <tr>
+                                <td>
+                                  <div>
+                                    Short description of changes:<br />
+                                    <textarea id="commentbox" name="comments" rows="2" cols="40"></textarea>
+                                  </div>
+                                </td>
+                              </tr>
+                            </table>
                             <div id="edit-buttons">
                                 <input type="button" id="cancel_button" name="cancel" value="Cancel" onclick="canceleditpage();" />
                                 <input type="button" id="sac_button" name="sac" value="Save and Continue" onclick="savepage(false);" />
@@ -347,7 +357,7 @@
                     </div>
                     <div id="revisions" class="vanished">
                         <h1>History</h1>
-			<div id="history-table">
+			<div id="history-table" style="width: 100%;">
                         </div>
                     </div>
                     <div id="pagesrc" class="vanished">

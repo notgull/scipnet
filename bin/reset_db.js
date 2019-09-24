@@ -28,10 +28,27 @@ if (!should_tables_be_deleted) {
   process.exit();
 }
 
+var config = require('./../dist/server/config');
+var fs = require('fs');
 var sql = require('./../dist/server/sql');
+
+// remove all files in the content dir
 
 var remove_all_query = "DROP TABLE Users CASCADE; DROP TABLE Pages CASCADE;" +
 		         "DROP TABLE passwords; DROP TABLE authors;" +
 		         "DROP TABLE files; DROP TABLE revisions;" +
 		         "DROP TABLE ratings; DROP TABLE parents;";
 sql.queryPromise(remove_all_query, []).then((_)=>{process.exit();}).catch((err) => { throw err; });
+
+function rmdir(dir) {
+  var files = fs.readdirSync(dir);
+  var file;
+  var stats;
+  for (file in files) {
+    stats = fs.statSync(file);
+    if (stats.isDirectory()) { rmdir(file); fs.rmdirSync(file); }
+    else fs.unlinkSync(file);
+  }
+}
+
+rmdir(config.scp_cont_location);
