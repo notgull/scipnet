@@ -58,10 +58,10 @@ export function runftmlservice(): ServiceInfo {
 
   let ftml = spawn(ftml_path, [config_path]);
   ftml.stdout.on('data', (data: any) => {
-    console.log(`[ftml]\n${data}`);
+    console.log(`[ftml] ${data}`);
   });
   ftml.stderr.on('data', (data: any) => {
-    console.log(`[ftml]\n${data}`);
+    console.log(`[ftml] ${data}`);
   });
 
   return {process: ftml,

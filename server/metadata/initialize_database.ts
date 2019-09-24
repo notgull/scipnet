@@ -41,6 +41,8 @@ export function initialize_pages(next: (n: number) => any) {
 		               "user_id INTEGER REFERENCES Users(user_id)," +
 		               "diff_link TEXT NOT NULL UNIQUE," +
 		               "description TEXT," +
+                               "tags TEXT[]," +
+                               "flags TEXT," +
 		               "created_at TIMESTAMP NOT NULL" +
 		             ");";
     query(revision_table_sql, [], (err: any, res: any) => {

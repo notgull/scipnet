@@ -28,11 +28,11 @@ import * as validate from './../user/validate';
 import * as config from './../config';
 
 // just create a raw revision - good for pages
-function raw_revision(article_id: number, article_name: string, user_id: number): metadata.revision {
-  let dataLoc = path.join(config.scp_cont_location, article_name);
+function raw_revision(article_id: number, article_name: string, comment: string, user_id: number): metadata.revision {
+  let dataLoc = path.join(config.scp_cont_location, article_name, article_name);
   let data = fs.readFileSync(dataLoc) + "";
   let patch = diff.createPatch(dataLoc, "", data, "", "");
-  let revision = new metadata.revision(article_id, user_id);
+  let revision = new metadata.revision(article_id, user_id, comment, [], "N");
 
   fs.writeFileSync(revision.diff_link, patch);
   return revision;
@@ -57,38 +57,45 @@ export function autocreate(next: (r: number) => any) {
     _404.locked_at = new Date();
 
     // copy source of default 404 to content dir
-    copy_file(path.join(process.cwd(), "templates/_404.ftml"), path.join(config.scp_cont_location, '_404'));
+    fs.mkdirSync(path.join(config.scp_cont_location, '_404'));
+    copy_file(path.join(process.cwd(), "templates/_404.ftml"), path.join(config.scp_cont_location, '_404', '_404'));
 
     // save the page to the database so that we have a page id to work with
     _404.submit().then(() => {
       let article_id = _404.article_id;
       let _404_author = new metadata.author(article_id, user_id, "author");
-      let _404_revision = raw_revision(article_id, _404.slug, user_id);
+      let _404_revision = raw_revision(article_id, _404.slug, "Created 404 page", user_id);
 
       _404.authors.push(_404_author);
       _404.revisions.push(_404_revision);
 
       _404.submit(true).then(() => {
-        // we also need the main page
-        let mainpage = new metadata.metadata("main");
-        mainpage.title = "";
-        mainpage.locked_at = new Date();
+        // revision submission must be done manually
+        _404_revision.submit().then(() => {
+          // we also need the main page
+          let mainpage = new metadata.metadata("main");
+          mainpage.title = "";
+          mainpage.locked_at = new Date();
 
-        copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(config.scp_cont_location, 'main'));  
-        mainpage.submit().then(() => {
-          let article_id = mainpage.article_id;
-          let mainpage_author = new metadata.author(article_id, user_id, "author");
-          let mainpage_revision = raw_revision(article_id, mainpage.slug, user_id);
+          fs.mkdirSync(path.join(config.scp_cont_location, 'main'));
+          copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(config.scp_cont_location, 'main', 'main'));  
+          mainpage.submit().then(() => {
+            let article_id = mainpage.article_id;
+            let mainpage_author = new metadata.author(article_id, user_id, "author");
+            let mainpage_revision = raw_revision(article_id, mainpage.slug, "Created main page", user_id);
 
-          mainpage.authors.push(mainpage_author);
-          mainpage.revisions.push(mainpage_revision);
+            mainpage.authors.push(mainpage_author);
+            mainpage.revisions.push(mainpage_revision);
 
-          mainpage.submit(true).then(() => {
-            // done!
-	    console.log("========== FINISHED AUTOCREATION ===========");
-            next(0);
-          }).catch((err) => {throw err;});
-        }).catch((err) => {throw err;});
+            mainpage.submit(true).then(() => {
+              mainpage_revision.submit().then(() => {
+                // done!
+                console.log("========== FINISHED AUTOCREATION ===========");
+                next(0);
+	      }).catch((err) => {throw err;});
+            }).catch((err) => {throw err;});
+	  }).catch((err) => {throw err;});
+	}).catch((err) => {throw err;});
       }).catch((err) => {throw err;});
     }).catch((err) => {throw err;});
   });

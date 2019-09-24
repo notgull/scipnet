@@ -79,6 +79,7 @@ var savepage = function(refresh, use_404_param=false) {
   args.pagename = get_slug();
   args.src = document.getElementById('srcbox').value;
   args.title = document.getElementById('titlebox').value;
+  args.comment = document.getElementById('commentbox').value;
 
   if (use_404_param)
     args.pagename = get_parameter("original_page");
