@@ -68,6 +68,16 @@ export function get_user_id(user: string, next: (res: any, err: Nullable<Error>)
   });
 };
 
+// get the username of a user by its id
+export function get_username(user_id: number, next: (res: any, err: Nullable<Error>) => any) {
+  query("SELECT username FROM Users WHERE user_id=$1;", [user_id], (err: Nullable<Error>, res: any) => {
+    if (err) { next(INTERNAL_ERROR, err); return; }
+
+    if (res.rowCount === 0) next(null, new Error("Unable to find username"));
+    else next(res.rows[0].username, null);
+  });
+};
+
 // validate a user and password
 export function validate_user(user: string, pwHash: string, next: (res: any, err: Nullable<Error>) => any) {
   // check for use existence first 

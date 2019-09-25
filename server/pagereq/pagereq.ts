@@ -23,7 +23,7 @@ import * as diff from 'diff';
 import * as fs from 'fs';
 import * as nunjucks from 'nunjucks';
 import { Nullable } from './../helpers';
-import { get_user_id } from './../user/validate';
+import { get_user_id, get_username } from './../user/validate';
 import * as metadata from './../metadata/metadata';
 import * as path from 'path';
 import { render_rating_module } from './../renderer';
@@ -94,7 +94,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
     if (pMeta) {
       pMeta.editlock = el;
 
-      let dataLoc = path.join(data_dir, args.pagename, args.pagename); // folder is now in modname
+      let dataLoc = path.join(data_dir, args.pagename);
       let data = "" + fs.readFileSync(dataLoc);
       returnVal.src = data;
       returnVal.title = pMeta.title;
@@ -181,10 +181,8 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
       pMeta.editlock = null;
   }
 
-  let isNewPage = false;
   if (!pMeta) {
     pMeta = new metadata.metadata(args.pagename); 
-    isNewPage = true;
 
     // submit so we get the metadata ID
     await pMeta.submit();
@@ -193,28 +191,23 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   pMeta.title = args.title || "";
 
   // get the old source
-  let dataLoc = path.join(data_dir, args.pagename, args.pagename);
+  let dataLoc = path.join(data_dir, args.pagename);
   let data = args.src;
   let oldData;
   if (fs.existsSync(dataLoc))
     oldData = "" + fs.readFileSync(dataLoc);
-  else {
+  else
     oldData = "";
-    fs.mkdirSync(path.join(data_dir, args.pagename));
-  }
   fs.writeFileSync(dataLoc, data);
 
   // write revision
   //console.log(dataLoc, oldData, data);
   let patch = diff.createPatch(dataLoc, oldData, data, "", "");
 
-  let comment = "";
-  if (args.comment)
-    comment = args.comment;
-  let flags = isNewPage ? "N" : "S";
-  let revision = new metadata.revision(pMeta.article_id, args.user_id, comment, pMeta.tags, flags);
-  
-  fs.writeFileSync(revision.diff_link, patch); 
+  let revision = new metadata.revision(pMeta.article_id, args.user_id);
+  console.log("Revision loc: " + revision.diff_link);
+  fs.writeFileSync(revision.diff_link, patch);
+  //console.log(pMeta);
   pMeta.revisions.push(revision);
  
   await pMeta.submit(true);
@@ -236,45 +229,44 @@ history_header += "<tr><td>rev.</td><td>&nbsp;&nbsp;&nbsp;</td><td>flags</td><td
 const history_row = "<tr><td>{{ rev_number }}</td><td></td><td>{{ flags }}</td><td>{{ buttons }}</td><td>{{ author }}</td><td>{{ date }}</td><td>{{ comments }}</td></tr>";
 const history_footer = '</tbody></table>';
 
-<<<<<<< HEAD
 // history helper function: async version of get_username
 async function get_username_async(user_id: number): Promise<string> {
   return new Promise((resolve: any, reject: any) => {
     get_username(user_id, (res: any, err: Nullable<Error>) => {
       if (err) reject(err);
       else resolve(res);
+	    //else reject('Unknown error');
     });
   });
 };
 
-=======
->>>>>>> parent of 0ac87d9... Added some more precision to history
 // get the history of a page
-function pageHistory(args: ArgsMapping, next: PRSCallback) {
+async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.metadata>) => {
-    if (!mObj) {
-      returnVal.error = "Page does not exist";
-      returnVal.errorCode = 4;
-      next(returnVal);
-      return;
-    } 
+  let mObj = await metadata.metadata.load_by_slug(args.pagename);
+  if (!mObj) {
+    returnVal.error = "Page does not exist";
+    returnVal.errorCode = 4;
+    return returnVal;
+  } 
 
-    let revisions = [];
-    if (args.perpage > mObj.revisions.length)
-      revisions = mObj.revisions;
-    else {
-      // get all of the revisions needed
-      let start = args.perpage * args.pagenum;
-      if (start > mObj.revisions.length) {
-        next(genErrorVal(new Error("Page count mismatch")));
-        return;
-      }
+  let revisions = [];
+  if (args.perpage > mObj.revisions.length)
+    revisions = mObj.revisions;
+  else {
+    // get all of the revisions needed
+    let start = args.perpage * args.pagenum;
+    if (start > mObj.revisions.length) {
+      return genErrorVal(new Error("Page count mismatch"));
+    }
 
-<<<<<<< HEAD
-  // revisions will be in order from oldest to newest, so reverse that
-  revisions.reverse();
+    let end = start + args.perpage;
+    if (end > mObj.revisions.length)
+      end = mObj.revisions.length;
+
+    revisions = mObj.revisions.slice(start, end);
+  }
 
   // compile into html
   // we can take advantage of promises.all to run all of the needed promises at once
@@ -283,10 +275,10 @@ function pageHistory(args: ArgsMapping, next: PRSCallback) {
     history[i] = nunjucks.renderString(history_row, {
       rev_number: revision.revision_number,
       buttons: "V S R",
-      flags: revision.flags,
+      flags: "N",
       author: await get_username_async(revision.user_id),
       date: revision.created_at.toLocaleDateString("en-US"),
-      comments: revision.description
+      comments: ""
     }); 
   };
 
@@ -296,35 +288,18 @@ function pageHistory(args: ArgsMapping, next: PRSCallback) {
     revision = revisions[i];
     revision_promises.push(render_revision(revision, i + 1));
   }
-=======
-      let end = start + args.perpage;
-      if (end > mObj.revisions.length)
-        end = mObj.revisions.length;
->>>>>>> parent of 0ac87d9... Added some more precision to history
 
-      revisions = mObj.revisions.slice(start, end);
-    }
+  await Promise.all(revision_promises);
+  history.push(history_footer);
 
-    // compile into html
-    let history = history_header;
-    let revision;
-    for (let i = 0; i < revisions.length; i++) {
-      revision = revisions[i];
-      history += nunjucks.renderString(history_row, {
-        rev_number: 1,
-	buttons: "V S R",
-	flags: "N",
-	author: "somebodyx",
-	date: revision.created_at.toLocaleDateString("en-US"),
-	comments: ""
-      });
-    }
-    history += history_footer;
+  returnVal.result = true;
+  returnVal.src = history.join('\n');
+  return returnVal;
+}
 
-    returnVal.result = true;
-    returnVal.src = history;
-    next(returnVal);
-  }).catch((err) => { next(genErrorVal(err)); });
+function pageHistory(args: ArgsMapping, next: PRSCallback) {
+  pageHistoryAsync(args).then((retval: PRSReturnVal) => { next(retval); })
+    .catch((err: Error) => { next(genErrorVal(err)); });
 }
 
 // vote on a page
