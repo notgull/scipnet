@@ -28,11 +28,11 @@ import * as validate from './../user/validate';
 import * as config from './../config';
 
 // just create a raw revision - good for pages
-function raw_revision(article_id: number, article_name: string, user_id: number): metadata.revision {
+function raw_revision(article_id: number, article_name: string, user_id: number, comment: string): metadata.revision {
   let dataLoc = path.join(config.scp_cont_location, article_name);
   let data = fs.readFileSync(dataLoc) + "";
   let patch = diff.createPatch(dataLoc, "", data, "", "");
-  let revision = new metadata.revision(article_id, user_id);
+  let revision = new metadata.revision(article_id, user_id, comment, [], 'N');
 
   fs.writeFileSync(revision.diff_link, patch);
   return revision;
@@ -63,7 +63,7 @@ export function autocreate(next: (r: number) => any) {
     _404.submit().then(() => {
       let article_id = _404.article_id;
       let _404_author = new metadata.author(article_id, user_id, "author");
-      let _404_revision = raw_revision(article_id, _404.slug, user_id);
+      let _404_revision = raw_revision(article_id, _404.slug, user_id, "Created 404 page");
 
       _404.authors.push(_404_author);
       _404.revisions.push(_404_revision);
@@ -78,7 +78,7 @@ export function autocreate(next: (r: number) => any) {
         mainpage.submit().then(() => {
           let article_id = mainpage.article_id;
           let mainpage_author = new metadata.author(article_id, user_id, "author");
-          let mainpage_revision = raw_revision(article_id, mainpage.slug, user_id);
+          let mainpage_revision = raw_revision(article_id, mainpage.slug, user_id, "Created main page");
 
           mainpage.authors.push(mainpage_author);
           mainpage.revisions.push(mainpage_revision);
