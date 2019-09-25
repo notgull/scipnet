@@ -43,6 +43,7 @@ export function initialize_pages(next: (n: number) => any) {
 		               "description TEXT," +
                                "tags TEXT[]," +
                                "flags TEXT," +
+                               "title TEXT," +
 		               "created_at TIMESTAMP NOT NULL" +
 		             ");";
     query(revision_table_sql, [], (err: any, res: any) => {
