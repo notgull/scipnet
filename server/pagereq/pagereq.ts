@@ -23,7 +23,7 @@ import * as diff from 'diff';
 import * as fs from 'fs';
 import * as nunjucks from 'nunjucks';
 import { Nullable } from './../helpers';
-import { get_user_id, get_username } from './../user/validate';
+import { get_user_id } from './../user/validate';
 import * as metadata from './../metadata/metadata';
 import * as path from 'path';
 import { render_rating_module } from './../renderer';
@@ -236,6 +236,7 @@ history_header += "<tr><td>rev.</td><td>&nbsp;&nbsp;&nbsp;</td><td>flags</td><td
 const history_row = "<tr><td>{{ rev_number }}</td><td></td><td>{{ flags }}</td><td>{{ buttons }}</td><td>{{ author }}</td><td>{{ date }}</td><td>{{ comments }}</td></tr>";
 const history_footer = '</tbody></table>';
 
+<<<<<<< HEAD
 // history helper function: async version of get_username
 async function get_username_async(user_id: number): Promise<string> {
   return new Promise((resolve: any, reject: any) => {
@@ -246,34 +247,32 @@ async function get_username_async(user_id: number): Promise<string> {
   });
 };
 
+=======
+>>>>>>> parent of 0ac87d9... Added some more precision to history
 // get the history of a page
-async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
+function pageHistory(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  let mObj = await metadata.metadata.load_by_slug(args.pagename);
-  if (!mObj) {
-    returnVal.error = "Page does not exist";
-    returnVal.errorCode = 4;
-    return returnVal;
-  } 
+  metadata.metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.metadata>) => {
+    if (!mObj) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    } 
 
-  let revisions = [];
-  if (args.perpage > mObj.revisions.length)
-    revisions = mObj.revisions;
-  else {
-    // get all of the revisions needed
-    let start = args.perpage * args.pagenum;
-    if (start > mObj.revisions.length) {
-      return genErrorVal(new Error("Page count mismatch"));
-    }
+    let revisions = [];
+    if (args.perpage > mObj.revisions.length)
+      revisions = mObj.revisions;
+    else {
+      // get all of the revisions needed
+      let start = args.perpage * args.pagenum;
+      if (start > mObj.revisions.length) {
+        next(genErrorVal(new Error("Page count mismatch")));
+        return;
+      }
 
-    let end = start + args.perpage;
-    if (end > mObj.revisions.length)
-      end = mObj.revisions.length;
-
-    revisions = mObj.revisions.slice(start, end);
-  }
-
+<<<<<<< HEAD
   // revisions will be in order from oldest to newest, so reverse that
   revisions.reverse();
 
@@ -297,18 +296,35 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
     revision = revisions[i];
     revision_promises.push(render_revision(revision, i + 1));
   }
+=======
+      let end = start + args.perpage;
+      if (end > mObj.revisions.length)
+        end = mObj.revisions.length;
+>>>>>>> parent of 0ac87d9... Added some more precision to history
 
-  await Promise.all(revision_promises);
-  history.push(history_footer);
+      revisions = mObj.revisions.slice(start, end);
+    }
 
-  returnVal.result = true;
-  returnVal.src = history.join('\n');
-  return returnVal;
-}
+    // compile into html
+    let history = history_header;
+    let revision;
+    for (let i = 0; i < revisions.length; i++) {
+      revision = revisions[i];
+      history += nunjucks.renderString(history_row, {
+        rev_number: 1,
+	buttons: "V S R",
+	flags: "N",
+	author: "somebodyx",
+	date: revision.created_at.toLocaleDateString("en-US"),
+	comments: ""
+      });
+    }
+    history += history_footer;
 
-function pageHistory(args: ArgsMapping, next: PRSCallback) {
-  pageHistoryAsync(args).then((retval: PRSReturnVal) => { next(retval); })
-    .catch((err: Error) => { next(genErrorVal(err)); });
+    returnVal.result = true;
+    returnVal.src = history;
+    next(returnVal);
+  }).catch((err) => { next(genErrorVal(err)); });
 }
 
 // vote on a page
