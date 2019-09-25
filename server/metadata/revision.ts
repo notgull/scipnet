@@ -50,8 +50,9 @@ export class revision {
   tags: Array<string>;
   description: string;
   flags: string;
+  title: string;
 
-  constructor(article_id: number, user_id: number, description: string, tags: Array<string>, flags: string, diff_link: Nullable<string> = null) {
+  constructor(article_id: number, user_id: number, description: string, tags: Array<string>, title: string, flags: string, diff_link: Nullable<string> = null) {
     this.article_id = article_id;
     this.user_id = user_id;
     this.diff_link = diff_link || get_diff_link(article_id);
@@ -61,6 +62,7 @@ export class revision {
     this.description = description;
     this.tags = tags;
     this.flags = flags;
+    this.title = title;
   }
 
   // load revision by id
@@ -69,7 +71,7 @@ export class revision {
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    let revisionInst = new revision(res.article_id, res.user_id, res.description, res.tags, res.flags, res.diff_link);
+    let revisionInst = new revision(res.article_id, res.user_id, res.description, res.tags, res.title, res.flags, res.diff_link);
     revisionInst.created_at = res.created_at;
     revisionInst.revision_id = revision_id;
     return revisionInst; 
@@ -86,7 +88,7 @@ export class revision {
     for (var i = 0; i < res.length; i++) {
       row = res[i];
 
-      let revisionInst = new revision(article_id, row.user_id, row.description, row.tags, row.flags, row.diff_link);
+      let revisionInst = new revision(article_id, row.user_id, row.description, row.tags, row.title, row.flags, row.diff_link);
       revisionInst.created_at = row.created_at;
       revisionInst.revision_id = row.revision_id;
       revisionInst.revision_number = i;
@@ -99,7 +101,7 @@ export class revision {
   // submit revision to article
   // NOTE: this should not be run more than once
   async submit(): Promise<void> {
-    let revision_id = await query("INSERT INTO Revisions (article_id, user_id, description, tags, flags, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.description, this.tags, this.flags, this.diff_link, this.created_at]); 
+    let revision_id = await query("INSERT INTO Revisions (article_id, user_id, description, tags, title, flags, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.description, this.tags, this.title, this.flags, this.diff_link, this.created_at]); 
     if (revision_id.rowCount > 0)
       this.revision_id = revision_id.rows[0].revision_id;
   }

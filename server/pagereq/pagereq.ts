@@ -209,7 +209,7 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   if (args.comment) comment = args.comment;
   let flags = isNewPage ? "N" : "S";
 
-  let revision = new metadata.revision(pMeta.article_id, args.user_id, comment, pMeta.tags, flags);
+  let revision = new metadata.revision(pMeta.article_id, args.user_id, comment, pMeta.tags, pMeta.title, flags);
   console.log("Revision loc: " + revision.diff_link);
   fs.writeFileSync(revision.diff_link, patch);
   //console.log(pMeta);
@@ -327,7 +327,7 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   // revision
   // TODO: figure out how to do this w/ git
   let latest_revision = mObj.revisions[mObj.revisions.length - 1];
-  let revision = new metadata.revision(mObj.article_id, args.user_id, "", mObj.tags, "A", latest_revision.diff_link);
+  let revision = new metadata.revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A", latest_revision.diff_link);
   mObj.submit(false);
   revision.submit();
 
