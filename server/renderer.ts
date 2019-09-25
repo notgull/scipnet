@@ -75,7 +75,7 @@ export async function render(modName: string,
       return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
 
     // test for existence first
-    let filepath = path.join(config.scp_cont_location, modName, modName); // new change: using folder w/ modname
+    let filepath = path.join(config.scp_cont_location, modName); // new change: using folder w/ modname
     if (!fs.existsSync(filepath)) {
       return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
     }
