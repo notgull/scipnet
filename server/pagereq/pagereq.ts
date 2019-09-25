@@ -181,8 +181,10 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
       pMeta.editlock = null;
   }
 
+  let isNewPage = false;
   if (!pMeta) {
     pMeta = new metadata.metadata(args.pagename); 
+    isNewPage = true;
 
     // submit so we get the metadata ID
     await pMeta.submit();
@@ -203,8 +205,11 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   // write revision
   //console.log(dataLoc, oldData, data);
   let patch = diff.createPatch(dataLoc, oldData, data, "", "");
+  let comment = "";
+  if (args.comment) comment = args.comment;
+  let flags = isNewPage ? "N" : "S";
 
-  let revision = new metadata.revision(pMeta.article_id, args.user_id);
+  let revision = new metadata.revision(pMeta.article_id, args.user_id, comment, pMeta.tags, flags);
   console.log("Revision loc: " + revision.diff_link);
   fs.writeFileSync(revision.diff_link, patch);
   //console.log(pMeta);
@@ -299,6 +304,39 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
 
 function pageHistory(args: ArgsMapping, next: PRSCallback) {
   pageHistoryAsync(args).then((retval: PRSReturnVal) => { next(retval); })
+    .catch((err: Error) => { next(genErrorVal(err)); });
+}
+
+// set the tags on the page (creating a new revision in the process)
+async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
+  let returnVal = genReturnVal();
+
+  let mObj = await metadata.metadata.load_by_slug(args.pagename);
+  if (!mObj) {
+    returnVal.error = "Page does not exist";
+    returnVal.errorCode = 4;
+    return returnVal;
+  } 
+
+  if (!args.tags) {
+    args.tags = [];
+  }
+
+  mObj.tags = args.tags;
+  
+  // revision
+  // TODO: figure out how to do this w/ git
+  let latest_revision = mObj.revisions[mObj.revisions.length - 1];
+  let revision = new metadata.revision(mObj.article_id, args.user_id, "", mObj.tags, "A", latest_revision.diff_link);
+  mObj.submit(false);
+  revision.submit();
+
+  returnVal.result = true;
+  return returnVal;
+}
+
+function tagPage(username: string, args: ArgsMapping, next: PRSCallback) {
+  tagPageAsync(username, args).then((retval: PRSReturnVal) => { next(retval); })
     .catch((err: Error) => { next(genErrorVal(err)); });
 }
 
