@@ -41,7 +41,7 @@ export class EditLock {
   is_valid(): boolean {
     let now = new Date().getTime();
     const ms_per_sec = 1000;
-    return (now - this.locked_at.getTime()) > (ms_per_sec * config.editlock_timeout);
+    return (now - this.locked_at.getTime()) > (ms_per_sec * config.get('editlock_timeout'));
   }
 };
 

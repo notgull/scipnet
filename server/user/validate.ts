@@ -24,7 +24,6 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { config } from 'app/config';
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
