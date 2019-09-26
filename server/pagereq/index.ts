@@ -1,5 +1,5 @@
 /*
- * prs.ts
+ * pagereq/index.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull, Ammon Smith

@@ -1,5 +1,5 @@
 /*
- * service.ts
+ * pagereq/service.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as pagereq from 'app/pagereq/pagereq';
+import * as pagereq from 'app/pagereq';
 import { ServiceCallback, ServiceParams, Service } from 'app/service_wrapper';
 
 // asynchronous pr
