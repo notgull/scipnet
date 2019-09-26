@@ -1,5 +1,5 @@
 /*
- * markdown.ts
+ * ftml.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,28 +18,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ftml is now a port-based service
-
 import * as jayson from 'jayson/promise';
 import * as path from 'path';
 
 import { config } from 'app/config';
+import { Nullable } from 'app/utils';
 
 const client = jayson.Client.http({
   port: config.ftml_port,
-  host: config.ftml_ip
+  host: config.ftml_ip,
 });
 
 interface PageInfo {
   title: string;
   alt_title: string;
-  header: any;
-  subheader: any;
+  header: Nullable<string>;
+  subheader: Nullable<string>;
   rating: number;
   tags: Array<string>;
 };
 
-export async function get_markdown(url: string, src: string, metadata: any): Promise<string> {
+export async function renderFtml(url: string, src: string, metadata: any): Promise<string> {
   let page_info: PageInfo = {
     title: metadata.title,
     alt_title: "",
