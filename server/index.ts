@@ -129,8 +129,21 @@ function render_page(req: express.Request, isHTML: boolean, name: string, pageTi
 */
 
 const services = [
-  {modname: "pagereq", config: {hosts: [{port: config.get('pagereq_port'), address: config.get('pagereq_ip')}]}},
-  {modname: "ftml", config: {}},
+  {
+    modname: "pagereq",
+    config: {
+      hosts: [
+        {
+          address: config.get('services.pagereq.host'),
+          port: config.get('services.pagereq.port'),
+        },
+      ],
+    },
+  },
+  {
+    modname: "ftml",
+    config: {},
+  },
 ];
 
 let sel_service: any;
