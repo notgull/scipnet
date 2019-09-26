@@ -380,7 +380,6 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
     mObj.submit(true).then(() => {
       returnVal.result = true;
       returnVal.newRating = mObj.get_rating();
-      console.log(returnVal);
       next(returnVal);
     }).catch((err) => { next(genErrorVal(err)); });
   }).catch((err) => { next(genErrorVal(err)); });
