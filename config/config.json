@@ -4,10 +4,10 @@
     "files.data.diff": "data/scp-diff",
     "files.data.attachments": "data/attachments",
 
-  "postgres_username": "scipnet",
-  "postgres_password": "GoodPassword222",
-  "postgres_database": "scipnet",
-  "postgres_host": "127.0.0.1",
+    "database.username": "scipnet",
+    "database.password": "GoodPassword222",
+    "database.name": "scipnet",
+    "database.host": "127.0.0.1",
 
   "editlock_timeout": 900,
 
