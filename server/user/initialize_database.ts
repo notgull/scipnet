@@ -21,7 +21,6 @@
 // create the initial database
 import * as path from 'path';
 
-import { config } from 'app/config';
 import { query } from 'app/sql';
 
 export function initialize_users(next: (n: number) => any) {

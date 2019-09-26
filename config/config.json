@@ -1,19 +1,19 @@
 {
-  "scp_cont_location": "/var/scp-content/",
-  "scp_meta_location": "/var/scp-metadata/",
-  "scp_diff_location": "/var/scp-diff/",
-  "scp_files_location": "/var/scp-files/",
+    "files.data.content": "data/scp-content",
+    "files.data.metadata": "data/scp-metadata",
+    "files.data.diff": "data/scp-diff",
+    "files.data.attachments": "data/attachments",
 
-  "postgres_username": "scipnet",
-  "postgres_password": "GoodPassword222",
-  "postgres_database": "scipnet",
-  "postgres_host": "127.0.0.1",
+    "database.username": "scipnet",
+    "database.password": "GoodPassword222",
+    "database.name": "scipnet",
+    "database.host": "127.0.0.1",
 
-  "editlock_timeout": 900,
+    "services.scipnet.port": 8000,
+    "services.ftml.host": "::1",
+    "services.ftml.port": 3865,
+    "services.pagereq.host": "::1",
+    "services.pagereq.port": 7243,
 
-  "scipnet_port": 8443,
-  "ftml_port": 3865,
-  "ftml_ip": "127.0.0.1",
-  "pagereq_port": 7243,
-  "pagereq_ip": "127.0.0.1"
+    "ui.editor.lock_timeout": 900
 }
