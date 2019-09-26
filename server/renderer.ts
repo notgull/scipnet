@@ -25,7 +25,7 @@ import * as path from 'path';
 import * as nunjucks from 'nunjucks';
 
 import { renderFtml } from 'app/ftml';
-import * as md from 'app/metadata/metadata';
+import * as md from 'app/metadata';
 
 // nunjucks environment
 const templates_folder = path.join(process.cwd(), "templates");

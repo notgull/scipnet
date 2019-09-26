@@ -29,7 +29,7 @@ import * as path from 'path';
 import { config } from 'app/config';
 
 import { autocreate } from 'app/metadata/autocreate_404';
-import * as metadata from 'app/metadata/metadata';
+import * as metadata from 'app/metadata';
 import { initialize_pages } from 'app/metadata/initialize_database';
 
 import { initialize_users }  from 'app/user/initialize_database';

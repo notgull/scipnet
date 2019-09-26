@@ -28,7 +28,7 @@ import * as uuid from 'uuid/v4';
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 import { get_user_id, get_username } from 'app/user/validate';
-import * as metadata from 'app/metadata/metadata';
+import * as metadata from 'app/metadata';
 import { render_rating_module } from 'app/renderer';
 
 const data_dir = config.scp_cont_location;
