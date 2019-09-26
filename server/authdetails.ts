@@ -20,6 +20,6 @@
 
 const MINIMUM_LENGTH = 14;
 
-export function validate_password(test: string): boolean {
-  return text.length >= MINIMUM_LENGTH;
+export function validate_password(password: string): boolean {
+  return password.length >= MINIMUM_LENGTH;
 }
