@@ -18,35 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// helper functions
-const isUpperCase = (c: string): boolean => {
-  let charcode = c.charCodeAt(0);
-  return 65 <= charcode && charcode <= 90;
-};
-
-const isLowerCase = (c: string): boolean => {
-  let charcode = c.charCodeAt(0);
-  return 97 <= charcode && charcode <= 122;
-};
-
-const isNumber = (c: string): boolean => {
-  let charcode = c.charCodeAt(0);
-  return 48 <= charcode && charcode <= 57;
-};
-
-const specialChars = ['-', ' ', '_', '?', '!'];
-const isSpecialChar = (c: string): boolean => { return specialChars.indexOf(c) !== -1; };
+const MINIMUM_LENGTH = 14;
 
 export function validate_password(test: string): boolean {
-  let isValidChar = true;
-  if (test.length === 0) return false;
-  let ch;
-
-  for (let i = 0; i < test.length; i++) {
-    ch = test[i];
-    isValidChar = isUpperCase(ch) || isLowerCase(ch) || isNumber(ch) || isSpecialChar(ch);
-    //console.log("Ch is " + ch + ", isValidChar is " + isValidChar);
-    if (!isValidChar) return false;
-  }
-  return true;
+  return text.length >= MINIMUM_LENGTH;
 }
