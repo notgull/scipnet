@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Nullable } from 'app/helpers';
+import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
 // represents a single upvote, downvote, or novote

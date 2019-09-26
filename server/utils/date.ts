@@ -1,5 +1,5 @@
 /*
- * helpers.ts
+ * utils/date.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,11 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// helper functions
-
-export type Nullable<T> = T | null;
-
-// date formatting function
+// Date formatting function
 // from: https://stackoverflow.com/a/15764763/11187995
 export function getFormattedDate(date: Date): string {
   let year = date.getFullYear();
@@ -43,19 +39,4 @@ export function getFormattedDate(date: Date): string {
   seconds = seconds.length > 1 ? seconds : '0' + seconds;
 
   return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
-}
-
-// function to send a json message to a port via JSON-rpc
-import * as jayson from 'jayson/promise';
-export async function send_jsonrpc_message(name: string, message: any, ip: string, port: number): Promise<any> {
-  const client = jayson.Client.http({
-    port: port,
-    host: ip
-  });
-
-  console.log("JSON REQUEST: " + name + ", " + JSON.stringify(message));
-
-  let response = await client.request(name, message);
-  console.log("JSON RESPONSE: " + JSON.stringify(response));
-  return response;
 }

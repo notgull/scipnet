@@ -26,7 +26,8 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 import { ErrorCode } from 'app/errors';
-import { Nullable, getFormattedDate  } from 'app/helpers';
+import { Nullable } from 'app/utils';
+import { getFormattedDate } from 'app/utils/date';
 import { query } from 'app/sql';
 
 // check to see if a username already exists

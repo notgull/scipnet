@@ -38,7 +38,8 @@ import * as pg from 'pg';
 
 import { config } from 'app/config';
 import { ErrorCode } from 'app/errors';
-import { getFormattedDate, Nullable } from 'app/helpers';
+import { Nullable } from 'app/utils';
+import { getFormattedDate } from 'app/utils/date';
 import { queryPromise as query } from 'app/sql';
 
 import { rating } from 'app/metadata/rating';
