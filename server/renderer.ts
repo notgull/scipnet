@@ -31,7 +31,7 @@ let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folde
   autoescape: false,
 });
 
-import { config } from './config';
+import { config } from 'app/config';
 
 //nunjucks.configure('../../html', { autoescape: true });
 

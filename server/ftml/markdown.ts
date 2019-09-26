@@ -23,7 +23,7 @@
 import * as jayson from 'jayson/promise';
 import * as path from 'path';
 
-import { config } from './../config';
+import { config } from 'app/config';
 
 const client = jayson.Client.http({
   port: config.ftml_port,

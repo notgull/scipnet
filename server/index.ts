@@ -41,7 +41,7 @@ import * as validate from './user/validate';
 
 import * as service from './service';
 
-import { config } from './config';
+import { config } from 'app/config';
 
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;

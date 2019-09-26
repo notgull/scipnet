@@ -24,7 +24,7 @@ import { queryPromise } from './../sql';
 import * as uuidv4 from 'uuid/v4';
 import * as path from 'path';
 
-import { config } from './../config';
+import { config } from 'app/config';
 const query = queryPromise;
 
 // generate a good place for a diff link

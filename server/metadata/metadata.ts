@@ -38,7 +38,7 @@ import { queryPromise } from './../sql';
 import * as path from 'path';
 import * as pg from 'pg';
 
-import { config } from './../config';
+import { config } from 'app/config';
 const query = queryPromise;
 
 // export rating
