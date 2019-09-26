@@ -1,0 +1,31 @@
+language: rust
+rust: stable
+
+os:
+  - linux
+  - osx
+
+env:
+  - NODE_VERSION='8.10'
+
+cache:
+  - cargo
+  - npm
+  - directories:
+    - /home/travis/build/Nu-SCPTheme/scipnet/ftml-json/target
+
+before_script:
+  - git submodule init
+  - git submodule update
+  - nvm install $NODE_VERSION
+  - npm install
+
+script: make
+
+notifications:
+  - email:
+    recipients:
+      - ammon.i.smith@gmail.com
+      - not_a_seagull048@gmail.com
+    on_success: change
+    on_failure: always
