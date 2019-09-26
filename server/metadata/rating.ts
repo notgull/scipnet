@@ -18,10 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Nullable } from './../helpers';
-import { queryPromise } from './../sql';
-
-const query = queryPromise;
+import { Nullable } from 'app/helpers';
+import { queryPromise as query } from 'app/sql';
 
 // represents a single upvote, downvote, or novote
 export class rating {
@@ -42,7 +40,7 @@ export class rating {
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    let vote = new rating(article_id, user_id, res.rating); 
+    let vote = new rating(article_id, user_id, res.rating);
     return vote;
   }
 

@@ -19,7 +19,6 @@
  */
 
 import * as net from 'net';
-//import { JSONRPCServer, JSONRPCResponse } from 'json-rpc-2.0';
 import * as jayson from 'jayson';
 
 export interface ServiceAddress {
@@ -40,7 +39,7 @@ export type Service = { [key: string]: (params: ServiceParams, callback: Service
 function runservice(modname: string, serv_config: ServiceConfig) {
   let service = require(modname);
   let serv_addr = serv_config.hosts[0];
-  let ip_addr = serv_addr.address; 
+  let ip_addr = serv_addr.address;
   let port = serv_addr.port;
 
   let modified_service: Service = {};

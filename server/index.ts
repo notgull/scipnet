@@ -26,22 +26,30 @@ import * as http from 'http';
 import * as https from 'https';
 import * as path from 'path';
 
-import { autocreate } from './metadata/autocreate_404';
-import { initialize_users }  from './user/initialize_database';
-import { initialize_pages } from './metadata/initialize_database';
-import { validate_password } from './authdetails';
-
-import { INTERNAL_ERROR, USER_NOT_FOUND, EMAIL_NOT_FOUND, Nullable, send_jsonrpc_message} from './helpers'
-import * as metadata from './metadata/metadata';
-import * as prs from './pagereq/pagereq';
-import * as renderer from './renderer';
-import { slugify } from './slug';
-import { usertable } from './user/usertable';
-import * as validate from './user/validate';
-
-import * as service from './service';
-
 import { config } from 'app/config';
+
+import { autocreate } from 'app/metadata/autocreate_404';
+import * as metadata from 'app/metadata/metadata';
+import { initialize_pages } from 'app/metadata/initialize_database';
+
+import { initialize_users }  from 'app/user/initialize_database';
+import { usertable } from 'app/user/usertable';
+import * as validate from 'app/user/validate';
+
+import { validate_password } from 'app/authdetails';
+
+import * as prs from 'app/pagereq/pagereq';
+import * as renderer from 'app/renderer';
+import { slugify } from 'app/slug';
+import * as service from 'app/service';
+
+import {
+  INTERNAL_ERROR,
+  USER_NOT_FOUND,
+  EMAIL_NOT_FOUND,
+  Nullable,
+  send_jsonrpc_message,
+} from 'app/helpers';
 
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
