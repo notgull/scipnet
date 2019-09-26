@@ -102,7 +102,7 @@ function loginInfo(req: express.Request): Nullable<string> {
 // function to render a page
 async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
   if (isHTML) {
-    return await renderer.render('', name, pageTitle, loginInfo(req));
+    return renderer.render('', name, pageTitle, loginInfo(req));
   } else {
     var md = await metadata.metadata.load_by_slug(name);
 
@@ -113,7 +113,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
       else
         title = "404";
 
-    return await renderer.render(name, '', title, loginInfo(req), md);
+    return renderer.render(name, '', title, loginInfo(req), md);
   }
 }
 
