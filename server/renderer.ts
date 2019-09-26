@@ -35,6 +35,7 @@ let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folde
 
 import { config } from 'app/config';
 
+const contentDir = config.get('files.data.content');
 const rating_mod_src = "[[=]]\n[[module Rate]]\n[[/=]]";
 
 export async function render_rating_module(metadata: any): Promise<string> {
@@ -75,7 +76,7 @@ export async function render(
     }
 
     // test for existence first
-    let filepath = path.join(config.scp_cont_location, modName); // new change: using folder w/ modname
+    let filepath = path.join(contentDir, modName); // new change: using folder w/ modname
     if (!fs.existsSync(filepath)) {
       return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
     }

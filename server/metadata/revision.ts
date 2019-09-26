@@ -28,7 +28,7 @@ import { queryPromise as query } from 'app/sql';
 
 // generate a good place for a diff link
 function get_diff_link(article_id: number): string {
-  const diff_dir = config.scp_diff_location;
+  const diff_dir = config.get('files.data.diff');
   var diff_col = path.join(diff_dir, String(article_id));
 
   if (!(fs.existsSync(diff_col)))
