@@ -25,10 +25,10 @@ import * as path from 'path';
 import { config } from 'app/config';
 
 const pool = new Pool({
-  user: config.get('postgres_username'),
-  host: config.get('postgres_host'),
-  database: config.get('postgres_database'),
-  password: config.get('postgres_password'),
+  user: config.get('database.username'),
+  host: config.get('database.host'),
+  database: config.get('database.name'),
+  password: config.get('database.password'),
 }); // TODO: set up port?
 
 export function query(sql: string, args: any, callback: (err: any, res: any) => void): void {
