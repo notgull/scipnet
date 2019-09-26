@@ -14,7 +14,6 @@
     "services.scipnet.port": 8000,
     "services.ftml.host": "::1",
     "services.ftml.port": 3865,
-
-  "pagereq_port": 7243,
-  "pagereq_ip": "127.0.0.1"
+    "services.pagereq.host": "::1",
+    "services.pagereq.port": 7243
 }
