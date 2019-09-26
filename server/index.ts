@@ -59,7 +59,7 @@ function check_dir(dirname: string) {
 
 check_dir(config.get('files.data.content'));
 check_dir(config.get('files.data.metadata'));
-check_dir(config.get('scp_diff_location'));
+check_dir(config.get('files.data.diff'));
 check_dir(config.get('scp_files_location'));
 
 // load up the SQL before we start up

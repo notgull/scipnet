@@ -1,8 +1,8 @@
 {
     "files.data.content": "data/scp-content",
     "files.data.metadata": "data/scp-metadata",
+    "files.data.diff": "data/scp-diff",
 
-  "scp_diff_location": "/var/scp-diff/",
   "scp_files_location": "/var/scp-files/",
 
   "postgres_username": "scipnet",
