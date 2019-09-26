@@ -22,7 +22,7 @@ import { Nullable } from './../helpers';
 import * as path from 'path';
 import * as uuidv4 from 'uuid/v4';
 
-import { config } from './../config';
+import { config } from 'app/config';
 
 export class editlock {
   slug: string;

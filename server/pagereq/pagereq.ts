@@ -29,7 +29,8 @@ import * as path from 'path';
 import { render_rating_module } from './../renderer';
 import * as uuid from 'uuid/v4';
 
-import { config } from './../config';
+import { config } from 'app/config';
+
 const data_dir = config.scp_cont_location;
 const diff_dir = config.scp_diff_location;
 const meta_dir = config.scp_meta_location;
