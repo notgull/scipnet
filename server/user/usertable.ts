@@ -1,5 +1,5 @@
 /*
- * usertable.ts
+ * user/usertable.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -21,15 +21,7 @@
 import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
 
-interface User {
-  id: number;
-  user: string;
-  expiry: Date;
-  ip_addrs: Array<string>
-}
-
 export class UserTable {
-
   userset: Array<User>;
   prevId: number;
 
