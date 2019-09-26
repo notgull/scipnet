@@ -28,7 +28,7 @@ interface User {
   ip_addrs: Array<string>
 }
 
-export class usertable {
+export class UserTable {
 
   userset: Array<User>;
   prevId: number;
@@ -116,4 +116,4 @@ export class usertable {
   }
 }
 
-exports.global_usertable = new usertable();
+export const global_usertable = new UserTable();

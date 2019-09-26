@@ -33,7 +33,7 @@ import * as metadata from 'app/metadata/metadata';
 import { initialize_pages } from 'app/metadata/initialize_database';
 
 import { initialize_users }  from 'app/user/initialize_database';
-import { usertable } from 'app/user/usertable';
+import { UserTable } from 'app/user/usertable';
 import * as validate from 'app/user/validate';
 
 import { validate_password } from 'app/authdetails';
@@ -82,7 +82,7 @@ const certs = { key: fs.readFileSync('certs/scpwiki.key'),
                 cert: fs.readFileSync('certs/scpwiki.pem') };
 
 // create a table of user sessions
-let ut = new usertable();
+let ut = new UserTable();
 
 // need a type to deal with parameters
 type Params = { [key: string]: string };
@@ -104,7 +104,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
   if (isHTML) {
     return renderer.render('', name, pageTitle, loginInfo(req));
   } else {
-    var md = await metadata.metadata.load_by_slug(name);
+    var md = await metadata.Metadata.load_by_slug(name);
 
     let title = pageTitle;
     if (pageTitle.length === 0)

@@ -39,7 +39,7 @@ function get_diff_link(article_id: number): string {
 
 
 // represents a revision made to a page by a user
-export class revision {
+export class Revision {
   article_id: number;
   user_id: number;
   diff_link: string;
@@ -65,19 +65,19 @@ export class revision {
   }
 
   // load revision by id
-  static async load_by_id(revision_id: number): Promise<Nullable<revision>> {
+  static async load_by_id(revision_id: number): Promise<Nullable<Revision>> {
     let res = await query("SELECT * FROM Revisions WHERE revision_id = $1;", [revision_id]);
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    let revisionInst = new revision(res.article_id, res.user_id, res.description, res.tags, res.title, res.flags, res.diff_link);
+    let revisionInst = new Revision(res.article_id, res.user_id, res.description, res.tags, res.title, res.flags, res.diff_link);
     revisionInst.created_at = res.created_at;
     revisionInst.revision_id = revision_id;
     return revisionInst;
   }
 
   // load array of revisions by the article
-  static async load_array_by_article(article_id: number): Promise<Array<revision>> {
+  static async load_array_by_article(article_id: number): Promise<Array<Revision>> {
     let res = await query("SELECT * FROM Revisions WHERE article_id = $1 ORDER BY created_at;", [article_id]);
     if (res.rowCount === 0) return [];
     else res = res.rows;
@@ -87,7 +87,7 @@ export class revision {
     for (var i = 0; i < res.length; i++) {
       row = res[i];
 
-      let revisionInst = new revision(article_id, row.user_id, row.description, row.tags, row.title, row.flags, row.diff_link);
+      let revisionInst = new Revision(article_id, row.user_id, row.description, row.tags, row.title, row.flags, row.diff_link);
       revisionInst.created_at = row.created_at;
       revisionInst.revision_id = row.revision_id;
       revisionInst.revision_number = i;
