@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { randomInt } from 'app/random';
+import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
 
 interface User {
