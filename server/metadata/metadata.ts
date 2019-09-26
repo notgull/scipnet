@@ -158,7 +158,7 @@ export class metadata {
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    return await metadata.load_metadata_from_row(res);
+    return metadata.load_metadata_from_row(res);
   }
 
   static async load_by_id(article_id: number): Promise<Nullable<metadata>> {
@@ -166,7 +166,7 @@ export class metadata {
     if (res.row_count === 0) return null;
     else res = res.rows[0];
 
-    return await metadata.load_metadata_from_row(res);
+    return metadata.load_metadata_from_row(res);
   }
 
   // save metadata to database
