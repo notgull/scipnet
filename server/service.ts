@@ -23,7 +23,7 @@ import { ChildProcess, fork, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import * as config from './config';
+import { config } from './config';
 
 import { ServiceConfig } from './service_wrapper';
 

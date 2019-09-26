@@ -25,7 +25,7 @@ import * as metadata from './metadata';
 import * as path from 'path';
 import * as validate from './../user/validate';
 
-import * as config from './../config';
+import { config } from './../config';
 
 // just create a raw revision - good for pages
 function raw_revision(article_id: number, article_name: string, user_id: number, comment: string, title: string): metadata.revision {
@@ -74,7 +74,7 @@ export function autocreate(next: (r: number) => any) {
         mainpage.title = "";
         mainpage.locked_at = new Date();
 
-        copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(config.scp_cont_location, 'main'));  
+        copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(config.scp_cont_location, 'main'));
         mainpage.submit().then(() => {
           let article_id = mainpage.article_id;
           let mainpage_author = new metadata.author(article_id, user_id, "author");
