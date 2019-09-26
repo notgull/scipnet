@@ -2,7 +2,7 @@
  * renderer.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,11 +19,13 @@
  */
 
 // this file renders html from markdown stored in data files
-import { get_markdown } from './ftml/markdown';
-import * as md from './metadata/metadata';
-import * as nunjucks from 'nunjucks';
+
 import * as fs from 'fs';
 import * as path from 'path';
+import * as nunjucks from 'nunjucks';
+
+import { get_markdown } from 'app/ftml/markdown';
+import * as md from 'app/metadata/metadata';
 
 // nunjucks environment
 const templates_folder = path.join(process.cwd(), "templates");

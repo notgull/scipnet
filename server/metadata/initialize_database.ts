@@ -2,7 +2,7 @@
  * initialize_database.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { query } from './../sql';
+import { query } from 'app/sql';
 
 // initialize the database for metadata storage
 export function initialize_pages(next: (n: number) => any) {
@@ -33,7 +33,7 @@ export function initialize_pages(next: (n: number) => any) {
 		           ");";
   query(metadata_table_sql, [], (err: any, res: any) => {
     if (err) throw new Error(err);
-    
+
     // also create the revision table
     const revision_table_sql = "CREATE TABLE IF NOT EXISTS Revisions (" +
 		               "revision_id BIGSERIAL PRIMARY KEY," +

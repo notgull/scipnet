@@ -2,7 +2,7 @@
  * service.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,15 +24,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { config } from 'app/config';
-
-import { ServiceConfig } from './service_wrapper';
+import { ServiceConfig } from 'app/service_wrapper';
 
 const module_root = 'dist/server';
 
 export interface ServiceInfo {
-  process: ChildProcess,
-  port: number,
-  ip_addr: string
+  process: ChildProcess;
+  port: number;
+  ip_addr: string;
 };
 
 // with the input of a module and a port, run a service

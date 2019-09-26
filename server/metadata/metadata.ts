@@ -2,7 +2,7 @@
  * metadata.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,33 +33,34 @@
 // locked (y/n)
 // parent page
 
-import { error_codes, getFormattedDate, Nullable } from './../helpers';
-import { queryPromise } from './../sql';
 import * as path from 'path';
 import * as pg from 'pg';
 
 import { config } from 'app/config';
-const query = queryPromise;
+import { error_codes, getFormattedDate, Nullable } from 'app/helpers';
+import { queryPromise as query } from 'app/sql';
 
-// export rating
-import { rating } from './rating';
-export { rating } from './rating';
+import { rating } from 'app/metadata/rating';
+import { revision } from 'app/metadata/revision';
+import { author } from 'app/metadata/author';
+import { parent_ } from 'app/metadata/parent';
+import {
+  editlock,
+  add_editlock,
+  remove_editlock,
+  check_editlock,
+} from 'app/metadata/editlock';
 
-// export revision
-import { revision } from './revision';
-export { revision } from './revision';
-
-// export author
-import { author } from './author';
-export { author } from './author';
-
-// export parent
-import { parent_ } from './parent';
-export { parent_ } from './parent';
-
-// export editlocks
-import {editlock, add_editlock, remove_editlock, check_editlock} from './editlock';
-export {editlock, add_editlock, remove_editlock, check_editlock} from './editlock';
+export {
+  rating,
+  revision,
+  author,
+  parent_,
+  editlock,
+  add_editlock,
+  remove_editlock,
+  check_editlock,
+};
 
 // define an asynchronous foreach loop
 async function async_foreach(arr: Array<any>, iter: any): Promise<void> {

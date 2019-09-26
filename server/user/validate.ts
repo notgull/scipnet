@@ -2,7 +2,7 @@
  * validate.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +22,11 @@
 //import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import { Nullable } from './../helpers';
-import { query } from './../sql';
 import * as path from 'path';
 
 import { config } from 'app/config';
+import { Nullable } from 'app/helpers';
+import { query } from 'app/sql';
 
 import { INTERNAL_ERROR, USER_NOT_FOUND, PASSWORD_INCORRECT, SESSION_MISMATCH, SESSION_EXPIRY, EMAIL_NOT_FOUND, error_codes, getFormattedDate } from './../helpers';
 

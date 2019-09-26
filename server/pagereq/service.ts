@@ -2,7 +2,7 @@
  * service.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,8 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as pagereq from './pagereq';
-import { ServiceCallback, ServiceParams, Service } from './../service_wrapper';
+import * as pagereq from 'app/pagereq/pagereq';
+import { ServiceCallback, ServiceParams, Service } from 'app/service_wrapper';
 
 // asynchronous pr
 async function async_pr(name: string, username: string, args: pagereq.ArgsMapping): Promise<pagereq.PRSReturnVal> {
@@ -44,7 +44,7 @@ function request(data: ServiceParams, callback: ServiceCallback): void {
 
   */
   let username = args["username"];
-   
+
   pagereq.request(name, username, args, function(r: pagereq.PRSReturnVal) {
     callback(null, r);
   });

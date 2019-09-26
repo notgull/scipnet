@@ -2,7 +2,7 @@
  * revision.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,13 +19,12 @@
  */
 
 import * as fs from 'fs';
-import { Nullable } from './../helpers';
-import { queryPromise } from './../sql';
 import * as uuidv4 from 'uuid/v4';
 import * as path from 'path';
 
 import { config } from 'app/config';
-const query = queryPromise;
+import { Nullable } from 'app/helpers';
+import { queryPromise as query } from 'app/sql';
 
 // generate a good place for a diff link
 function get_diff_link(article_id: number): string {

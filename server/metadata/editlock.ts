@@ -2,7 +2,7 @@
  * editlock.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,11 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Nullable } from './../helpers';
 import * as path from 'path';
 import * as uuidv4 from 'uuid/v4';
 
 import { config } from 'app/config';
+import { Nullable } from 'app/helpers';
 
 export class editlock {
   slug: string;

@@ -2,7 +2,7 @@
  * autocreate_404.js
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,11 @@
 // automatically create the 404 and main pages
 import * as diff from 'diff';
 import * as fs from 'fs';
-import * as metadata from './metadata';
 import * as path from 'path';
-import * as validate from './../user/validate';
 
 import { config } from 'app/config';
+import * as metadata from 'app/metadata/metadata';
+import * as validate from 'app/user/validate';
 
 // just create a raw revision - good for pages
 function raw_revision(article_id: number, article_name: string, user_id: number, comment: string, title: string): metadata.revision {

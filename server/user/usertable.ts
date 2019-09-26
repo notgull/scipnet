@@ -2,7 +2,7 @@
  * usertable.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -18,9 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//var uuid = require('uuid/v4');
-import { randomInt } from './../random';
-import { Nullable } from './../helpers';
+import { randomInt } from 'app/random';
+import { Nullable } from 'app/helpers';
 
 interface User {
   id: number;
@@ -54,7 +53,7 @@ export class usertable {
 	return chckUser.id;
       }
     }
-	  
+
     let id = this.prevId;
     id += randomInt(2, 9);
     if (id > 2999999) id -= this.prevId;
@@ -113,7 +112,7 @@ export class usertable {
       let chckUser = this.userset[i];
       if (now > chckUser.expiry) {
         this.userset.splice(1, i);
-      } 
+      }
     }
   }
 
@@ -122,7 +121,7 @@ export class usertable {
     for (let i = 0; i < this.userset.length; i++) {
       console.log(JSON.stringify(this.userset[i]));
     }
-  } 
+  }
 }
 
 exports.global_usertable = new usertable();
