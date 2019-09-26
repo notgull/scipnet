@@ -3,7 +3,7 @@
 
 ### Running
 
-Uses Node.JS version 8.10.0
+Uses Node.JS version 10.15.3
 
 **Setup:**
 
