@@ -31,7 +31,7 @@ import { get_user_id, get_username } from 'app/user/validate';
 import * as metadata from 'app/metadata';
 import { render_rating_module } from 'app/renderer';
 
-const data_dir = config.get('scp_cont_location');
+const data_dir = config.get('files.data.content');
 const diff_dir = config.get('scp_diff_location');
 const meta_dir = config.get('scp_meta_location');
 

@@ -57,7 +57,7 @@ function check_dir(dirname: string) {
   }
 }
 
-check_dir(config.get('scp_cont_location'));
+check_dir(config.get('files.data.content'));
 check_dir(config.get('scp_meta_location'));
 check_dir(config.get('scp_diff_location'));
 check_dir(config.get('scp_files_location'));

@@ -28,9 +28,11 @@ import { Revision } from './revision';
 import * as metadata from 'app/metadata';
 import * as validate from 'app/user/validate';
 
+const contentDir = config.get('files.data.content');
+
 // just create a raw revision - good for pages
 function raw_revision(article_id: number, article_name: string, user_id: number, comment: string, title: string): Revision {
-  let dataLoc = path.join(config.get('scp_cont_location'), article_name);
+  let dataLoc = path.join(contentDir, article_name);
   let data = fs.readFileSync(dataLoc) + "";
   let patch = diff.createPatch(dataLoc, "", data, "", "");
   let revision = new Revision(article_id, user_id, comment, [], title, 'N');
@@ -58,7 +60,7 @@ export function autocreate(next: (r: number) => any) {
     _404.locked_at = new Date();
 
     // copy source of default 404 to content dir
-    copy_file(path.join(process.cwd(), "templates/_404.ftml"), path.join(config.get('scp_cont_location'), '_404'));
+    copy_file(path.join(process.cwd(), "templates/_404.ftml"), path.join(contentDir, '_404'));
 
     // save the page to the database so that we have a page id to work with
     _404.submit().then(() => {
@@ -75,7 +77,7 @@ export function autocreate(next: (r: number) => any) {
         mainpage.title = "";
         mainpage.locked_at = new Date();
 
-        copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(config.get('scp_cont_location'), 'main'));
+        copy_file(path.join(process.cwd(), "templates/main.ftml"), path.join(contentDir, 'main'));
         mainpage.submit().then(() => {
           let article_id = mainpage.article_id;
           let mainpage_author = new metadata.Author(article_id, user_id, "author");

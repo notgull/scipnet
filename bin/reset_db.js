@@ -55,4 +55,4 @@ function rmdir(dir) {
   }
 }
 
-rmdir(config.scp_cont_location);
+rmdir(config.get('files.data.content'));
