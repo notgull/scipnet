@@ -52,9 +52,9 @@ env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
 
 export async function render(modName: string,
                              htmlFileName: string = '',
-			     title: string = 'Testing Page',
-			     loginInfo: any = false,
-			     metadata: any = null): Promise<string> {
+                       title: string = 'Testing Page',
+                       loginInfo: any = false,
+                       metadata: any = null): Promise<string> {
   //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html'));
   const replacement_string = "[INSERT_CONTENT_HERE]";
   console.log("S-RENDERING: " + modName);
