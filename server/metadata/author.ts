@@ -18,9 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Nullable } from './../helpers';
-import { queryPromise } from './../sql';
-const query = queryPromise;
+import { Nullable } from 'app/helpers';
+import { queryPromise as query } from 'app/sql';
 
 // represents an author, as there can be more than one per article
 export class author {

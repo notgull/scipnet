@@ -22,14 +22,14 @@
 import * as diff from 'diff';
 import * as fs from 'fs';
 import * as nunjucks from 'nunjucks';
-import { Nullable } from './../helpers';
-import { get_user_id, get_username } from './../user/validate';
-import * as metadata from './../metadata/metadata';
 import * as path from 'path';
-import { render_rating_module } from './../renderer';
 import * as uuid from 'uuid/v4';
 
 import { config } from 'app/config';
+import { Nullable } from 'app/helpers';
+import { get_user_id, get_username } from 'app/user/validate';
+import * as metadata from 'app/metadata/metadata';
+import { render_rating_module } from 'app/renderer';
 
 const data_dir = config.scp_cont_location;
 const diff_dir = config.scp_diff_location;

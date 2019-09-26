@@ -18,11 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Nullable } from './../helpers';
 import * as path from 'path';
 import * as uuidv4 from 'uuid/v4';
 
 import { config } from 'app/config';
+import { Nullable } from 'app/helpers';
 
 export class editlock {
   slug: string;
