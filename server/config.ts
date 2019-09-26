@@ -23,30 +23,41 @@ import * as path from 'path';
 
 export const CONFIG_DIR = path.join(process.cwd(), 'config');
 
-export type Config = { [key: string]: any };
+export type ConfigValue = string | number | boolean | null;
+type RawConfig = { [key: string]: ConfigValue };
 
-function loadConfig(directory: string): Config {
-  const mainPath = path.join(directory, 'config.json');
-  const overridePath = path.join(directory, 'override.json');
-
-  function loadJson(filename: string, optional: boolean = false): Config {
-    const file = path.join(directory, filename);
-
-    try {
-      const data = fs.readFileSync(file);
-      return JSON.parse(data.toString());
-    } catch (err) {
-      if (!optional) {
-        throw err;
-      }
-
-      return {};
+function loadJson(file: string, optional: boolean = false): RawConfig {
+  try {
+    const buf = fs.readFileSync(file);
+    return JSON.parse(buf.toString());
+  } catch (err) {
+    if (!optional) {
+      throw err;
     }
-  }
 
-  const config = loadJson('config.json');
-  Object.assign(config, loadJson('override.json', true));
-  return config;
+    return {};
+  }
 }
 
-export const config = loadConfig(CONFIG_DIR);
+export class Config {
+  private data: RawConfig;
+
+  constructor(directory: string) {
+    const mainPath = path.join(directory, 'config.json');
+    const overridePath = path.join(directory, 'override.json');
+
+    this.data = loadJson(mainPath);
+    Object.assign(this.data, loadJson(overridePath, true));
+  }
+
+  public get(key: string): ConfigValue {
+    const value = this.data[key];
+    if (value === undefined) {
+      throw new Error(`No such configuration key: '${key}'.`);
+    }
+
+    return value;
+  }
+}
+
+export const config = new Config(CONFIG_DIR);
