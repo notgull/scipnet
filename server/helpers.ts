@@ -22,22 +22,6 @@
 
 export type Nullable<T> = T | null;
 
-// some error codes
-export const INTERNAL_ERROR = 3;
-export const USER_NOT_FOUND = 5;
-export const PASSWORD_INCORRECT = 7;
-export const SESSION_MISMATCH = 11;
-export const SESSION_EXPIRY = 13;
-export const EMAIL_NOT_FOUND = 17;
-export const error_codes = [
-  INTERNAL_ERROR,
-  USER_NOT_FOUND,
-  PASSWORD_INCORRECT,
-  SESSION_MISMATCH,
-  SESSION_EXPIRY,
-  EMAIL_NOT_FOUND,
-];
-
 // date formatting function
 // from: https://stackoverflow.com/a/15764763/11187995
 export function getFormattedDate(date: Date): string {
