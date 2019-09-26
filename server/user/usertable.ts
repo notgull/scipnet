@@ -19,7 +19,7 @@
  */
 
 import { randomInt } from 'app/random';
-import { Nullable } from 'app/helpers';
+import { Nullable } from 'app/utils';
 
 interface User {
   id: number;

@@ -42,7 +42,8 @@ import * as prs from 'app/pagereq/pagereq';
 import * as renderer from 'app/renderer';
 import { slugify } from 'app/slug';
 import * as service from 'app/service';
-import { Nullable, send_jsonrpc_message } from 'app/helpers';
+import { Nullable } from 'app/utils';
+import { send_jsonrpc_message } from 'app/utils/jsonrpc';
 import { ErrorCode } from 'app/errors';
 
 // get version
