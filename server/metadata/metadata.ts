@@ -42,52 +42,43 @@ import { Nullable } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
 import { queryPromise as query } from 'app/sql';
 
-import { rating } from 'app/metadata/rating';
-import { revision } from 'app/metadata/revision';
-import { author } from 'app/metadata/author';
-import { parent_ } from 'app/metadata/parent';
+import { Rating } from 'app/metadata/rating';
+import { Revision } from 'app/metadata/revision';
+import { Author } from 'app/metadata/author';
+import { Parent } from 'app/metadata/parent';
 import {
-  editlock,
+  EditLock,
   add_editlock,
   remove_editlock,
   check_editlock,
 } from 'app/metadata/editlock';
 
 export {
-  rating,
-  revision,
-  author,
-  parent_,
-  editlock,
+  Rating,
+  Revision,
+  Author,
+  Parent,
+  EditLock,
   add_editlock,
   remove_editlock,
   check_editlock,
 };
 
-// define an asynchronous foreach loop
-async function async_foreach(arr: Array<any>, iter: any): Promise<void> {
-  //let promises = [];
-  for (var i = 0; i < arr.length; i++) {
-    await iter(arr[i]);
-  }
-  // await Promise.all(promises);  <- causing some issues ATM, fix later?
-};
-
 // metadata belonging to a particular page
-export class metadata {
+export class Metadata {
   article_id: number;
   slug: string;
   title: string;
-  ratings: Array<rating>;
-  authors: Array<author>;
-  author: Nullable<author>;
-  editlock: Nullable<editlock>;
+  ratings: Array<Rating>;
+  authors: Array<Author>;
+  author: Nullable<Author>;
+  editlock: Nullable<EditLock>;
   tags: Array<string>;
-  revisions: Array<revision>;
+  revisions: Array<Revision>;
   discuss_page_link: string;
   attached_files: Array<any>;
   locked_at: Nullable<Date>
-  parents: Array<parent_>;
+  parents: Array<Parent>;
 
   constructor(slug: string) {
     this.article_id = -1;
@@ -114,8 +105,8 @@ export class metadata {
   }
 
   // load metadata from any sql source
-  static async load_metadata_from_row(res: any): Promise<Nullable<metadata>> {
-    let mObj = new metadata(res.slug);
+  static async load_metadata_from_row(res: any): Promise<Nullable<Metadata>> {
+    let mObj = new Metadata(res.slug);
     mObj.article_id = res.article_id;
     mObj.title = res.title;
     mObj.tags = res.tags;
@@ -132,10 +123,10 @@ export class metadata {
     }
 
     // load ratings
-    mObj.ratings = await rating.load_array_by_article(res.article_id);
+    mObj.ratings = await Rating.load_array_by_article(res.article_id);
 
     // load authors
-    mObj.authors = await author.load_array_by_article(res.article_id);
+    mObj.authors = await Author.load_array_by_article(res.article_id);
     if (mObj.authors.length > 1) {
       mObj.author = null;
     } else {
@@ -143,30 +134,36 @@ export class metadata {
     }
 
     // load revisions
-    mObj.revisions = await revision.load_array_by_article(res.article_id);
+    mObj.revisions = await Revision.load_array_by_article(res.article_id);
 
     // load parents
-    mObj.parents = await parent_.load_array_by_child(res.article_id);
+    mObj.parents = await Parent.load_array_by_child(res.article_id);
 
     // TODO: load files once we have that system up and running
     return mObj;
   }
 
   // load metadata by its slug
-  static async load_by_slug(slug: string): Promise<Nullable<metadata>> {
+  static async load_by_slug(slug: string): Promise<Nullable<Metadata>> {
     let res = await query("SELECT * FROM Pages WHERE slug=$1;", [slug]);
-    if (res.rowCount === 0) return null;
-    else res = res.rows[0];
+    if (res.rowCount === 0) {
+      return null;
+    } else {
+      res = res.rows[0];
+    }
 
-    return await metadata.load_metadata_from_row(res);
+    return Metadata.load_metadata_from_row(res);
   }
 
-  static async load_by_id(article_id: number): Promise<Nullable<metadata>> {
+  static async load_by_id(article_id: number): Promise<Nullable<Metadata>> {
     let res = await query("SELECT * FROM Pages WHERE article_id=$1;", [article_id]);
-    if (res.row_count === 0) return null;
-    else res = res.rows[0];
+    if (res.row_count === 0) {
+      return null;
+    } else {
+      res = res.rows[0];
+    }
 
-    return await metadata.load_metadata_from_row(res);
+    return Metadata.load_metadata_from_row(res);
   }
 
   // save metadata to database
@@ -176,17 +173,18 @@ export class metadata {
     let editlock: Nullable<string> = null;
     if (this.editlock)
       editlock = this.editlock.editlock_id;
-    const upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
+      const upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
                  "$1, $2, $3, $4, $5, $6::timestamp) " +
-	         "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
+               "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
                  "locked_at=$6::timestamp;";
     await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
 
     if (save_dependencies) {
       // save the dependencies
-      async_foreach(this.ratings, async function(vote: rating) { await vote.submit(); });
-      async_foreach(this.authors, async function(authorInst: author) { await authorInst.submit(); });
-      async_foreach(this.parents, async function (parentInst: parent_) { await parentInst.submit(); });
+      // TODO wrap in a transaction
+      await Promise.all(this.ratings.map(async vote => vote.submit()));
+      await Promise.all(this.authors.map(async author => author.submit()));
+      await Promise.all(this.parents.map(async parent => parent.submit()));
     }
 
     let article_id = await query("SELECT article_id FROM Pages WHERE slug=$1;", [this.slug]);

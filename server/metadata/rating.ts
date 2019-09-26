@@ -22,7 +22,7 @@ import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
 // represents a single upvote, downvote, or novote
-export class rating {
+export class Rating {
   user_id: number;
   article_id: number;
   rate: number;
@@ -34,18 +34,18 @@ export class rating {
   }
 
   // load the rating by the article and user
-  static async load_by_article_and_user(article_id: number, user_id: number): Promise<Nullable<rating>> {
+  static async load_by_article_and_user(article_id: number, user_id: number): Promise<Nullable<Rating>> {
     let res = await query("SELECT * FROM Ratings WHERE article_id = $1 AND user_id = $2;",
                           [article_id, user_id]);
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    let vote = new rating(article_id, user_id, res.rating);
+    let vote = new Rating(article_id, user_id, res.rating);
     return vote;
   }
 
   // load a list of ratings by the article id
-  static async load_array_by_article(article_id: number): Promise<Array<rating>> {
+  static async load_array_by_article(article_id: number): Promise<Array<Rating>> {
     let res = await query("SELECT * FROM Ratings WHERE article_id = $1;", [article_id]);
     if (res.rowCount === 0) return [];
     else res = res.rows;
@@ -53,7 +53,7 @@ export class rating {
     let ratings = [];
     let row;
     for (row of res) {
-      let vote = new rating(article_id, row.user_id, row.rating);
+      let vote = new Rating(article_id, row.user_id, row.rating);
       ratings.push(vote);
     }
 

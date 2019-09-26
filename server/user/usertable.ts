@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { randomInt } from 'app/random';
+import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
 
 interface User {
@@ -28,7 +28,7 @@ interface User {
   ip_addrs: Array<string>
 }
 
-export class usertable {
+export class UserTable {
 
   userset: Array<User>;
   prevId: number;
@@ -44,13 +44,13 @@ export class usertable {
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.user === user) {
-	if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
-	  if (!change_ip)
-	    chckUser.ip_addrs.push(ip_addr);
-	  else
-	    chckUser.ip_addrs = [ip_addr];
-	}
-	return chckUser.id;
+      if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
+        if (!change_ip)
+          chckUser.ip_addrs.push(ip_addr);
+        else
+          chckUser.ip_addrs = [ip_addr];
+      }
+      return chckUser.id;
       }
     }
 
@@ -61,8 +61,8 @@ export class usertable {
 
     let userObj = {id: id,
                    user: user,
-		   expiry: expiry,
-		   ip_addrs: [ip_addr]};
+               expiry: expiry,
+               ip_addrs: [ip_addr]};
     this.userset.push(userObj);
 
     return id;
@@ -116,4 +116,4 @@ export class usertable {
   }
 }
 
-exports.global_usertable = new usertable();
+export const global_usertable = new UserTable();

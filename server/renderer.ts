@@ -35,8 +35,6 @@ let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folde
 
 import { config } from 'app/config';
 
-//nunjucks.configure('../../html', { autoescape: true });
-
 const rating_mod_src = "[[=]]\n[[module Rate]]\n[[/=]]";
 
 export async function render_rating_module(metadata: any): Promise<string> {
@@ -52,10 +50,9 @@ env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
 
 export async function render(modName: string,
                              htmlFileName: string = '',
-			     title: string = 'Testing Page',
-			     loginInfo: any = false,
-			     metadata: any = null): Promise<string> {
-  //let template = '' + fs.readFileSync(path.join(process.cwd(), 'html/template.html'));
+                       title: string = 'Testing Page',
+                       loginInfo: any = false,
+                       metadata: any = null): Promise<string> {
   const replacement_string = "[INSERT_CONTENT_HERE]";
   console.log("S-RENDERING: " + modName);
 
@@ -64,22 +61,21 @@ export async function render(modName: string,
   let loginBar;
   if (loginInfo) {
     username = loginInfo;
-    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_li.html')) + "";
-  } else
-    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_nli.html')) + "";
+    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_li.html')).toString();
+  } else {
+    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_nli.html')).toString();
+  }
 
   let content;
   if (!htmlFileName || htmlFileName.length === 0) {
-    //var markdown_tree = markdown(modName);
-    //content = markdown_tree.flatten(username);
-
-    if (!metadata)
-      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+    if (!metadata) {
+      return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
+    }
 
     // test for existence first
     let filepath = path.join(config.scp_cont_location, modName); // new change: using folder w/ modname
     if (!fs.existsSync(filepath)) {
-      return await exports.render("_404", '', title, loginInfo, await md.metadata.load_by_slug('_404'));
+      return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
     }
 
     let src = fs.readFileSync(filepath) + "";
@@ -95,7 +91,9 @@ export async function render(modName: string,
   if (modName === "main") {
     meta_title = '';
     title = '';
-  } else meta_title = title + " - ";
+  } else {
+    meta_title = `${title} - `;
+  }
 
   const t_replacement_string = "[INSERT_TITLE_HERE]";
   const u_replacement_string = "[INSERT_USERNAME_HERE]";
@@ -104,8 +102,9 @@ export async function render(modName: string,
   const rr_replacement_string = "[INSERT_RATER_HERE]";
 
   let ulv_replacement = "";
-  if (htmlFileName !== '' || modName === "_404")
+  if (htmlFileName !== '' || modName === "_404") {
     ulv_replacement = "display: none;"
+  }
 
   let rating = 0;
   let rater = "";
@@ -119,12 +118,10 @@ export async function render(modName: string,
     meta_title: meta_title,
     title: title,
     page_rating: rating,
-    login_bar: loginBar
+    login_bar: loginBar,
   };
 
-  const second_stage_replacements = {
-    username: username
-  };
+  const second_stage_replacements = { username };
 
   let page = env.render("template.html", first_stage_replacements);
   page = env.renderString(page, second_stage_replacements);

@@ -22,7 +22,7 @@ import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
 // represents an author, as there can be more than one per article
-export class author {
+export class Author {
   article_id: number;
   user_id: number;
   author_type: string;
@@ -38,19 +38,19 @@ export class author {
   }
 
   // load an author by its author id
-  static async load_by_id(author_id: number): Promise<Nullable<author>> {
+  static async load_by_id(author_id: number): Promise<Nullable<Author>> {
     let res = await query("SELECT * FROM Authors WHERE author_id=$1;", [author_id]);
     if (res.rowCount === 0) return null;
     else res = res.rows[0];
 
-    let authorInst = new author(res.article_id, res.user_id, res.author_type);
+    let authorInst = new Author(res.article_id, res.user_id, res.author_type);
     authorInst.created_at = res.created_at;
     authorInst.author_id = res.author_id;
     return authorInst;
   }
 
   // load an array of authors by the article_id
-  static async load_array_by_article(article_id: number): Promise<Array<author>> {
+  static async load_array_by_article(article_id: number): Promise<Array<Author>> {
     let res = await query("SELECT * FROM Authors WHERE article_id=$1;", [article_id]);
     if (res.rowCount === 0) return [];
     else res = res.rows;
@@ -58,7 +58,7 @@ export class author {
     let authors = [];
     let row;
     for (row of res) {
-      let authorInst = new author(article_id, row.user_id, row.diff_link);
+      let authorInst = new Author(article_id, row.user_id, row.diff_link);
       authorInst.created_at = row.created_at;
       authorInst.author_id = row.author_id;
       authors.push(authorInst);

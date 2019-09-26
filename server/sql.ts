@@ -36,5 +36,5 @@ export function query(sql: string, args: any, callback: (err: any, res: any) => 
 }
 
 export async function queryPromise(sql: string, args: any): Promise<any> {
-  return await pool.query(sql, args);
+  return pool.query(sql, args);
 }

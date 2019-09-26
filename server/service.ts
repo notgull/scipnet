@@ -46,7 +46,7 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
   return {process: fork(path.join(process.cwd(), "dist/server/service_wrapper.js"),
                         [module_service, JSON.stringify(serv_config)]),
           port: serv_config.hosts[0].port,
-	  ip_addr: serv_config.hosts[0].address}
+        ip_addr: serv_config.hosts[0].address}
 }
 
 // ftml-json is built in rust, thus we need a special function to run it
