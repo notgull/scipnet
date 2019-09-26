@@ -111,7 +111,6 @@ export async function render(modName: string,
   let rater = "";
   if (metadata) {
     rating = metadata.get_rating();
-    //rater = await exports.render_rating_module(metadata);
   }
 
   const first_stage_replacements = {
@@ -126,15 +125,6 @@ export async function render(modName: string,
   const second_stage_replacements = {
     username: username
   };
-
-  /*let page = template.split(replacement_string).join(content) + "";
-  page = page.split(mt_replacement_string).join(meta_title);
-  page = page.split(t_replacement_string).join(title);
-  page = page.split(lb_replacement_string).join(loginBar);
-  page = page.split(u_replacement_string).join(username);
-  page = page.split(ulv_replacement_string).join(ulv_replacement);
-  page = page.split(r_replacement_string).join(String(rating));
-  page = page.split(rr_replacement_string).join(rater);*/
 
   let page = env.render("template.html", first_stage_replacements);
   page = env.renderString(page, second_stage_replacements);
