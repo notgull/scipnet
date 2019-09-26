@@ -48,7 +48,7 @@ import { ErrorCode } from 'app/errors';
 const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
 
-let s_port = config.get('scipnet_port');
+let s_port = config.get('services.scipnet.port');
 
 // create folders before sql initialization
 function check_dir(dirname: string) {
