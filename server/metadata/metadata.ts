@@ -37,7 +37,8 @@ import * as path from 'path';
 import * as pg from 'pg';
 
 import { config } from 'app/config';
-import { error_codes, getFormattedDate, Nullable } from 'app/helpers';
+import { ErrorCode } from 'app/errors';
+import { getFormattedDate, Nullable } from 'app/helpers';
 import { queryPromise as query } from 'app/sql';
 
 import { rating } from 'app/metadata/rating';

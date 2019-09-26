@@ -42,14 +42,8 @@ import * as prs from 'app/pagereq/pagereq';
 import * as renderer from 'app/renderer';
 import { slugify } from 'app/slug';
 import * as service from 'app/service';
-
-import {
-  INTERNAL_ERROR,
-  USER_NOT_FOUND,
-  EMAIL_NOT_FOUND,
-  Nullable,
-  send_jsonrpc_message,
-} from 'app/helpers';
+import { Nullable, send_jsonrpc_message } from 'app/helpers';
+import { ErrorCode } from 'app/errors';
 
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
@@ -103,7 +97,7 @@ function getIPAddress(req: express.Request): string {
 // function that puts together login info for user
 function loginInfo(req: express.Request): Nullable<string> {
   var ip_addr = getIPAddress(req);
-  return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
+  return ut.check_session(Number(req.cookies.sessionId), ip_addr);
 }
 
 // function to render a page
@@ -188,7 +182,7 @@ app.get("/sys/login", function(req: express.Request, res: express.Response) {
   //res.send(login);
 
  render_page(req, true, 'templates/login.html', "Login",
-	  (d) => {res.send(d)});
+        (d) => {res.send(d)});
 });
 
 const day_constant = 86400000;
@@ -214,9 +208,9 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
       let ip_addr = getIPAddress(req);
       let expiry = new Date();
       if (push_expiry)
-	expiry.setDate(expiry.getDate() + 7);
+      expiry.setDate(expiry.getDate() + 7);
       else
-	expiry.setDate(expiry.getDate() + 1);
+      expiry.setDate(expiry.getDate() + 1);
 
       let sessionId = ut.register(username, ip_addr, expiry, change_ip);
       console.log("Logged session " + sessionId);
@@ -242,7 +236,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-	send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
+      send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
@@ -259,7 +253,7 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
   //res.send(register);
 
   render_page(req, true, 'templates/register.html', 'Register',
-	       (d) => {res.send(d);});
+             (d) => {res.send(d);});
 });
 
 function onEmailVerify(username: string, pwHash: string, email: string): void {
@@ -288,21 +282,21 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   // make sure neither the username nor the email exist
   validate.check_user_existence(username, function(result: any, err: Error): void {
     //console.log(err);
-    if (result == INTERNAL_ERROR) {
+    if (result == ErrorCode.INTERNAL_ERROR) {
       console.log(err);
       res.redirect('/sys/register?errors=512');
-    } else if (result !== USER_NOT_FOUND) {
+    } else if (result !== ErrorCode.USER_NOT_FOUND) {
       res.redirect('/sys/register?errors=128')
     } else {
       validate.check_email_usage(email, function(result: number, err: Error) {
-        if (result === INTERNAL_ERROR) {
+        if (result === ErrorCode.INTERNAL_ERROR) {
           //console.log(err);
-	  res.redirect('/sys/register?errors=512');
-        } else if (result !== EMAIL_NOT_FOUND)
-	  res.redirect('/sys/register?errors=256');
+        res.redirect('/sys/register?errors=512');
+        } else if (result !== ErrorCode.EMAIL_NOT_FOUND)
+        res.redirect('/sys/register?errors=256');
         else {
           // TODO: verify via email
-	  res.redirect('/sys/login');
+        res.redirect('/sys/login');
           onEmailVerify(username, pwHash, email);
         }
       });
@@ -336,10 +330,10 @@ app.get("/:pageid", function(req, res) {
   console.log("RENDERING: " + slug);
 
   render_page(req, false, pageid, '',
-	        (d) => {
-		  if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");
-		  else res.send(d);
-		});
+              (d) => {
+              if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");
+              else res.send(d);
+            });
 });
 
 // load javascript files
@@ -356,7 +350,7 @@ app.get("/sys/js/:script", function(req, res) {
 
 app.get("/", function(req, res) {
   render_page(req, false, 'main', '',
-	        (d) => {res.send(d);});
+              (d) => {res.send(d);});
 });
 
 // initialize http servers

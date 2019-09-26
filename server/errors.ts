@@ -1,5 +1,5 @@
 /*
- * authdetails.ts
+ * errors.ts
  *
  * scipnet - SCP Hosting Platform
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,8 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const MINIMUM_LENGTH = 14;
-
-export function validate_password(password: string): boolean {
-  return password.length >= MINIMUM_LENGTH;
+export enum ErrorCode {
+  INTERNAL_ERROR = 3,
+  USER_NOT_FOUND = 5,
+  PASSWORD_INCORRECT = 7,
+  SESSION_MISMATCH = 11,
+  SESSION_EXPIRY = 13,
+  EMAIL_NOT_FOUND = 17,
 }
