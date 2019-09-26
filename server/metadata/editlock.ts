@@ -24,6 +24,8 @@ import * as uuidv4 from 'uuid/v4';
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 
+const EDIT_LOCK_TIMEOUT = config.get('ui.editor.lock_timeout');
+
 export class EditLock {
   slug: string;
   username: string;
@@ -41,7 +43,7 @@ export class EditLock {
   is_valid(): boolean {
     let now = new Date().getTime();
     const ms_per_sec = 1000;
-    return (now - this.locked_at.getTime()) > (ms_per_sec * config.get('editlock_timeout'));
+    return (now - this.locked_at.getTime()) > (ms_per_sec * EDIT_LOCK_TIMEOUT);
   }
 };
 
