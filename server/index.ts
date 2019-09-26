@@ -48,7 +48,7 @@ import { ErrorCode } from 'app/errors';
 const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
 
-let s_port = config.scipnet_port || process.env.PORT || 8443;
+let s_port = config.get('scipnet_port');
 
 // create folders before sql initialization
 function check_dir(dirname: string) {
@@ -57,10 +57,10 @@ function check_dir(dirname: string) {
   }
 }
 
-check_dir(config.scp_cont_location),
-check_dir(config.scp_meta_location),
-check_dir(config.scp_diff_location),
-check_dir(config.scp_files_location)
+check_dir(config.get('scp_cont_location'));
+check_dir(config.get('scp_meta_location'));
+check_dir(config.get('scp_diff_location'));
+check_dir(config.get('scp_files_location'));
 
 // load up the SQL before we start up
 initialize_users((_o: any) => {
@@ -129,7 +129,7 @@ function render_page(req: express.Request, isHTML: boolean, name: string, pageTi
 */
 
 const services = [
-  {modname: "pagereq", config: {hosts: [{port: config.pagereq_port, address: config.pagereq_ip}]}},
+  {modname: "pagereq", config: {hosts: [{port: config.get('pagereq_port'), address: config.get('pagereq_ip')}]}},
   {modname: "ftml", config: {}},
 ];
 
@@ -219,7 +219,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      send_jsonrpc_message("pagereq", args, config.pagereq_ip, config.pagereq_port).then((response: any) => {
+      send_jsonrpc_message("pagereq", args, config.get('pagereq_ip'), config.get('pagereq_port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);

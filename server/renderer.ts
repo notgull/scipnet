@@ -75,7 +75,7 @@ export async function render(
     }
 
     // test for existence first
-    let filepath = path.join(config.scp_cont_location, modName); // new change: using folder w/ modname
+    let filepath = path.join(config.get('scp_cont_location'), modName); // new change: using folder w/ modname
     if (!fs.existsSync(filepath)) {
       return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
     }

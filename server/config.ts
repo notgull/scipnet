@@ -23,8 +23,7 @@ import * as path from 'path';
 
 export const CONFIG_DIR = path.join(process.cwd(), 'config');
 
-export type ConfigValue = string | number | boolean | null;
-type RawConfig = { [key: string]: ConfigValue };
+type RawConfig = { [key: string]: any };
 
 function loadJson(file: string, optional: boolean = false): RawConfig {
   try {
@@ -50,7 +49,7 @@ export class Config {
     Object.assign(this.data, loadJson(overridePath, true));
   }
 
-  public get(key: string): ConfigValue {
+  public get(key: string): any {
     const value = this.data[key];
     if (value === undefined) {
       throw new Error(`No such configuration key: '${key}'.`);

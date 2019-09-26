@@ -36,7 +36,6 @@
 import * as path from 'path';
 import * as pg from 'pg';
 
-import { config } from 'app/config';
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
