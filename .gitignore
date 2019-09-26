@@ -6,7 +6,7 @@ db/
 package-lock.json
 
 # Local
-/override.json
+config/override.json
 
 # Misc
 *.bak
