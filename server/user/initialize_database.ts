@@ -22,7 +22,7 @@
 import { query } from './../sql';
 import * as path from 'path';
 
-import * as config from './../config';
+import { config } from './../config';
 
 export function initialize_users(next: (n: number) => any) {
   // create user and pwhash tables
@@ -50,7 +50,7 @@ export function initialize_users(next: (n: number) => any) {
     query(pwHash_table_sql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
-      next(0);	
+      next(0);
     });
   });
 };

@@ -11,6 +11,11 @@
     "strict": true,
     "strictNullChecks": false
   },
+  "paths": {
+    "app/*": [
+      "server/*"
+    ]
+  },
   "include": [
     "server"
   ]

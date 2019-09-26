@@ -21,9 +21,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const CONFIG_DIR = path.join(process.cwd(), 'config');
+export const CONFIG_DIR = path.join(process.cwd(), 'config');
 
-type Config = { [key: string]: any };
+export type Config = { [key: string]: any };
 
 function loadConfig(directory: string): Config {
   const mainPath = path.join(directory, 'config.json');
@@ -34,7 +34,7 @@ function loadConfig(directory: string): Config {
 
     try {
       const data = fs.readFileSync(file);
-      return JSON.parse(data);
+      return JSON.parse(data.toString());
     } catch (err) {
       if (!optional) {
         throw err;
@@ -49,4 +49,4 @@ function loadConfig(directory: string): Config {
   return config;
 }
 
-export = loadConfig(CONFIG_DIR);
+export const config = loadConfig(CONFIG_DIR);
