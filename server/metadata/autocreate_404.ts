@@ -25,7 +25,7 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 import { Revision } from './revision';
-import * as metadata from 'app/metadata/metadata';
+import * as metadata from 'app/metadata';
 import * as validate from 'app/user/validate';
 
 // just create a raw revision - good for pages
