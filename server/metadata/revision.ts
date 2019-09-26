@@ -23,7 +23,7 @@ import * as uuidv4 from 'uuid/v4';
 import * as path from 'path';
 
 import { config } from 'app/config';
-import { Nullable } from 'app/helpers';
+import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
 // generate a good place for a diff link
