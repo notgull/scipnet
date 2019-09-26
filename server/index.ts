@@ -29,14 +29,14 @@ import * as path from 'path';
 import { config } from 'app/config';
 
 import { autocreate } from 'app/metadata/autocreate_404';
-import * as metadata from 'app/metadata/metadata';
+import * as metadata from 'app/metadata';
 import { initialize_pages } from 'app/metadata/initialize_database';
 
 import { initialize_users }  from 'app/user/initialize_database';
 import { UserTable } from 'app/user/usertable';
 import * as validate from 'app/user/validate';
 
-import * as prs from 'app/pagereq/pagereq';
+import { ArgsMapping } from 'app/pagereq';
 import * as renderer from 'app/renderer';
 import { slugify } from 'app/slug';
 import * as service from 'app/service';
@@ -213,7 +213,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
 
   // pull all parameters from req.body and put them in args
-  let args: prs.ArgsMapping = {};
+  let args: ArgsMapping = {};
   for (var key in req.body)
     args[key] = req.body[key];
   args["username"] = username;

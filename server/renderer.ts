@@ -24,8 +24,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as nunjucks from 'nunjucks';
 
-import { get_markdown } from 'app/ftml/markdown';
-import * as md from 'app/metadata/metadata';
+import { renderFtml } from 'app/ftml';
+import * as md from 'app/metadata';
 
 // nunjucks environment
 const templates_folder = path.join(process.cwd(), "templates");
@@ -39,7 +39,7 @@ const rating_mod_src = "[[=]]\n[[module Rate]]\n[[/=]]";
 
 export async function render_rating_module(metadata: any): Promise<string> {
   // render a rating module
-  return get_markdown("Rating Module", rating_mod_src, metadata);
+  return renderFtml("Rating Module", rating_mod_src, metadata);
 };
 
 // add a filter used for rendering usernames
@@ -48,11 +48,13 @@ env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
   return str;
 });
 
-export async function render(modName: string,
-                             htmlFileName: string = '',
-                       title: string = 'Testing Page',
-                       loginInfo: any = false,
-                       metadata: any = null): Promise<string> {
+export async function render(
+  modName: string,
+  htmlFileName: string = '',
+  title: string = 'Testing Page',
+  loginInfo: any = false,
+  metadata: any = null,
+): Promise<string> {
   const replacement_string = "[INSERT_CONTENT_HERE]";
   console.log("S-RENDERING: " + modName);
 
@@ -79,7 +81,7 @@ export async function render(modName: string,
     }
 
     let src = fs.readFileSync(filepath) + "";
-    content = await get_markdown(modName, src, metadata);
+    content = await renderFtml(modName, src, metadata);
   } else {
     content = '' + fs.readFileSync(htmlFileName);
   }
