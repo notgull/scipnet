@@ -32,7 +32,7 @@ import * as metadata from 'app/metadata';
 import { render_rating_module } from 'app/renderer';
 
 const data_dir = config.get('files.data.content');
-const diff_dir = config.get('scp_diff_location');
+const diff_dir = config.get('files.data.metadata');
 const meta_dir = config.get('scp_meta_location');
 
 export type ArgsMapping = { [key: string]: any };

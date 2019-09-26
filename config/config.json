@@ -1,7 +1,7 @@
 {
     "files.data.content": "data/scp-content",
+    "files.data.metadata": "data/scp-metadata",
 
-  "scp_meta_location": "/var/scp-metadata/",
   "scp_diff_location": "/var/scp-diff/",
   "scp_files_location": "/var/scp-files/",
 
