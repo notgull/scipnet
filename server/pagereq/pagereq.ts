@@ -56,14 +56,14 @@ export type PRSCallback = (result: PRSReturnVal) => any;
 function genReturnVal(): PRSReturnVal {
   return { result: false,
            error: null,
-	   errorCode: null,
-	   src: null,
-	   title: null,
-	   editlockBlocker: null,
-	   rating: null,
-	   newRating: null,
-	   ratingModule: null,
-	   not_logged_in: false };
+         errorCode: null,
+         src: null,
+         title: null,
+         editlockBlocker: null,
+         rating: null,
+         newRating: null,
+         ratingModule: null,
+         not_logged_in: false };
 }
 
 // generate an error'd return value
@@ -144,8 +144,8 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
       if (pMeta) {
         pMeta.editlock = null;
         pMeta.submit(true).then(() => {
-	  returnVal.result = true;
-	  next(returnVal);
+        returnVal.result = true;
+        next(returnVal);
         }).catch((err) => { next(genErrorVal(err)); });
         return;
       }
@@ -241,7 +241,7 @@ async function get_username_async(user_id: number): Promise<string> {
     get_username(user_id, (res: any, err: Nullable<Error>) => {
       if (err) reject(err);
       else resolve(res);
-	    //else reject('Unknown error');
+          //else reject('Unknown error');
     });
   });
 };
@@ -367,7 +367,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
     for (let i = 0; i < mObj.ratings.length; i++) {
       if (Number(mObj.ratings[i].user_id) === Number(args.user_id)) {
         mObj.ratings[i].rate = args.rating;
-	found = true;
+      found = true;
         break;
       }
     }

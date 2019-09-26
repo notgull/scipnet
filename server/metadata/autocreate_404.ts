@@ -85,7 +85,7 @@ export function autocreate(next: (r: number) => any) {
 
           mainpage.submit(true).then(() => {
             // done!
-	    console.log("========== FINISHED AUTOCREATION ===========");
+          console.log("========== FINISHED AUTOCREATION ===========");
             next(0);
           }).catch((err) => {throw err;});
         }).catch((err) => {throw err;});

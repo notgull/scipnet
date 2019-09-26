@@ -27,26 +27,26 @@ import { query } from 'app/sql';
 export function initialize_users(next: (n: number) => any) {
   // create user and pwhash tables
   const user_table_sql = "CREATE TABLE IF NOT EXISTS Users (" +
-		            "user_id BIGSERIAL PRIMARY KEY," +
-		            "username TEXT NOT NULL UNIQUE," +
-		            "email TEXT NOT NULL UNIQUE," +
-		            "karma INTEGER NOT NULL," +
-		            "join_date TIMESTAMP NOT NULL," +
-		            "status INTEGER NOT NULL," +
-		            "website TEXT," +
-		            "about TEXT," +
-		            "city TEXT," +
-		            "avatar TEXT NOT NULL," +
-		            "gender TEXT" +
-	                  ");";
+                        "user_id BIGSERIAL PRIMARY KEY," +
+                        "username TEXT NOT NULL UNIQUE," +
+                        "email TEXT NOT NULL UNIQUE," +
+                        "karma INTEGER NOT NULL," +
+                        "join_date TIMESTAMP NOT NULL," +
+                        "status INTEGER NOT NULL," +
+                        "website TEXT," +
+                        "about TEXT," +
+                        "city TEXT," +
+                        "avatar TEXT NOT NULL," +
+                        "gender TEXT" +
+                        ");";
   query(user_table_sql, [], (err: any, res: any) => {
     if (err) throw new Error(err);
     const pwHash_table_sql = "CREATE TABLE IF NOT EXISTS Passwords (" +
                                "hash_id BIGSERIAL PRIMARY KEY," +
-			       "user_id INTEGER REFERENCES Users(user_id)," +
-		               "salt JSONB NOT NULL UNIQUE," +
-			       "pwhash TEXT NOT NULL" +
-			     ");";
+                         "user_id INTEGER REFERENCES Users(user_id)," +
+                           "salt JSONB NOT NULL UNIQUE," +
+                         "pwhash TEXT NOT NULL" +
+                       ");";
     query(pwHash_table_sql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
