@@ -64,15 +64,6 @@ export {
   check_editlock,
 };
 
-// define an asynchronous foreach loop
-async function async_foreach(arr: Array<any>, iter: any): Promise<void> {
-  //let promises = [];
-  for (var i = 0; i < arr.length; i++) {
-    await iter(arr[i]);
-  }
-  // await Promise.all(promises);  <- causing some issues ATM, fix later?
-};
-
 // metadata belonging to a particular page
 export class metadata {
   article_id: number;
@@ -178,15 +169,16 @@ export class metadata {
       editlock = this.editlock.editlock_id;
     const upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
                  "$1, $2, $3, $4, $5, $6::timestamp) " +
-	         "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
+               "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
                  "locked_at=$6::timestamp;";
     await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
 
     if (save_dependencies) {
       // save the dependencies
-      async_foreach(this.ratings, async function(vote: rating) { await vote.submit(); });
-      async_foreach(this.authors, async function(authorInst: author) { await authorInst.submit(); });
-      async_foreach(this.parents, async function (parentInst: parent_) { await parentInst.submit(); });
+      // TODO wrap in a transaction
+      await Promise.all(this.ratings.map(async vote => vote.submit()));
+      await Promise.all(this.authors.map(async author => author.submit()));
+      await Promise.all(this.parents.map(async parent => parent.submit()));
     }
 
     let article_id = await query("SELECT article_id FROM Pages WHERE slug=$1;", [this.slug]);
