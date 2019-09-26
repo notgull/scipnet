@@ -36,8 +36,6 @@ import { initialize_users }  from 'app/user/initialize_database';
 import { UserTable } from 'app/user/usertable';
 import * as validate from 'app/user/validate';
 
-import { validate_password } from 'app/authdetails';
-
 import * as prs from 'app/pagereq/pagereq';
 import * as renderer from 'app/renderer';
 import { slugify } from 'app/slug';
@@ -183,9 +181,6 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   let change_ip = (req.body.change_ip === "true");
   let new_url = req.query.new_url || "";
 
-  // check the password before anything else
-  if (!validate_password(pwHash)) { res.redirect("/"); return; }
-
   // firstly, validate both whether the user exists and whether the password is correct
   validate.validate_user(username, pwHash, (result: number, err: Error) => {
     if (result === 3) console.log(err);
@@ -257,8 +252,6 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (username.length === 0) { redirectErr(4); return; }
   if (pwHash.length === 0) { redirectErr(16); return; }
   if (email.length === 0) { redirectErr(8); return; }
-  if (!validate_password(username)) { redirectErr(1024); return; }
-  if (!validate_password(pwHash)) { redirectErr(64); return; }
   if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
