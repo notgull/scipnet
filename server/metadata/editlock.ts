@@ -22,7 +22,7 @@ import { Nullable } from './../helpers';
 import * as path from 'path';
 import * as uuidv4 from 'uuid/v4';
 
-import * as config from './../config';
+import { config } from 'app/config';
 
 export class editlock {
   slug: string;
@@ -59,7 +59,7 @@ export function outdated_check() {
 // add an editlock to the table
 export function add_editlock(slug: string, username: string): editlock {
   let el = new exports.editlock(slug, username, new Date());
-  editlock_table.push(el);  
+  editlock_table.push(el);
   return el;
 }
 

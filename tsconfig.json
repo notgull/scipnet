@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "./",
     "allowJs": true,
     "incremental": true,
     "target": "es5",
@@ -9,7 +7,16 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "baseUrl": ".",
+    "sourceMap": true,
+    "outDir": "dist",
+    "noEmitOnError": true,
+    "paths": {
+      "app/*": [
+        "server/*"
+      ]
+    }
   },
   "include": [
     "server"

@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 // metadata properties, add more if necessary
 
 // url
@@ -38,7 +38,7 @@ import { queryPromise } from './../sql';
 import * as path from 'path';
 import * as pg from 'pg';
 
-import * as config from './../config';
+import { config } from 'app/config';
 const query = queryPromise;
 
 // export rating
@@ -63,7 +63,7 @@ export {editlock, add_editlock, remove_editlock, check_editlock} from './editloc
 
 // define an asynchronous foreach loop
 async function async_foreach(arr: Array<any>, iter: any): Promise<void> {
-  //let promises = []; 
+  //let promises = [];
   for (var i = 0; i < arr.length; i++) {
     await iter(arr[i]);
   }
@@ -97,7 +97,7 @@ export class metadata {
     this.tags = [];
     this.revisions = [];
     this.discuss_page_link = "";
-    this.attached_files = []; 
+    this.attached_files = [];
     this.locked_at = null;
     this.parents = [];
   }
@@ -130,7 +130,7 @@ export class metadata {
 
     // load ratings
     mObj.ratings = await rating.load_array_by_article(res.article_id);
-  
+
     // load authors
     mObj.authors = await author.load_array_by_article(res.article_id);
     if (mObj.authors.length > 1) {
@@ -138,7 +138,7 @@ export class metadata {
     } else {
       mObj.author = mObj.authors[0];
     }
-  
+
     // load revisions
     mObj.revisions = await revision.load_array_by_article(res.article_id);
 
@@ -169,15 +169,15 @@ export class metadata {
   // save metadata to database
   async submit(save_dependencies: boolean = false): Promise<void> {
     console.log("Submitting metadata");
- 
+
     let editlock: Nullable<string> = null;
     if (this.editlock)
       editlock = this.editlock.editlock_id;
     const upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
-                 "$1, $2, $3, $4, $5, $6::timestamp) " + 
+                 "$1, $2, $3, $4, $5, $6::timestamp) " +
 	         "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
                  "locked_at=$6::timestamp;";
-    await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]); 
+    await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
 
     if (save_dependencies) {
       // save the dependencies

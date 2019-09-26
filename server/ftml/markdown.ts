@@ -23,7 +23,7 @@
 import * as jayson from 'jayson/promise';
 import * as path from 'path';
 
-import * as config from './../config';
+import { config } from 'app/config';
 
 const client = jayson.Client.http({
   port: config.ftml_port,
@@ -51,6 +51,6 @@ export async function get_markdown(url: string, src: string, metadata: any): Pro
 
   let response = await client.request("render", [page_info, src]);
   console.log("Received response: " + JSON.stringify(response));
-   
+
   return response.result.html;
 }

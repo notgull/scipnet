@@ -2,7 +2,7 @@
  * index.ts
  *
  * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * Copyright (C) 2019 not_a_seagull, aismallard
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,12 +41,11 @@ import * as validate from './user/validate';
 
 import * as service from './service';
 
+import { config } from 'app/config';
+
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log("SCPWiki v" + version);
-
-// if we can't access config.json, error out
-import * as config from './config';
 
 let s_port = config.scipnet_port || process.env.PORT || 8443;
 
@@ -95,7 +94,7 @@ function getIPAddress(req: express.Request): string {
 
 // function that puts together login info for user
 function loginInfo(req: express.Request): Nullable<string> {
-  var ip_addr = getIPAddress(req); 
+  var ip_addr = getIPAddress(req);
   return ut.check_session(Number(req.cookies["sessionId"]), ip_addr);
 }
 
@@ -126,7 +125,7 @@ function render_page(req: express.Request, isHTML: boolean, name: string, pageTi
   }).catch((err) => {throw err;});
 }
 
-/* 
+/*
  Services
 
  This is DEFINITELY going to go in a different file sometime soon, once we get an actual
@@ -177,7 +176,7 @@ app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req)); 
+  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req));
   //res.send(login);
 
  render_page(req, true, 'templates/login.html', "Login",
@@ -221,13 +220,13 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
 // hookup to PRS system
 app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
-  let ip_addr = getIPAddress(req); 
+  let ip_addr = getIPAddress(req);
 
   console.log("PRS Request: " + JSON.stringify(req.body));
 
   // get username
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
-  
+
   // pull all parameters from req.body and put them in args
   let args: prs.ArgsMapping = {};
   for (var key in req.body)
@@ -251,7 +250,7 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
   //var register = renderer.render('', 'templates/register.html', 'Register', loginInfo(req));
   //res.send(register);
 
-  render_page(req, true, 'templates/register.html', 'Register', 
+  render_page(req, true, 'templates/register.html', 'Register',
 	       (d) => {res.send(d);});
 });
 
@@ -311,7 +310,7 @@ app.use("/sys/process-logout", function(req: express.Request, res: express.Respo
   let user_id = req.cookies["session_id"];
   let new_location = req.query.new_url || "";
   ut.logout(user_id);
-  
+
   res.redirect('/' + new_location);
 });
 
@@ -328,9 +327,9 @@ app.get("/:pageid", function(req, res) {
 
   console.log("RENDERING: " + slug);
 
-  render_page(req, false, pageid, '', 
+  render_page(req, false, pageid, '',
 	        (d) => {
-		  if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");	
+		  if (!d) throw new Error("THIS SHOULD NOT RETURN NULL");
 		  else res.send(d);
 		});
 });

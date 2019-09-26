@@ -5,6 +5,9 @@ certs/
 db/
 package-lock.json
 
+# Local
+config/override.json
+
 # Misc
 *.bak
 .*.sw?

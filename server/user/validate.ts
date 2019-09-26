@@ -26,7 +26,7 @@ import { Nullable } from './../helpers';
 import { query } from './../sql';
 import * as path from 'path';
 
-import * as config from './../config';
+import { config } from 'app/config';
 
 import { INTERNAL_ERROR, USER_NOT_FOUND, PASSWORD_INCORRECT, SESSION_MISMATCH, SESSION_EXPIRY, EMAIL_NOT_FOUND, error_codes, getFormattedDate } from './../helpers';
 
@@ -62,7 +62,7 @@ export function get_user_id(user: string, next: (res: any, err: Nullable<Error>)
   const userid_query = "SELECT user_id FROM Users WHERE username=$1;";
   query(userid_query, [user], (err: Nullable<Error>, res: any) => {
     if (err) { next(INTERNAL_ERROR, err); return; }
-    
+
     if (res.rowCount === 0) next(null, new Error("Unable to find user ID"));
     else next(res.rows[0].user_id, null);
   });
@@ -80,7 +80,7 @@ export function get_username(user_id: number, next: (res: any, err: Nullable<Err
 
 // validate a user and password
 export function validate_user(user: string, pwHash: string, next: (res: any, err: Nullable<Error>) => any) {
-  // check for use existence first 
+  // check for use existence first
   check_user_existence(user, (res: number, err: any) => {
     if (err) next(INTERNAL_ERROR, err);
     else if (res) next(USER_NOT_FOUND, null);
@@ -98,7 +98,7 @@ export function validate_user(user: string, pwHash: string, next: (res: any, err
           else if (row.rowCount === 0) next(USER_NOT_FOUND, null);
           else {
             row = row.rows[0];
-	    crypto.pbkdf2(pwHash, new Buffer(row.salt.data), 
+	    crypto.pbkdf2(pwHash, new Buffer(row.salt.data),
 	                  100000, 64, 'sha512', (err: Error, derivedKey: Buffer) => {
               let derivedText = derivedKey.toString("hex");
 	      //console.log("Provided: " + derivedText);
@@ -116,9 +116,9 @@ export function validate_user(user: string, pwHash: string, next: (res: any, err
 };
 
 // add a new user to the database
-export function add_new_user(user: string, email: string, pwHash: string, 
+export function add_new_user(user: string, email: string, pwHash: string,
                             next: (res: number, err: any) => any) {
-  // NOTE: user existence check should have already happened 
+  // NOTE: user existence check should have already happened
   // add user data in
   console.log("Adding user data");
   let now = new Date();
@@ -141,14 +141,14 @@ export function add_new_user(user: string, email: string, pwHash: string,
             // generate a password hash using these options
 	    //let opts = options;
 	    //opts.salt = buf;
-	        
-	    crypto.pbkdf2(pwHash, buf, 100000, 64, 'sha512', (err: Error, realHash: Buffer) => {  
+
+	    crypto.pbkdf2(pwHash, buf, 100000, 64, 'sha512', (err: Error, realHash: Buffer) => {
               if (err) { next(INTERNAL_ERROR, err); return; }
 
               let stringified_salt = JSON.stringify(buf);
               stringified_salt = stringified_salt.split("'").join("\"");
 
-	      const add_password_sql = "INSERT INTO Passwords (user_id, salt, pwhash) " + 
+	      const add_password_sql = "INSERT INTO Passwords (user_id, salt, pwhash) " +
                                         "VALUES ($1, $2, $3);";
 
 	      query(add_password_sql, [user_id, stringified_salt, realHash.toString("hex")], (err: Error, res: any) => {

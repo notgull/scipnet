@@ -18,8 +18,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO: make this not a plaintext JSON file
+import * as fs from 'fs';
 import * as path from 'path';
 
-const config = require(path.join(process.cwd(), 'config.json'));
-export = config;
+export const CONFIG_DIR = path.join(process.cwd(), 'config');
+
+export type Config = { [key: string]: any };
+
+function loadConfig(directory: string): Config {
+  const mainPath = path.join(directory, 'config.json');
+  const overridePath = path.join(directory, 'override.json');
+
+  function loadJson(filename: string, optional: boolean = false): Config {
+    const file = path.join(directory, filename);
+
+    try {
+      const data = fs.readFileSync(file);
+      return JSON.parse(data.toString());
+    } catch (err) {
+      if (!optional) {
+        throw err;
+      }
+
+      return {};
+    }
+  }
+
+  const config = loadJson('config.json');
+  Object.assign(config, loadJson('override.json', true));
+  return config;
+}
+
+export const config = loadConfig(CONFIG_DIR);

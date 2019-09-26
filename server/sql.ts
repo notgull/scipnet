@@ -22,7 +22,7 @@
 import { Pool } from 'pg';
 import * as path from 'path';
 
-import * as config from './config';
+import { config } from 'app/config';
 
 const pool = new Pool({
   user: config.postgres_username,

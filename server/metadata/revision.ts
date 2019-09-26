@@ -24,7 +24,7 @@ import { queryPromise } from './../sql';
 import * as uuidv4 from 'uuid/v4';
 import * as path from 'path';
 
-import * as config from './../config';
+import { config } from 'app/config';
 const query = queryPromise;
 
 // generate a good place for a diff link
@@ -74,7 +74,7 @@ export class revision {
     let revisionInst = new revision(res.article_id, res.user_id, res.description, res.tags, res.title, res.flags, res.diff_link);
     revisionInst.created_at = res.created_at;
     revisionInst.revision_id = revision_id;
-    return revisionInst; 
+    return revisionInst;
   }
 
   // load array of revisions by the article
@@ -101,7 +101,7 @@ export class revision {
   // submit revision to article
   // NOTE: this should not be run more than once
   async submit(): Promise<void> {
-    let revision_id = await query("INSERT INTO Revisions (article_id, user_id, description, tags, title, flags, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.description, this.tags, this.title, this.flags, this.diff_link, this.created_at]); 
+    let revision_id = await query("INSERT INTO Revisions (article_id, user_id, description, tags, title, flags, diff_link, created_at) VALUES ($1, $2, $3, $4::timestamp) RETURNING revision_id;", [this.article_id, this.user_id, this.description, this.tags, this.title, this.flags, this.diff_link, this.created_at]);
     if (revision_id.rowCount > 0)
       this.revision_id = revision_id.rows[0].revision_id;
   }
