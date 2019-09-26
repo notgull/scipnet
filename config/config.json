@@ -12,9 +12,9 @@
   "editlock_timeout": 900,
 
     "services.scipnet.port": 8000,
+    "services.ftml.host": "::1",
+    "services.ftml.port": 3865,
 
-  "ftml_port": 3865,
-  "ftml_ip": "127.0.0.1",
   "pagereq_port": 7243,
   "pagereq_ip": "127.0.0.1"
 }

@@ -63,7 +63,9 @@ export function runftmlservice(): ServiceInfo {
     console.log(`[ftml] ${data}`);
   });
 
-  return {process: ftml,
-          port: config.get('ftml_port'),
-          ip_addr: config.get('ftml_ip')};
+  return {
+    process: ftml,
+    port: config.get('services.ftml.port'),
+    ip_addr: config.get('services.ftml.host'),
+  };
 }

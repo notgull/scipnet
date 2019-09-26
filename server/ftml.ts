@@ -25,8 +25,8 @@ import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 
 const client = jayson.Client.http({
-  port: config.get('ftml_port'),
-  host: config.get('ftml_ip'),
+  port: config.get('services.ftml.port'),
+  host: config.get('services.ftml.host'),
 });
 
 interface PageInfo {
