@@ -59,16 +59,11 @@ export class usertable {
     if (id > 2999999) id -= this.prevId;
     this.prevId = id;
 
-    // it's much more random to use the UUID algoritm
-    //var id = uuid();
-
     let userObj = {id: id,
                    user: user,
 		   expiry: expiry,
 		   ip_addrs: [ip_addr]};
     this.userset.push(userObj);
-
-    // console.log("Added id " + id + " to table");
 
     return id;
   }
@@ -89,13 +84,10 @@ export class usertable {
     //console.log("Checking for id " + session);
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
-      //console.log("Comparing to id " + chckUser.id);
       if (chckUser.id === session) {
         if (chckUser.ip_addrs.indexOf(ip_addr) !== -1) {
-          // console.log("Found user!");
           return chckUser.user;
         } else {
-          // console.log("Found user, but IP address does not match");
           return null;
         }
       }

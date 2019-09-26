@@ -186,7 +186,6 @@ export class metadata {
       // save the dependencies
       async_foreach(this.ratings, async function(vote: rating) { await vote.submit(); });
       async_foreach(this.authors, async function(authorInst: author) { await authorInst.submit(); });
-      //async_foreach(this.revisions, async function(revisionInst: revision) { await revisionInst.submit(); });
       async_foreach(this.parents, async function (parentInst: parent_) { await parentInst.submit(); });
     }
 

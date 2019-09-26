@@ -53,10 +53,7 @@ export class rating {
     let ratings = [];
     let row;
     for (row of res) {
-      //console.log("FOUND ROW:");
-      //console.log(row);
       let vote = new rating(article_id, row.user_id, row.rating);
-      //console.log(rating);
       ratings.push(vote);
     }
 

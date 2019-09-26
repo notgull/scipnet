@@ -75,8 +75,6 @@ initialize_users((_o: any) => {
 const app = express();
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
-//app.use(express.json());
-//app.use(express.urlencoded());
 app.use(cookie_parser());
 
 // load ssl certs
@@ -103,9 +101,6 @@ function loginInfo(req: express.Request): Nullable<string> {
 
 // function to render a page
 async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
-  //console.log("Rendering page with: ");
-  //console.log(Array.from(arguments));
-
   if (isHTML) {
     return await renderer.render('', name, pageTitle, loginInfo(req));
   } else {
@@ -150,11 +145,6 @@ for (let i = 0; i < services.length; i++) {
     service.runftmlservice();
 }
 
-// if the css theme is requested, return it
-//app.get("/special/css", function(req, res) {
-//  res.send(fs.readFileSync("css/scp-sigma-9.css"));
-//});
-
 // special files
 app.get("/favicon.ico", function(req: express.Request, res: express.Response) {
   res.send(fs.readFileSync("images/icon.ico"));
@@ -179,10 +169,7 @@ app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  //var login = renderer.render('', 'templates/login.html', 'Login', loginInfo(req));
-  //res.send(login);
-
- render_page(req, true, 'templates/login.html', "Login",
+  render_page(req, true, 'templates/login.html', "Login",
         (d) => {res.send(d)});
 });
 
@@ -250,9 +237,6 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 
 // get registration page
 app.get("/sys/register", function(req: express.Request, res: express.Response) {
-  //var register = renderer.render('', 'templates/register.html', 'Register', loginInfo(req));
-  //res.send(register);
-
   render_page(req, true, 'templates/register.html', 'Register',
              (d) => {res.send(d);});
 });
@@ -265,9 +249,6 @@ function onEmailVerify(username: string, pwHash: string, email: string): void {
 
 // process registration
 app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
-  //let username = req.body.username;
-  //let pwHash = req.body.pwHash;
-  //let email = req.body.email;
   let { username, pwHash, email } = req.body;
 
   function redirectErr(errCode: number) { res.redirect("/sys/register?errors=" + errCode); }
@@ -307,9 +288,6 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
 
 // log a user out of the system
 app.use("/sys/process-logout", function(req: express.Request, res: express.Response) {
-  //var username = loginInfo(req);
-  //var ip_addr = getIPAddress(req);
-
   let user_id = req.cookies["session_id"];
   let new_location = req.query.new_url || "";
   ut.logout(user_id);
