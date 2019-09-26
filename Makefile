@@ -24,5 +24,5 @@ dist/client/404.js: package.json client/*
 dist/server/index.js: package.json server/* server/**/*
 	npm run gulp
 
-ftml-json/target/release/ftml-json: ftml-json/src/*
+ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
