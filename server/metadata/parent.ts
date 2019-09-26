@@ -22,7 +22,7 @@ import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
 // represents an article's parent pages
-export class parent_ {
+export class Parent {
   child_id: number;
   parent_id: number;
 
@@ -32,17 +32,17 @@ export class parent_ {
   }
 
   // load by the ids of the child and parent
-  static async load_by_id(child_id: number, parent_id: number): Promise<Nullable<parent_>> {
+  static async load_by_id(child_id: number, parent_id: number): Promise<Nullable<Parent>> {
     let res = await query("SELECT * FROM Parents WHERE article_id=$1 AND parent_article_id=$2",
                           [child_id, parent_id]);
     if (res.rowCount === 0) return null;
 
-    let par = new parent_(child_id, parent_id);
+    let par = new Parent(child_id, parent_id);
     return par;
   }
 
   // load by the ids of the child
-  static async load_array_by_child(child_id: number): Promise<Array<parent_>> {
+  static async load_array_by_child(child_id: number): Promise<Array<Parent>> {
     let res = await query("SELECT parent_article_id FROM Parents WHERE article_id=$1", [child_id]);
     if (res.rowCount === 0) return [];
     else res = res.rows;
@@ -50,7 +50,7 @@ export class parent_ {
     let parents = [];
     let row;
     for (row of res) {
-      let parentInst = new parent_(child_id, row.parent_article_id);
+      let parentInst = new Parent(child_id, row.parent_article_id);
       parents.push(parentInst);
     }
 

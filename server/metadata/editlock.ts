@@ -24,7 +24,7 @@ import * as uuidv4 from 'uuid/v4';
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 
-export class editlock {
+export class EditLock {
   slug: string;
   username: string;
   locked_at: Date;
@@ -46,7 +46,7 @@ export class editlock {
 };
 
 // editlocks are stored in memory
-let editlock_table: Array<editlock> = [];
+let editlock_table: Array<EditLock> = [];
 
 // remove all invalid editlocks from the table
 export function outdated_check() {
@@ -57,7 +57,7 @@ export function outdated_check() {
 }
 
 // add an editlock to the table
-export function add_editlock(slug: string, username: string): editlock {
+export function add_editlock(slug: string, username: string): EditLock {
   let el = new exports.editlock(slug, username, new Date());
   editlock_table.push(el);
   return el;
@@ -74,7 +74,7 @@ export function remove_editlock(slug: string) {
 }
 
 // check if a page is editlocked
-export function check_editlock(slug: Nullable<string> = null, uuid: Nullable<string> = null): Nullable<editlock> {
+export function check_editlock(slug: Nullable<string> = null, uuid: Nullable<string> = null): Nullable<EditLock> {
   outdated_check();
   for (var i = editlock_table.length - 1; i >= 0; i--) {
     if ((slug && editlock_table[i].slug === slug) ||

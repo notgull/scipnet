@@ -79,7 +79,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
   // fetch the metadata
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
+  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.Metadata>) => {
     // check for an edit lock
     if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== username)) {
       returnVal.error = "Page is locked by " + pMeta.editlock.username;
@@ -118,7 +118,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.metadata>) => {
+  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.Metadata>) => {
     // get the edit lock
     let el = metadata.check_editlock(args.pagename);
 
@@ -166,7 +166,7 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
 async function changePageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  let pMeta = await metadata.metadata.load_by_slug(args.pagename);
+  let pMeta = await metadata.Metadata.load_by_slug(args.pagename);
 
   // before anything, check to see if there's an editlock
   // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
@@ -184,7 +184,7 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
 
   let isNewPage = false;
   if (!pMeta) {
-    pMeta = new metadata.metadata(args.pagename);
+    pMeta = new metadata.Metadata(args.pagename);
     isNewPage = true;
 
     // submit so we get the metadata ID
@@ -210,7 +210,7 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   if (args.comment) comment = args.comment;
   let flags = isNewPage ? "N" : "S";
 
-  let revision = new metadata.revision(pMeta.article_id, args.user_id, comment, pMeta.tags, pMeta.title, flags);
+  let revision = new metadata.Revision(pMeta.article_id, args.user_id, comment, pMeta.tags, pMeta.title, flags);
   console.log("Revision loc: " + revision.diff_link);
   fs.writeFileSync(revision.diff_link, patch);
   //console.log(pMeta);
@@ -250,7 +250,7 @@ async function get_username_async(user_id: number): Promise<string> {
 async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  let mObj = await metadata.metadata.load_by_slug(args.pagename);
+  let mObj = await metadata.Metadata.load_by_slug(args.pagename);
   if (!mObj) {
     returnVal.error = "Page does not exist";
     returnVal.errorCode = 4;
@@ -277,7 +277,7 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   // compile into html
   // we can take advantage of promises.all to run all of the needed promises at once
   let history = [history_header];
-  async function render_revision(revision: metadata.revision, i: number) {
+  async function render_revision(revision: metadata.Revision, i: number) {
     history[i] = nunjucks.renderString(history_row, {
       rev_number: revision.revision_number,
       buttons: "V S R",
@@ -312,7 +312,7 @@ function pageHistory(args: ArgsMapping, next: PRSCallback) {
 async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  let mObj = await metadata.metadata.load_by_slug(args.pagename);
+  let mObj = await metadata.Metadata.load_by_slug(args.pagename);
   if (!mObj) {
     returnVal.error = "Page does not exist";
     returnVal.errorCode = 4;
@@ -328,7 +328,7 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   // revision
   // TODO: figure out how to do this w/ git
   let latest_revision = mObj.revisions[mObj.revisions.length - 1];
-  let revision = new metadata.revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A", latest_revision.diff_link);
+  let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A", latest_revision.diff_link);
   mObj.submit(false);
   revision.submit();
 
@@ -345,7 +345,7 @@ function tagPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((mObj: metadata.metadata) => {
+  metadata.Metadata.load_by_slug(args.pagename).then((mObj: metadata.Metadata) => {
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -361,7 +361,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
     }
 
     // search for rater if needed
-    let rater = new metadata.rating(mObj.article_id, args.user_id, args.rating);
+    let rater = new metadata.Rating(mObj.article_id, args.user_id, args.rating);
     let found = false;
     console.log("User id is " + args.user_id);
     for (let i = 0; i < mObj.ratings.length; i++) {
@@ -389,7 +389,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: metadata.metadata) => {
+  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: metadata.Metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -408,7 +408,7 @@ function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
 function getRatingModule(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.metadata.load_by_slug(args.pagename).then((pMeta: metadata.metadata) => {
+  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: metadata.Metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
