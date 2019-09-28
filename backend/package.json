@@ -31,6 +31,7 @@
   "main": "index.js",
   "scripts": {
     "gulp": "node node_modules/gulp/bin/gulp.js",
+    "server": "NODE_PATH=dist node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
