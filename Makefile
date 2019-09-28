@@ -21,7 +21,9 @@ ARTIFACTS := \
 	client/dist/404.js \
 	backend/dist/index.js
 
-program: $(ARTIFACTS)
+.PHONY: default clean clean-all
+
+default: $(ARTIFACTS)
 
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
@@ -32,3 +34,9 @@ client/dist/404.js: client/package.json client/*.js
 
 backend/dist/index.js: backend/package.json backend/**/*.ts
 	cd backend && npm run gulp
+
+clean:
+	rm -rf client/dist backend/dist
+
+clean-all: clean
+	cd ftml-json && cargo clean
