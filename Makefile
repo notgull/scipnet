@@ -18,7 +18,7 @@
 
 ARTIFACTS := \
 	ftml-json/target/release/ftml-json \
-	client/dist/404.js \
+	frontend/dist/404.js \
 	backend/dist/index.js
 
 .PHONY: default clean clean-all
@@ -28,9 +28,9 @@ default: $(ARTIFACTS)
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
 
-client/dist/404.js: client/package.json client/*.js
-	cd client && npm run gulp
-	cd client && npm run babel
+frontend/dist/404.js: frontend/package.json frontend/*.js
+	cd frontend && npm run gulp
+	cd frontend && npm run babel
 
 backend/dist/index.js: backend/package.json backend/**/*.ts
 	cd backend && npm run gulp
