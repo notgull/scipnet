@@ -18,8 +18,8 @@ before_script:
   - git submodule init
   - git submodule update
   - nvm install $NODE_VERSION
-  - cd frontend && npm install
-  - cd backend && npm install
+  - (cd frontend && npm install)
+  - (cd backend && npm install)
 
 script: make
 
