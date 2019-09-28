@@ -19,7 +19,7 @@
 ARTIFACTS := \
 	ftml-json/target/release/ftml-json \
 	client/dist/404.js \
-	server/dist/index.js
+	backend/dist/index.js
 
 program: $(ARTIFACTS)
 
@@ -32,5 +32,5 @@ client/dist/404.js:
 #client/dist/404.js: client/package.json client/*
 #	cd server && npm run babel -- client --out-dir dist/client
 
-server/dist/index.js: server/package.json server/* server/**/*
+backend/dist/index.js: backend/package.json backend/**/*.ts
 	cd server && npm run gulp
