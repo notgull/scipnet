@@ -1,11 +1,6 @@
 # Binaries
-node_modules/
 certs/
 db/
-package-lock.json
-
-# Local
-config/override.json
 
 # Misc
 *.bak
