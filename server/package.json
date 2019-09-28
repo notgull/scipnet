@@ -2,7 +2,7 @@
   "name": "scpwiki",
   "version": "0.0.1",
   "description": "SCP Wiki server software",
-  "author": "not_a_seagull",
+  "author": "not_a_seagull, Ammon Smith",
   "license": "AGPL-3.0",
   "dependencies": {
     "@babel/cli": "^7.6.0",
