@@ -26,11 +26,8 @@ program: $(ARTIFACTS)
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
 
-client/dist/404.js:
-	@echo TODO client
-
-#client/dist/404.js: client/package.json client/*
-#	cd server && npm run babel -- client --out-dir dist/client
+client/dist/404.js: client/package.json client/*
+	cd client && npm run babel -- --out-dir dist
 
 backend/dist/index.js: backend/package.json backend/**/*.ts
 	cd server && npm run gulp
