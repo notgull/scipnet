@@ -14,11 +14,11 @@
     "noEmitOnError": true,
     "paths": {
       "app/*": [
-        "server/*"
+        "./*"
       ]
     }
   },
   "include": [
-    "server"
+    "."
   ]
 }

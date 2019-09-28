@@ -16,13 +16,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-program: ftml-json/target/release/ftml-json dist/client/404.js dist/server/index.js
+ARTIFACTS := \
+	ftml-json/target/release/ftml-json \
+	client/dist/404.js \
+	server/dist/index.js
 
-dist/client/404.js: package.json client/*
-	npm run babel -- client --out-dir dist/client
-
-dist/server/index.js: package.json server/* server/**/*
-	npm run gulp
+program: $(ARTIFACTS)
 
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
+
+client/dist/404.js:
+	@echo TODO client
+
+#client/dist/404.js: client/package.json client/*
+#	cd server && npm run babel -- client --out-dir dist/client
+
+server/dist/index.js: server/package.json server/* server/**/*
+	cd server && npm run gulp
