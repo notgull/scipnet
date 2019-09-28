@@ -1,6 +1,5 @@
 # Binaries
 node_modules/
-dist/
 certs/
 db/
 package-lock.json
