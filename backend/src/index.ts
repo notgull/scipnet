@@ -322,13 +322,19 @@ app.get("/:pageid", function(req, res) {
 });
 
 // load javascript files
-app.get("/sys/js/:script", function(req, res) {
+/*app.get("/sys/js/:script", function(req, res) {
   const params: Params = req.params as Params;
   let scriptName = params['script'];
   let scriptPath = path.join("../frontend/dist", scriptName);
   if (!fs.existsSync(scriptPath)) scriptPath = "../frontend/dist/404.js";
 
   let script = fs.readFileSync(scriptPath);
+  res.type("application/javascript");
+  res.send(script);
+});*/
+
+app.get("/sys/bundle.js", function(req: express.Request, res: express.Response) {
+  let script = fs.readFileSync("../frontend/release/bundle.js");
   res.type("application/javascript");
   res.send(script);
 });

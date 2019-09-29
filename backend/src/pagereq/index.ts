@@ -46,6 +46,7 @@ export interface PRSReturnVal {
   rating: Nullable<number>;
   newRating: Nullable<number>;
   ratingModule: Nullable<string>;
+  tags: Nullable<Array<string>>;
   not_logged_in: boolean;
 };
 
@@ -55,14 +56,15 @@ export type PRSCallback = (result: PRSReturnVal) => any;
 function genReturnVal(): PRSReturnVal {
   return { result: false,
            error: null,
-         errorCode: null,
-         src: null,
-         title: null,
-         editlockBlocker: null,
-         rating: null,
-         newRating: null,
-         ratingModule: null,
-         not_logged_in: false };
+           errorCode: null,
+           src: null,
+           title: null,
+           editlockBlocker: null,
+           rating: null,
+           newRating: null,
+           ratingModule: null,
+           tags: null,
+           not_logged_in: false };
 }
 
 // generate an error'd return value
@@ -384,39 +386,6 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   }).catch((err) => { next(genErrorVal(err)); });
 };
 
-// set the tags on the page (creating a new revision in the process)
-async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
-  let returnVal = genReturnVal();
-
-  let mObj = await metadata.Metadata.load_by_slug(args.pagename);
-  if (!mObj) {
-    returnVal.error = "Page does not exist";
-    returnVal.errorCode = 4;
-    return returnVal;
-  }
-
-  if (!args.tags) {
-    args.tags = [];
-  }
-
-  mObj.tags = args.tags;
-
-  // revision
-  // TODO: figure out how to do this w/ git
-  let latest_revision = mObj.revisions[mObj.revisions.length - 1];
-  let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A", latest_revision.diff_link);
-  mObj.submit(false);
-  revision.submit();
-
-  returnVal.result = true;
-  return returnVal;
-}
-
-function tagPage(username: string, args: ArgsMapping, next: PRSCallback) {
-  tagPageAsync(username, args).then((retval: PRSReturnVal) => { next(retval); })
-    .catch((err: Error) => { next(genErrorVal(err)); });
-}
-
 // get the list of tags
 function getTags(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
@@ -490,6 +459,7 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     // functions that don't need the username
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
     else if (name === "pageHistory") { pageHistory(args, next); return; }
+    else if (name === "getTags") { getTags(args, next); return; }
 
     if (!username) {
       returnVal.not_logged_in = true;
@@ -502,6 +472,7 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     else if (name === 'removeEditLock') removeEditLock(username, args, next);
     else if (name === 'beginEditPage') beginEditPage(username, args, next);
     else if (name === 'voteOnPage') voteOnPage(username, args, next);
+    else if (name === 'tagPage') tagPage(username, args, next);
     else throw new Error("Improper PRS request " + name);
   });
 };
