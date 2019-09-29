@@ -19,13 +19,14 @@
 
 .PHONY: default prepare clean
 
-default: dist/index.js
+default: dist/404.js
 
 prepare:
 	npm install
 
-dist/index.js: package.json *.ts **/*.ts
+dist/404.js: package.json *.js
 	npm run gulp
+	npm run babel
 
 clean:
 	rm -rf dist/*.js
