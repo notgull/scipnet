@@ -33,7 +33,7 @@ prepare:
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
 
-frontend/dist/404.js: frontend/package.json frontend/*.js
+frontend/dist/404.js: frontend/package.json frontend/*.js frontend/*.ts
 	make -C frontend
 
 backend/dist/index.js: backend/package.json backend/**/*.ts
