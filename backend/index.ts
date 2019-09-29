@@ -325,8 +325,8 @@ app.get("/:pageid", function(req, res) {
 app.get("/sys/js/:script", function(req, res) {
   const params: Params = req.params as Params;
   let scriptName = params['script'];
-  let scriptPath = path.join("dist/client", scriptName);
-  if (!fs.existsSync(scriptPath)) scriptPath = "dist/client/404.js";
+  let scriptPath = path.join("../frontend/dist", scriptName);
+  if (!fs.existsSync(scriptPath)) scriptPath = "../frontend/dist/404.js";
 
   let script = fs.readFileSync(scriptPath);
   res.type("application/javascript");
