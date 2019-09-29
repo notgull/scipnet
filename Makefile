@@ -36,7 +36,7 @@ ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 frontend/dist/404.js: frontend/package.json frontend/tsconfig.json frontend/*.js frontend/*.ts
 	make -C frontend
 
-backend/dist/index.js: backend/package.json frontend/tsconfig.json backend/**/*.ts
+backend/dist/index.js: backend/package.json frontend/tsconfig.json backend/src/**/*.ts
 	make -C backend
 
 clean:

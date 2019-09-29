@@ -24,7 +24,7 @@ const ts = require('gulp-typescript');
 const tsProject = ts.createProject('tsconfig.json');
 
 gulp.task('default', () => (
-    tsProject.src()
-        .pipe(tsProject())
-        .js.pipe(gulp.dest('dist'))
+  gulp.src('src/**/*.ts')
+    .pipe(tsProject())
+    .pipe(gulp.dest('dist'))
 ));
