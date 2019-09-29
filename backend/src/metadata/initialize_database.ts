@@ -35,17 +35,21 @@ export function initialize_pages(next: (n: number) => any) {
     if (err) throw new Error(err);
 
     // also create the revision table
-    const revision_table_sql = "CREATE TABLE IF NOT EXISTS Revisions (" +
-                           "revision_id BIGSERIAL PRIMARY KEY," +
-                           "article_id INTEGER REFERENCES Pages(article_id)," +
-                           "user_id INTEGER REFERENCES Users(user_id)," +
-                           "diff_link TEXT NOT NULL UNIQUE," +
-                           "description TEXT," +
-                               "tags TEXT[]," +
-                               "flags TEXT," +
-                               "title TEXT," +
-                           "created_at TIMESTAMP NOT NULL" +
-                         ");";
+    const revision_table_sql = `
+      CREATE SEQUENCE revisions_seq START 1 INCREMENT 1;
+
+      CREATE TABLE IF NOT EXISTS Revisions (
+        revision_id INTEGER PRIMARY KEY DEFAULT nextval('revisions_seq'),
+        article_id INTEGER REFERENCES Pages(article_id),
+        user_id INTEGER REFERENCES Users(user_id),
+        git_commit TEXT NOT NULL UNIQUE,
+        description TEXT,
+        tags TEXT[],
+        flags TEXT,
+        title TEXT,
+        created_at TIMESTAMP NOT NULL
+      );
+    `;
     query(revision_table_sql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
