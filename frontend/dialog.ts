@@ -1,5 +1,5 @@
 /*
- * messagebox.js
+ * dialog.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -19,13 +19,11 @@
  */
 
 // pops open dialog boxes
-var currentDialog = false;
+let currentDialog = false;
 
-var createDialog = function(msg) {
+export function createDialog(message: string) {
   // TODO: actual system
-  alert(msg);
-};
+  alert(message);
+}
 
-var destroyDialog = function() {
-
-};
+export function destroyDialog() {}

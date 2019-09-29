@@ -18,9 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// page utilities (e.g. history, et al)
-//var add_event_listener
-
 var hidePageUtilities = function() {
   document.getElementById("editor").classList.add("vanished");
   document.getElementById("rater").classList.add("vanished");
