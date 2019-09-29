@@ -18,12 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var gulp = require('gulp');
-var ts = require('gulp-typescript');
-var tsProject = ts.createProject('tsconfig.json');
+const gulp = require('gulp');
+const ts = require('gulp-typescript');
 
-gulp.task('default', function () {
-    return tsProject.src()
+const tsProject = ts.createProject('tsconfig.json');
+
+gulp.task('default', () => (
+    tsProject.src()
         .pipe(tsProject())
-        .js.pipe(gulp.dest('dist'));
-});
+        .js.pipe(gulp.dest('dist'))
+));

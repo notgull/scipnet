@@ -158,29 +158,29 @@ for (let i = 0; i < services.length; i++) {
 
 // special files
 app.get("/favicon.ico", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("images/icon.ico"));
+  res.send(fs.readFileSync("../images/icon.ico"));
 });
 
 app.get("/sys/images/background.png", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("images/body_bg.png"));
+  res.send(fs.readFileSync("../images/body_bg.png"));
 });
 
 // bauhaus font css
 app.get("/sys/fonts/font-bauhaus.css", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("css/font-bauhaus.css"));
+  res.send(fs.readFileSync("../css/font-bauhaus.css"));
 });
 
 app.get("/sys/fonts/itc-bauhaus-lt-demi.ttf", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.ttf"));
+  res.send(fs.readFileSync("../css/itc-bauhaus-lt-demi.ttf"));
 });
 
 app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.eot"));
+  res.send(fs.readFileSync("../css/itc-bauhaus-lt-demi.eot"));
 });
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  render_page(req, true, 'templates/login.html', "Login",
+  render_page(req, true, '../templates/login.html', "Login",
         (d) => {res.send(d)});
 });
 
@@ -232,7 +232,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      send_jsonrpc_message("pagereq", args, config.get('pagereq_ip'), config.get('pagereq_port')).then((response: any) => {
+      send_jsonrpc_message("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
@@ -245,7 +245,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 
 // get registration page
 app.get("/sys/register", function(req: express.Request, res: express.Response) {
-  render_page(req, true, 'templates/register.html', 'Register',
+  render_page(req, true, '../templates/register.html', 'Register',
              (d) => {res.send(d);});
 });
 
@@ -325,8 +325,8 @@ app.get("/:pageid", function(req, res) {
 app.get("/sys/js/:script", function(req, res) {
   const params: Params = req.params as Params;
   let scriptName = params['script'];
-  let scriptPath = path.join("dist/client", scriptName);
-  if (!fs.existsSync(scriptPath)) scriptPath = "dist/client/404.js";
+  let scriptPath = path.join("../frontend/dist", scriptName);
+  if (!fs.existsSync(scriptPath)) scriptPath = "../frontend/dist/404.js";
 
   let script = fs.readFileSync(scriptPath);
   res.type("application/javascript");
@@ -342,5 +342,5 @@ app.get("/", function(req, res) {
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(certs, app);
 
-httpServer.listen(8000);
+httpServer.listen(8002);
 httpsServer.listen(s_port);

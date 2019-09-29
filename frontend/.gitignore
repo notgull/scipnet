@@ -1,0 +1,7 @@
+# Binaries
+dist/
+node_modules/
+package-lock.json
+
+# Local
+config/override.json

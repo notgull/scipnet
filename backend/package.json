@@ -1,22 +1,15 @@
 {
-  "name": "scpwiki",
+  "name": "scipnet-backend",
   "version": "0.0.1",
-  "description": "SCP Wiki server software",
-  "author": "not_a_seagull",
+  "description": "Multi-tenant writing wiki software backend",
+  "author": "not_a_seagull, Ammon Smith",
   "license": "AGPL-3.0",
   "dependencies": {
-    "@babel/cli": "^7.6.0",
-    "@babel/core": "^7.6.0",
-    "@babel/preset-env": "^7.6.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "diff": "^4.0.1",
     "express": "^4.17.1",
-    "ffi": "^2.3.0",
     "jayson": "^3.0.2",
-    "json-rpc-2.0": "^0.2.10",
-    "node-srp": "0.0.1",
-    "nodemailer": "^6.2.1",
     "nunjucks": "^3.2.0",
     "pg": "^7.12.0",
     "simple-git": "^1.126.0",
@@ -27,7 +20,6 @@
     "@types/cookie-parser": "^1.4.2",
     "@types/diff": "^4.0.2",
     "@types/express": "^4.17.0",
-    "@types/ffi": "^0.2.2",
     "@types/node": "^12.7.2",
     "@types/nunjucks": "^3.1.1",
     "@types/pg": "^7.11.0",
@@ -39,14 +31,7 @@
   "main": "index.js",
   "scripts": {
     "gulp": "node node_modules/gulp/bin/gulp.js",
-    "babel": "node node_modules/@babel/cli/bin/babel.js",
     "server": "NODE_PATH=dist node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ],
-    "plugins": []
   }
 }

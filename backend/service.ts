@@ -26,7 +26,7 @@ import * as path from 'path';
 import { config } from 'app/config';
 import { ServiceConfig } from 'app/service_wrapper';
 
-const module_root = 'dist/server';
+const module_root = 'dist';
 
 export interface ServiceInfo {
   process: ChildProcess;
@@ -40,10 +40,10 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
   let module_path = path.join(process.cwd(), module_root, modname);
   let module_service = path.join(module_path, "service.js");
   if (!(fs.existsSync(module_service))) {
-    throw new Error("Service not found: " + modname);
+    throw new Error("Service not found: " + module_service);
   }
 
-  return {process: fork(path.join(process.cwd(), "dist/server/service_wrapper.js"),
+  return {process: fork(path.join(process.cwd(), "dist/service_wrapper.js"),
                         [module_service, JSON.stringify(serv_config)]),
           port: serv_config.hosts[0].port,
         ip_addr: serv_config.hosts[0].address}
@@ -52,8 +52,8 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
 // ftml-json is built in rust, thus we need a special function to run it
 export function runftmlservice(): ServiceInfo {
   console.log("Running FTML as a service");
-  let ftml_path = path.join(process.cwd(), 'ftml-json/target/release/ftml-json');
-  let config_path = path.join(process.cwd(), 'ftml-json/misc/config.toml');
+  let ftml_path = path.join(process.cwd(), '../ftml-json/target/release/ftml-json');
+  let config_path = path.join(process.cwd(), '../ftml-json/misc/config.toml');
 
   let ftml = spawn(ftml_path, [config_path]);
   ftml.stdout.on('data', (data: any) => {

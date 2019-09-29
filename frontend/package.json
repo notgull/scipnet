@@ -1,0 +1,31 @@
+{
+  "name": "scipnet-frontend",
+  "version": "0.0.1",
+  "description": "Multi-tenant writing wiki software frontend",
+  "author": "not_a_seagull, Ammon Smith",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "@types/node": "^12.7.8",
+    "typescript": "=3.5.3"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "gulp-typescript": "^5.0.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "gulp": "node node_modules/gulp/bin/gulp.js",
+    "babel": "node node_modules/@babel/cli/bin/babel.js --out-dir dist -- *.js",
+    "server": "NODE_PATH=dist node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "plugins": []
+  }
+}
