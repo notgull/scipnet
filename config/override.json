@@ -1,0 +1,6 @@
+{
+  "files.data.content": "/var/scp-content",
+  "files.data.metadata": "/var/scp-metadata",
+  "files.data.diff": "/var/scp-diff",
+  "files.data.attachments": "/var/attachments"
+}
