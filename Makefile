@@ -22,7 +22,7 @@ include backend/sources.mk
 
 ARTIFACTS := \
 	ftml-json/target/release/ftml-json \
-	frontend/dist/404.js \
+	frontend/release/bundle.js \
 	backend/dist/index.js
 
 .PHONY: default prepare clean clean-all
@@ -36,7 +36,7 @@ prepare:
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
 
-frontend/dist/404.js: $(FRONTEND_SOURCES)
+frontend/release/bundle.js: $(FRONTEND_SOURCES)
 	make -C frontend
 
 backend/dist/index.js: $(BACKEND_SOURCES)
