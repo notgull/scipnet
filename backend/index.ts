@@ -158,29 +158,29 @@ for (let i = 0; i < services.length; i++) {
 
 // special files
 app.get("/favicon.ico", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("images/icon.ico"));
+  res.send(fs.readFileSync("../images/icon.ico"));
 });
 
 app.get("/sys/images/background.png", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("images/body_bg.png"));
+  res.send(fs.readFileSync("../images/body_bg.png"));
 });
 
 // bauhaus font css
 app.get("/sys/fonts/font-bauhaus.css", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("css/font-bauhaus.css"));
+  res.send(fs.readFileSync("../css/font-bauhaus.css"));
 });
 
 app.get("/sys/fonts/itc-bauhaus-lt-demi.ttf", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.ttf"));
+  res.send(fs.readFileSync("../css/itc-bauhaus-lt-demi.ttf"));
 });
 
 app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res: express.Response) {
-  res.send(fs.readFileSync("css/itc-bauhaus-lt-demi.eot"));
+  res.send(fs.readFileSync("../css/itc-bauhaus-lt-demi.eot"));
 });
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  render_page(req, true, 'templates/login.html', "Login",
+  render_page(req, true, '../templates/login.html', "Login",
         (d) => {res.send(d)});
 });
 
@@ -245,7 +245,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 
 // get registration page
 app.get("/sys/register", function(req: express.Request, res: express.Response) {
-  render_page(req, true, 'templates/register.html', 'Register',
+  render_page(req, true, '../templates/register.html', 'Register',
              (d) => {res.send(d);});
 });
 
