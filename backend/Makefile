@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+include sources.mk
+
 .PHONY: default prepare clean
 
 default: dist/index.js
@@ -24,7 +26,7 @@ default: dist/index.js
 prepare:
 	npm install
 
-dist/index.js: package.json tsconfig.json *.ts **/*.ts
+dist/index.js: $(patsubst backend/%,%,$(BACKEND_SOURCES))
 	npm run gulp
 
 clean:

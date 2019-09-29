@@ -16,6 +16,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+include sources.mk
 
 .PHONY: default prepare clean
 
@@ -24,7 +27,7 @@ default: dist/404.js
 prepare:
 	npm install
 
-dist/404.js: package.json tsconfig.json *.js *.ts
+dist/404.js: $(patsubst frontend/%,%,$(FRONTEND_SOURCES))
 	npm run gulp
 	npm run babel
 

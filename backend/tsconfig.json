@@ -14,12 +14,12 @@
     "noEmitOnError": true,
     "paths": {
       "app/*": [
-        "./*"
+        "src/*"
       ]
     }
   },
   "include": [
-    "."
+    "src"
   ],
   "exclude": [
     "node_modules"
