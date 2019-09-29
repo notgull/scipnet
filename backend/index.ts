@@ -342,5 +342,5 @@ app.get("/", function(req, res) {
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(certs, app);
 
-httpServer.listen(8000);
+httpServer.listen(8002);
 httpsServer.listen(s_port);

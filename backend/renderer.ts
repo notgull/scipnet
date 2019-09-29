@@ -28,7 +28,7 @@ import { renderFtml } from 'app/ftml';
 import * as md from 'app/metadata';
 
 // nunjucks environment
-const templates_folder = path.join(process.cwd(), "templates");
+const templates_folder = path.join(process.cwd(), "../templates");
 let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folder), {
   autoescape: false,
 });
@@ -64,9 +64,9 @@ export async function render(
   let loginBar;
   if (loginInfo) {
     username = loginInfo;
-    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_li.html')).toString();
+    loginBar = fs.readFileSync(path.join(process.cwd(), '../templates/lbar_li.html')).toString();
   } else {
-    loginBar = fs.readFileSync(path.join(process.cwd(), 'templates/lbar_nli.html')).toString();
+    loginBar = fs.readFileSync(path.join(process.cwd(), '../templates/lbar_nli.html')).toString();
   }
 
   let content;
