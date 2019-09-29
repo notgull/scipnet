@@ -30,7 +30,7 @@ var setError = function(error) {
 };
 
 window.onload = function() {
-  var errorId = get_parameter("errorCode")
+  var errorId = getParameter("errorCode")
   if (errorId === '3') setError("An internal server error occured. Please contact a site administrator.");
   else if (errorId === '5' || errorId === '7') setError("Username and password combination were not found in database");
 }
@@ -38,7 +38,7 @@ window.onload = function() {
 // hash text via pbkdf2
 var process_details = function() {
   var data = document.getElementById('login_form');
-  var newUrl = get_parameter('new_url');
+  var newUrl = getParameter('new_url');
 
   var username = data.username.value;
   var remember = data.remember.checked;
@@ -46,11 +46,11 @@ var process_details = function() {
 
   hash_password(data.password.value, username, function(pwHash) {
     // send post data to the login page, i.e. this url
-    var url = "/sys/process-login";   
+    var url = "/sys/process-login";
     var params = { username: username,
 	           pwHash: pwHash,
 	           remember: remember.toString(),
-	           change_ip: change_ip.toString(), 
+	           change_ip: change_ip.toString(),
                    new_url: newUrl};
 
     send_post_data(url, params);

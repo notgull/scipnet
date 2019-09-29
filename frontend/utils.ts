@@ -1,5 +1,5 @@
 /*
- * 404.js
+ * utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,5 +18,4 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// basic 404 redirected script
-alert("Attempted to load nonexistant script!");
+export type Nullable<T> = T | null;

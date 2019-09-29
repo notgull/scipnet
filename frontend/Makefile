@@ -24,7 +24,7 @@ default: dist/404.js
 prepare:
 	npm install
 
-dist/404.js: package.json *.js
+dist/404.js: package.json *.js *.ts
 	npm run gulp
 	npm run babel
 

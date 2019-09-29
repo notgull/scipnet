@@ -1,5 +1,5 @@
 /*
- * messagebox.js
+ * parameters.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,14 +18,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// pops open dialog boxes
-var currentDialog = false;
+import { Nullable } from './utils';
 
-var createDialog = function(msg) {
-  // TODO: actual system
-  alert(msg);
-};
+export function getParameter(parameterName: string): Nullable<string> {
+  const args = location.search
+    .substr(1)
+    .split('&');
 
-var destroyDialog = function() {
+  for (const arg of args) {
+    const [key, value] = arg.split('=');
 
-};
+    if (key === parameterName) {
+      return decodeURIComponent(value);
+    }
+  }
+}

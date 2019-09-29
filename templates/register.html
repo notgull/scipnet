@@ -23,7 +23,7 @@
 <!-- registration code -->
 <script type="text/javascript" src="/sys/js/pbkdf2.js"></script>
 <script type="text/javascript" src="/sys/js/post.js"></script>
-<script type="text/javascript" src="/sys/js/get_param.js"></script>
+<script type="text/javascript" src="/sys/js/parameters.js"></script>
 <script type="text/javascript">
 var check_field_empty = function(field) {
   return !(field.value.trim().length > 0);
@@ -40,7 +40,7 @@ var addError = function(error) {
 }
 
 window.onload = function() {
-  var errorId = get_parameter("errors");
+  var errorId = getParameter("errors");
   if (errorId) {
     var errorList = document.getElementById("errorMsg");
     errorList.innerHTML += "<p>Unable to register account due to the following errors: </p>\n";
@@ -75,7 +75,7 @@ window.onload = function() {
 
 var process_details = function() {
   var data = document.getElementById('registration_form');
-  
+
   var errCode = 0;
   if (data.email.value !== data.c_email.value)
     errCode = errCode | 1;
@@ -92,8 +92,8 @@ var process_details = function() {
   if (!check_password_compat(data.password.value))
     errCode = errCode | 64;
   if (!check_password_compat(data.username.value))
-    errCode = errCode | 1024; 
-  
+    errCode = errCode | 1024;
+
   if (errCode !== 0) {
     var errUrl = "/sys/register?errors=" + errCode;
     window.location.href = errUrl;
