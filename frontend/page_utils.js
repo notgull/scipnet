@@ -18,19 +18,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var hidePageUtilities = function() {
+export function hidePageUtilities() {
   document.getElementById("editor").classList.add("vanished");
   document.getElementById("rater").classList.add("vanished");
   document.getElementById("revisions").classList.add("vanished");
 };
 
-var editpage = function(use_404_param=false) {
+export function editpage(use_404_param=false) {
   hidePageUtilities();
-  var pagename = get_slug();
+  let pagename = get_slug();
   if (use_404_param)
     pagename = getParameter("original_page");
 
-  var args = {};
+  let args = {};
   args.pagename = pagename;
   console.log("Pagename: " + pagename);
 
@@ -47,13 +47,13 @@ var editpage = function(use_404_param=false) {
       return;
     }
 
-    var pagesource = "";
+    let pagesource = "";
     if ('src' in d) {
       pagesource = d.src;
       // pagesource = new String(pagesource.data.map(String.fromCharCode));
     }
 
-    var title = "Title";
+    let title = "Title";
     if ('title' in d) {
       title = d.title;
     }
@@ -66,13 +66,13 @@ var editpage = function(use_404_param=false) {
   });
 };
 
-var toggle_404_param = function() {
+export function toggle_404_param() {
   //document.getElementById("sac_button").onclick = function() { savepage(false, true); };
   //document.getElementById("save_button").onclick = function() { savepage(true, true); };
 }
 
-var savepage = function(refresh, use_404_param=false) {
-  var args = {};
+export function savepage(refresh, use_404_param=false) {
+  let args = {};
   args.pagename = get_slug();
   args.src = document.getElementById('srcbox').value;
   args.title = document.getElementById('titlebox').value;
@@ -86,11 +86,11 @@ var savepage = function(refresh, use_404_param=false) {
       if (!use_404_param)
         window.location.reload();
       else
-	window.location.href = args.pagename;
+        window.location.href = args.pagename;
   });
 };
 
-var canceleditpage = function() {
+export function canceleditpage() {
   hidePageUtilities();
 
   prsRequest("removeEditLock", {pagename: get_slug()}, (d) => {
