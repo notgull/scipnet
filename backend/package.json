@@ -5,6 +5,7 @@
   "author": "not_a_seagull, Ammon Smith",
   "license": "AGPL-3.0",
   "dependencies": {
+    "await-lock": "^2.0.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "diff": "^4.0.1",
@@ -26,7 +27,8 @@
     "@types/uuid": "^3.4.5",
     "gulp": "^4.0.0",
     "gulp-typescript": "^5.0.1",
-    "mocha": "^6.2.0"
+    "mocha": "^6.2.0",
+    "simple-git-types": "^1.53.10"
   },
   "main": "index.js",
   "scripts": {
