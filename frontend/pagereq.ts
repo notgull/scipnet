@@ -21,6 +21,8 @@
 // sending xmlhttprequests to the server and receiving data in return
 // need to include: js/cookie.js
 
+import { getCookie } from './cookie';
+
 // helper function: get slug
 export function get_slug() {
   let pathname = window.location.pathname;
@@ -38,7 +40,7 @@ export function prsRequest(name: string, args: any, next: (x: any) => any) {
   args['sessionId'] = getCookie('sessionId');
 
   // create callback
-  function xhrCallback() {
+  function xhrCallback(this: XMLHttpRequest) {
     console.log(this.responseText);
     let result = JSON.parse(this.responseText);
     next(result);

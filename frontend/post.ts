@@ -1,5 +1,5 @@
 /*
- * post.js
+ * post.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -19,15 +19,15 @@
  */
 
 // refractored from other method
-var create_post_form = function(url, params) {
-  var form = document.createElement('form');
+export function create_post_form(url: string, params: any) {
+  let form = document.createElement('form');
   form.method = 'post';
   form.action = url;
 
   // loop through params
-  for (var key in params) {
+  for (let key in params) {
     if (params.hasOwnProperty(key)) {
-      var hidden_field = document.createElement('input');
+      let hidden_field = document.createElement('input');
       hidden_field.type = 'hidden';
       hidden_field.name = key;
       hidden_field.value = params[key];
@@ -44,7 +44,7 @@ var create_post_form = function(url, params) {
 // send POST data to a specified URL
 // jerry rigged, maybe make better later?
 // Taken from: https://stackoverflow.com/a/133997/11187995
-var send_post_data = function(url, params) {
-  var form = create_post_form(url, params);
+export function send_post_data(url: string, params: any) {
+  let form = create_post_form(url, params);
   form.submit();
 };

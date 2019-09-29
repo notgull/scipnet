@@ -18,6 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { get_slug, prsRequest } from './pagereq';
+import { getParameter } from './parameters';
+import { createDialog } from './dialog';
+
 export function hidePageUtilities() {
   document.getElementById("editor").classList.add("vanished");
   document.getElementById("rater").classList.add("vanished");
@@ -30,7 +34,7 @@ export function editpage(use_404_param: boolean = false) {
   if (use_404_param)
     pagename = getParameter("original_page");
 
-  let args = {};
+  let args: any = {};
   args.pagename = pagename;
   console.log("Pagename: " + pagename);
 
@@ -42,7 +46,7 @@ export function editpage(use_404_param: boolean = false) {
     }
 
     if ('result' in d && !d.result) {
-      err = "Error Code " + d.errorCode + ": " + d.error;
+      let err = "Error Code " + d.errorCode + ": " + d.error;
       createDialog(err);
       return;
     }
@@ -58,11 +62,10 @@ export function editpage(use_404_param: boolean = false) {
       title = d.title;
     }
 
-
     // expose editor
-    document.getElementById("editor").classList.remove("vanished");
-    document.getElementById("titlebox").value = title;
-    document.getElementById("srcbox").value = pagesource;
+    (<HTMLInputElement>document.getElementById("editor")).classList.remove("vanished");
+    (<HTMLInputElement>document.getElementById("titlebox")).value = title;
+    (<HTMLInputElement>document.getElementById("srcbox")).value = pagesource;
   });
 };
 
@@ -72,11 +75,11 @@ export function toggle_404_param() {
 }
 
 export function savepage(refresh: boolean, use_404_param: boolean = false) {
-  let args = {};
+  let args: any = {};
   args.pagename = get_slug();
-  args.src = document.getElementById('srcbox').value;
-  args.title = document.getElementById('titlebox').value;
-  args.comment = document.getElementById('commentbox').value;
+  args.src = (<HTMLInputElement>document.getElementById('srcbox')).value;
+  args.title = (<HTMLInputElement>document.getElementById('titlebox')).value;
+  args.comment = (<HTMLInputElement>document.getElementById('commentbox')).value;
 
   if (use_404_param)
     args.pagename = getParameter("original_page");
@@ -150,18 +153,18 @@ export function showtagger() {
       return;
     }
 
-    document.getElementById("tag-input").value = d.tags.join(' ');
+    (<HTMLInputElement>document.getElementById("tag-input")).value = d.tags.join(' ');
     document.getElementById("tags").classList.remove("vanished");
   }); 
 }
 
 export function cleartags() {
-  document.getElementById('tag-input').value = "";
+  (<HTMLInputElement>document.getElementById('tag-input')).value = "";
 }
 
 export function tagpage() {
-  let tags = document.getElementById("tag-input").value;
-  tags = tags.split(' ');
+  let taglist = (<HTMLInputElement>document.getElementById("tag-input")).value;
+  let tags = taglist.split(' ');
   
   prsRequest("tagPage", {pagename: get_slug(), tags: tags}, (d: any) => {
     if ('not_logged_in' in d && d.not_logged_in) {

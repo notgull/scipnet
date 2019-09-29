@@ -26,7 +26,7 @@ var tsify = require('tsify');
 var options = require('./tsconfig').compilerOptions;
 
 browserify('bundle.ts')
-  .plugin("tsify", options)
+  .plugin("tsify", { noImplicitAny: true })
   .transform("babelify", { presets: ["@babel/preset-env"] })
   .bundle()
-  .pipe(fs.createWriteStream("release/bundle.js");
+  .pipe(fs.createWriteStream("release/bundle.js"));

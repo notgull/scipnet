@@ -20,12 +20,36 @@
 
 // browserify needs all of the methods in once place
 import { getCookie } from './cookie';
-window.getCookie = getCookie;
+(<any>window).getCookie = getCookie;
 
 import { createDialog, destroyDialog } from './dialog';
-window.createDialog = createDialog;
-window.destroyDialog = destroyDialog;
+(<any>window).createDialog = createDialog;
+(<any>window).destroyDialog = destroyDialog;
 
 import { get_slug, prsRequest } from './pagereq';
-window.get_slug = get_slug;
-window.prsRequest = prsRequest;
+(<any>window).get_slug = get_slug;
+(<any>window).prsRequest = prsRequest;
+
+import { toggle_404_param, savepage, canceleditpage, editpage, scpvote, showrater,
+         showtagger, cleartags, tagpage, pagehistory } from './page_utils';
+(<any>window).editpage = editpage;
+(<any>window).toggle_404_param = toggle_404_param;
+(<any>window).savepage = savepage;
+(<any>window).canceleditpage = canceleditpage;
+(<any>window).editpage = editpage;
+(<any>window).scpvote = scpvote;
+(<any>window).showrater = showrater;
+(<any>window).showtagger = showtagger;
+(<any>window).cleartags = cleartags;
+(<any>window).tagpage = tagpage;
+(<any>window).pagehistory = pagehistory;
+
+import { getParameter } from './parameters';
+(<any>window).getParameter = getParameter;
+
+import { hash_password } from './pbkdf2';
+(<any>window).hash_password = hash_password
+
+import { create_post_form, send_post_data } from './post';
+(<any>window).create_post_form = create_post_form;
+(<any>window).send_post_data = send_post_data;
