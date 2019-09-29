@@ -36,8 +36,8 @@ backend/dist/index.js: backend/package.json backend/**/*.ts backend/*.ts
 	cd backend && npm run gulp
 
 clean:
-	rm -rf frontend/dist/*
-	rm -rf backend/dist/*
+	rm -rf frontend/dist/*.js
+	rm -rf backend/dist/*.js
 
 clean-all: clean
 	cd ftml-json && cargo clean
