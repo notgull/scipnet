@@ -20,7 +20,6 @@
 
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
-const transform = require('vinyl-transform');
 const babelify = require('babelify');
 const fs = require('fs');
 
@@ -42,4 +41,3 @@ gulp.task('browserify', () => (
 ));
 
 gulp.task('default', gulp.series('ts', 'browserify'));
-
