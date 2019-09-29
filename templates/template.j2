@@ -332,6 +332,23 @@
                         </div>
                     </div>
                     <div id="tags" class="vanished">
+                       <h1>Tags</h1>
+                       <form>
+                           <table>
+                               <tr>
+                                   <td>Tags:</td>
+                                   <td>
+                                       <input type="text" class="text" size="50" id="tag-input" value="{{ tags }}" />
+                                       <p><sub>Space-seperated list of tags.</sub></p>
+                                   </td>
+                               </tr>
+                               <tr>
+                                   <td><input type="button" value="Close" onclick="hidePageUtilities()" /></td>
+                                   <td><input type="button" value="Clear" onclick="cleartags()" /></td>
+                                   <td><input type="button" value="Save Tags" onclick="tagpage()" /></td>
+                               </tr>
+                           </table>
+                       </form> 
                     </div>
                     <div id="revisions" class="vanished">
                         <h1>History</h1>

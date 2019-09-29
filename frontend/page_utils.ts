@@ -35,7 +35,7 @@ export function editpage(use_404_param: boolean = false) {
   console.log("Pagename: " + pagename);
 
   // request page source and edit lock
-  prsRequest("beginEditPage", args, (d) => {
+  prsRequest("beginEditPage", args, (d: any) => {
     if ('not_logged_in' in d && d.not_logged_in) {
       createDialog("You must be logged in to edit pages.");
       return;
@@ -81,7 +81,7 @@ export function savepage(refresh: boolean, use_404_param: boolean = false) {
   if (use_404_param)
     args.pagename = getParameter("original_page");
 
-  prsRequest("changePage", args, (d) => {
+  prsRequest("changePage", args, (d: any) => {
     if (refresh)
       if (!use_404_param)
         window.location.reload();
@@ -93,7 +93,7 @@ export function savepage(refresh: boolean, use_404_param: boolean = false) {
 export function canceleditpage() {
   hidePageUtilities();
 
-  prsRequest("removeEditLock", {pagename: get_slug()}, (d) => {
+  prsRequest("removeEditLock", {pagename: get_slug()}, (d: any) => {
     window.location.reload();
   });
 };
@@ -101,7 +101,7 @@ export function canceleditpage() {
 export function scpvote(rate: number) {
   if (rate > 1 || rate < -1) return;
 
-  prsRequest('voteOnPage', {pagename: get_slug(), rating: rate}, (d)=>{
+  prsRequest('voteOnPage', {pagename: get_slug(), rating: rate}, (d: any)=>{
     if ('not_logged_in' in d && d.not_logged_in) {
       createDialog("You must be logged in to vote on pages.");
       return;
@@ -126,7 +126,7 @@ export function scpvote(rate: number) {
 export function showrater() {
   hidePageUtilities();
 
-  prsRequest("getRatingModule", {pagename: get_slug()}, (d) => {
+  prsRequest("getRatingModule", {pagename: get_slug()}, (d: any) => {
     if ('result' in d && !d.result) {
       createDialog("Failed to open rating module.");
       return;
@@ -141,13 +141,44 @@ var ratepage = function() {
 
 };
 
-var tagpage = function() {
+export function showtagger() {
+  hidePageUtilities();
+  
+  prsRequest("getTags", {pagename: get_slug()}, (d: any) => {
+    if ('result' in d && !d.result) {
+      createDialog("Failed to retrieve tags.");
+      return;
+    }
 
+    document.getElementById("tag-input").value = d.tags.join(' ');
+    document.getElementById("tags").classList.remove("vanished");
+  }); 
+}
+
+export function cleartags() {
+  document.getElementById('tag-input').value = "";
+}
+
+export function tagpage() {
+  let tags = document.getElementById("tag-input").value;
+  tags = tags.split(' ');
+  
+  prsRequest("tagPage", {pagename: get_slug(), tags: tags}, (d: any) => {
+    if ('not_logged_in' in d && d.not_logged_in) {
+      createDialog("You must be logged in to vote on pages.");
+      return;
+    }
+
+    if ('result' in d && !d.result) {
+      createDialog("Failed to vote on page.");
+      return;
+    }
+  });
 };
 
-var pagehistory = function(pagenum=1, perpage=20) {
+export function pagehistory(pagenum: number = 1, perpage: number = 20) {
   hidePageUtilities();
-  prsRequest("pageHistory", {pagename: get_slug(), pagenum: pagenum, perpage: perpage}, (d) => {
+  prsRequest("pageHistory", {pagename: get_slug(), pagenum: pagenum, perpage: perpage}, (d: any) => {
     if ('result' in d && !d.result) {
       createDialog("Failed to open page history.");
       return;

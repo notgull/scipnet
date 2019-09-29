@@ -384,6 +384,57 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   }).catch((err) => { next(genErrorVal(err)); });
 };
 
+// set the tags on the page (creating a new revision in the process)
+async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
+  let returnVal = genReturnVal();
+
+  let mObj = await metadata.Metadata.load_by_slug(args.pagename);
+  if (!mObj) {
+    returnVal.error = "Page does not exist";
+    returnVal.errorCode = 4;
+    return returnVal;
+  }
+
+  if (!args.tags) {
+    args.tags = [];
+  }
+
+  mObj.tags = args.tags;
+
+  // revision
+  // TODO: figure out how to do this w/ git
+  let latest_revision = mObj.revisions[mObj.revisions.length - 1];
+  let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A", latest_revision.diff_link);
+  mObj.submit(false);
+  revision.submit();
+
+  returnVal.result = true;
+  return returnVal;
+}
+
+function tagPage(username: string, args: ArgsMapping, next: PRSCallback) {
+  tagPageAsync(username, args).then((retval: PRSReturnVal) => { next(retval); })
+    .catch((err: Error) => { next(genErrorVal(err)); });
+}
+
+// get the list of tags
+function getTags(args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
+  
+  metadata.Metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.Metadata>) => {
+    if (!mObj) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    }
+
+    returnVal.tags = mObj.tags;
+    returnVal.result = true;
+    next(returnVal);
+  });
+}
+
 // get rating
 function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
