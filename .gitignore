@@ -3,6 +3,7 @@ certs/
 db/
 
 # Misc
+*.log
 *.bak
 .*.sw?
 *~
