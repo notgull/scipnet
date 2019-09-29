@@ -1,8 +1,8 @@
 /*
  * gulpfile.js
  *
- * scipnet - SCP Hosting Platform
- * Copyright (C) 2019 not_a_seagull
+ * scipnet - Multi-tenant writing wiki software
+ * Copyright (C) 2019 not_a_seagull, Ammon Smith
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
