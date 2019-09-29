@@ -1,6 +1,8 @@
 ## scipnet
 [![Build Status](https://travis-ci.org/Nu-SCPTheme/scipnet.svg?branch=master)](https://travis-ci.org/Nu-SCPTheme/scipnet)
 
+Platform for multi-tenant writing wikis.
+
 ### Running
 
 Uses Node.JS version 8.10.0
