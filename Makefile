@@ -1,7 +1,8 @@
+#
 # Makefile
 #
 # scipnet - SCP Hosting Platform
-# Copyright (C) 2019 not_a_seagull
+# Copyright (C) 2019 not_a_seagull, Ammon Smith
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -21,23 +22,26 @@ ARTIFACTS := \
 	frontend/dist/404.js \
 	backend/dist/index.js
 
-.PHONY: default clean clean-all
+.PHONY: default prepare clean clean-all
 
 default: $(ARTIFACTS)
+
+prepare:
+	make -C frontend prepare
+	make -C backend prepare
 
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
 
 frontend/dist/404.js: frontend/package.json frontend/*.js
-	cd frontend && npm run gulp
-	cd frontend && npm run babel
+	make -C frontend
 
-backend/dist/index.js: backend/package.json backend/**/*.ts backend/*.ts
-	cd backend && npm run gulp
+backend/dist/index.js: backend/package.json backend/**/*.ts
+	make -C backend
 
 clean:
-	rm -rf frontend/dist/*.js
-	rm -rf backend/dist/*.js
+	make -C frontend clean
+	make -C backend clean
 
 clean-all: clean
 	cd ftml-json && cargo clean
