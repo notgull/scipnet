@@ -18,7 +18,7 @@
   "main": "index.js",
   "scripts": {
     "gulp": "node node_modules/gulp/bin/gulp.js",
-    "babel": "node node_modules/@babel/cli/bin/babel.js --out-dir dist -- *.js",
+    "babel": "node node_modules/@babel/cli/bin/babel.js --out-file dist/client.js -- *.js",
     "server": "NODE_PATH=dist node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
