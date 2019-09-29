@@ -1,5 +1,5 @@
 /*
- * page_utils.js
+ * page_utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -24,7 +24,7 @@ export function hidePageUtilities() {
   document.getElementById("revisions").classList.add("vanished");
 };
 
-export function editpage(use_404_param=false) {
+export function editpage(use_404_param: boolean = false) {
   hidePageUtilities();
   let pagename = get_slug();
   if (use_404_param)
@@ -71,7 +71,7 @@ export function toggle_404_param() {
   //document.getElementById("save_button").onclick = function() { savepage(true, true); };
 }
 
-export function savepage(refresh, use_404_param=false) {
+export function savepage(refresh: boolean, use_404_param: boolean = false) {
   let args = {};
   args.pagename = get_slug();
   args.src = document.getElementById('srcbox').value;
@@ -98,7 +98,7 @@ export function canceleditpage() {
   });
 };
 
-var scpvote = function(rate) {
+export function scpvote(rate: number) {
   if (rate > 1 || rate < -1) return;
 
   prsRequest('voteOnPage', {pagename: get_slug(), rating: rate}, (d)=>{
@@ -112,18 +112,18 @@ var scpvote = function(rate) {
       return;
     }
 
-    var prList = document.getElementsByClassName("page-rating");
-    for (var i = 0; i < prList.length; i++) {
+    let prList = document.getElementsByClassName("page-rating");
+    for (let i = 0; i < prList.length; i++) {
       if (d.newRating > 0)
         prList[i].innerHTML = "+" + d.newRating;
       else
-	prList[i].innerHTML = d.newRating;
+        prList[i].innerHTML = d.newRating;
     }
   });
 };
 
 // clicking the "Rate" button
-var showrater = function() {
+export function showrater() {
   hidePageUtilities();
 
   prsRequest("getRatingModule", {pagename: get_slug()}, (d) => {

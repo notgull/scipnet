@@ -27,7 +27,7 @@ export function get_slug() {
   return pathname.split('/')[1];
 }
 
-export function prsRequest(name, args, next) {
+export function prsRequest(name: string, args: any, next: (x: any) => any) {
   // set up a form data with everything needed
   //var fData = new FormData();
   //fData.append('name', name);
