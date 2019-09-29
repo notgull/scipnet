@@ -20,11 +20,26 @@
 
 const gulp = require('gulp');
 const ts = require('gulp-typescript');
+const transform = require('vinyl-transform');
+const babelify = require('babelify');
+const fs = require('fs');
+
+const browserify = require('browserify')
 
 const tsProject = ts.createProject('tsconfig.json');
 
-gulp.task('default', () => (
+gulp.task('ts', () => (
   tsProject.src()
     .pipe(tsProject())
     .js.pipe(gulp.dest('dist'))
 ));
+
+gulp.task('browserify', () => (
+  browserify('dist/bundle.js')
+    .transform("babelify", { presets: ["@babel/preset-env"] })
+    .bundle()
+    .pipe(fs.createWriteStream("release/bundle.js"))
+));
+
+gulp.task('default', gulp.series('ts', 'browserify'));
+

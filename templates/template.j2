@@ -239,11 +239,7 @@
           padding: 0 8px;
         }
     </style>
-    <script type="text/javascript" src="/sys/js/get_param.js"></script>
-    <script type="text/javascript" src="/sys/js/dialog.js"></script>
-    <script type="text/javascript" src="/sys/js/cookie.js"></script>
-    <script type="text/javascript" src="/sys/js/pagereq.js"></script>
-    <script type="text/javascript" src="/sys/js/page_utils.js"></script>
+    <script type="text/javascript" src="/sys/bundle.js"></script> 
 </head>
 
 <body>
@@ -332,6 +328,23 @@
                         </div>
                     </div>
                     <div id="tags" class="vanished">
+                       <h1>Tags</h1>
+                       <form>
+                           <table>
+                               <tr>
+                                   <td>Tags:</td>
+                                   <td>
+                                       <input type="text" class="text" size="50" id="tag-input" value="{{ tags }}" />
+                                       <p><sub>Space-seperated list of tags.</sub></p>
+                                   </td>
+                               </tr>
+                               <tr>
+                                   <td><input type="button" value="Close" onclick="hidePageUtilities()" /></td>
+                                   <td><input type="button" value="Clear" onclick="cleartags()" /></td>
+                                   <td><input type="button" value="Save Tags" onclick="tagpage()" /></td>
+                               </tr>
+                           </table>
+                       </form> 
                     </div>
                     <div id="revisions" class="vanished">
                         <h1>History</h1>

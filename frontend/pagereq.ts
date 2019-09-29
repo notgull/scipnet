@@ -1,5 +1,5 @@
 /*
- * pagereq.js
+ * pagereq.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -21,13 +21,15 @@
 // sending xmlhttprequests to the server and receiving data in return
 // need to include: js/cookie.js
 
+import { getCookie } from './cookie';
+
 // helper function: get slug
-var get_slug = function() {
-  var pathname = window.location.pathname;
+export function get_slug() {
+  let pathname = window.location.pathname;
   return pathname.split('/')[1];
 }
 
-var prsRequest = function(name, args, next) {
+export function prsRequest(name: string, args: any, next: (x: any) => any) {
   // set up a form data with everything needed
   //var fData = new FormData();
   //fData.append('name', name);
@@ -38,15 +40,15 @@ var prsRequest = function(name, args, next) {
   args['sessionId'] = getCookie('sessionId');
 
   // create callback
-  var xhrCallback = function() {
+  function xhrCallback(this: XMLHttpRequest) {
     console.log(this.responseText);
-    var result = JSON.parse(this.responseText);
+    let result = JSON.parse(this.responseText);
     next(result);
   };
 
   // create XMLHttpRequest
   console.log("Sending PRS Request...");
-  var req = new XMLHttpRequest();
+  let req = new XMLHttpRequest();
   req.onload = xhrCallback;
 
   req.open("POST", "/sys/pagereq");

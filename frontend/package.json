@@ -9,7 +9,12 @@
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.6.0",
     "@types/node": "^12.7.8",
-    "typescript": "=3.5.3"
+    "babelify": "^10.0.0",
+    "browserify": "^16.5.0",
+    "gulp-browserify-typescript": "^1.0.1",
+    "tsify": "^4.0.1",
+    "typescript": "^3.6.3",
+    "vinyl-transform": "^1.0.0"
   },
   "devDependencies": {
     "gulp": "^4.0.0",

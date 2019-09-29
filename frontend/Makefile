@@ -22,14 +22,14 @@ include sources.mk
 
 .PHONY: default prepare clean
 
-default: dist/404.js
+default: release/bundle.js
 
 prepare:
 	npm install
 
-dist/404.js: $(patsubst frontend/%,%,$(FRONTEND_SOURCES))
+release/bundle.js: $(patsubst frontend/%,%,$(FRONTEND_SOURCES))
+	mkdir -p release
 	npm run gulp
-	npm run babel
 
 clean:
 	rm -rf dist/*.js

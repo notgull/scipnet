@@ -1,5 +1,5 @@
 /*
- * pbkdf2.js
+ * pbkdf2.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -22,7 +22,7 @@
 // TODO: this file is obsolete, refactor it out
 
 // convert an ascii string to a byte array
-function str_to_bytes(str) {
+function str_to_bytes(str: string) {
     var bytes = [];
     for (var i = 0; i < str.length; ++i)
         bytes.push(str.charCodeAt(i));
@@ -30,7 +30,7 @@ function str_to_bytes(str) {
 }
 
 // convert an array of bytes to a hex string
-function bytes_to_hstring(bytes) {
+function bytes_to_hstring(bytes: any) {
     if (!bytes)
         return null;
 
@@ -47,12 +47,11 @@ function bytes_to_hstring(bytes) {
     return hex_bytes.join("");
 }
 
-function onErr(err) {
+function onErr(err: any) {
   alert("Unable to hash password: " + err);
 }
 
-var hash_password = function(pwd, salt, next) {
-  console.log("Pwd is \"" + pwd + "\", salt is \"" + salt + "\"");
+export function hash_password(pwd: string, salt: string, next: any) {
   try {
     const algorithm = "PBKDF2";
     crypto.subtle.importKey("raw", str_to_bytes(pwd), algorithm, false, ["deriveBits"])

@@ -1,5 +1,5 @@
 /*
- * page_utils.js
+ * page_utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,90 +18,93 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-var hidePageUtilities = function() {
+import { get_slug, prsRequest } from './pagereq';
+import { getParameter } from './parameters';
+import { createDialog } from './dialog';
+
+export function hidePageUtilities() {
   document.getElementById("editor").classList.add("vanished");
   document.getElementById("rater").classList.add("vanished");
   document.getElementById("revisions").classList.add("vanished");
 };
 
-var editpage = function(use_404_param=false) {
+export function editpage(use_404_param: boolean = false) {
   hidePageUtilities();
-  var pagename = get_slug();
+  let pagename = get_slug();
   if (use_404_param)
     pagename = getParameter("original_page");
 
-  var args = {};
+  let args: any = {};
   args.pagename = pagename;
   console.log("Pagename: " + pagename);
 
   // request page source and edit lock
-  prsRequest("beginEditPage", args, (d) => {
+  prsRequest("beginEditPage", args, (d: any) => {
     if ('not_logged_in' in d && d.not_logged_in) {
       createDialog("You must be logged in to edit pages.");
       return;
     }
 
     if ('result' in d && !d.result) {
-      err = "Error Code " + d.errorCode + ": " + d.error;
+      let err = "Error Code " + d.errorCode + ": " + d.error;
       createDialog(err);
       return;
     }
 
-    var pagesource = "";
+    let pagesource = "";
     if ('src' in d) {
       pagesource = d.src;
       // pagesource = new String(pagesource.data.map(String.fromCharCode));
     }
 
-    var title = "Title";
+    let title = "Title";
     if ('title' in d) {
       title = d.title;
     }
 
-
     // expose editor
-    document.getElementById("editor").classList.remove("vanished");
-    document.getElementById("titlebox").value = title;
-    document.getElementById("srcbox").value = pagesource;
+    (<HTMLInputElement>document.getElementById("editor")).classList.remove("vanished");
+    (<HTMLInputElement>document.getElementById("titlebox")).value = title;
+    (<HTMLInputElement>document.getElementById("srcbox")).value = pagesource;
   });
 };
 
-var toggle_404_param = function() {
+export function toggle_404_param() {
   //document.getElementById("sac_button").onclick = function() { savepage(false, true); };
   //document.getElementById("save_button").onclick = function() { savepage(true, true); };
 }
 
-var savepage = function(refresh, use_404_param=false) {
-  var args = {};
+export function savepage(refresh: boolean, use_404_param: boolean = false) {
+  let args: any = {};
   args.pagename = get_slug();
-  args.src = document.getElementById('srcbox').value;
-  args.title = document.getElementById('titlebox').value;
-  args.comment = document.getElementById('commentbox').value;
+  args.src = (<HTMLInputElement>document.getElementById('srcbox')).value;
+  args.title = (<HTMLInputElement>document.getElementById('titlebox')).value;
+  args.comment = (<HTMLInputElement>document.getElementById('commentbox')).value;
 
   if (use_404_param)
     args.pagename = getParameter("original_page");
 
-  prsRequest("changePage", args, (d) => {
+  prsRequest("changePage", args, (d: any) => {
     if (refresh)
       if (!use_404_param)
         window.location.reload();
       else
-	window.location.href = args.pagename;
+        window.location.href = args.pagename;
   });
 };
 
-var canceleditpage = function() {
+export function canceleditpage() {
   hidePageUtilities();
 
-  prsRequest("removeEditLock", {pagename: get_slug()}, (d) => {
+  prsRequest("removeEditLock", {pagename: get_slug()}, (d: any) => {
     window.location.reload();
   });
 };
 
-var scpvote = function(rate) {
+export function scpvote(rate: number) {
   if (rate > 1 || rate < -1) return;
 
-  prsRequest('voteOnPage', {pagename: get_slug(), rating: rate}, (d)=>{
+  prsRequest('voteOnPage', {pagename: get_slug(), rating: rate}, (d: any)=>{
     if ('not_logged_in' in d && d.not_logged_in) {
       createDialog("You must be logged in to vote on pages.");
       return;
@@ -112,21 +115,21 @@ var scpvote = function(rate) {
       return;
     }
 
-    var prList = document.getElementsByClassName("page-rating");
-    for (var i = 0; i < prList.length; i++) {
+    let prList = document.getElementsByClassName("page-rating");
+    for (let i = 0; i < prList.length; i++) {
       if (d.newRating > 0)
         prList[i].innerHTML = "+" + d.newRating;
       else
-	prList[i].innerHTML = d.newRating;
+        prList[i].innerHTML = d.newRating;
     }
   });
 };
 
 // clicking the "Rate" button
-var showrater = function() {
+export function showrater() {
   hidePageUtilities();
 
-  prsRequest("getRatingModule", {pagename: get_slug()}, (d) => {
+  prsRequest("getRatingModule", {pagename: get_slug()}, (d: any) => {
     if ('result' in d && !d.result) {
       createDialog("Failed to open rating module.");
       return;
@@ -141,13 +144,44 @@ var ratepage = function() {
 
 };
 
-var tagpage = function() {
+export function showtagger() {
+  hidePageUtilities();
+  
+  prsRequest("getTags", {pagename: get_slug()}, (d: any) => {
+    if ('result' in d && !d.result) {
+      createDialog("Failed to retrieve tags.");
+      return;
+    }
 
+    (<HTMLInputElement>document.getElementById("tag-input")).value = d.tags.join(' ');
+    document.getElementById("tags").classList.remove("vanished");
+  }); 
+}
+
+export function cleartags() {
+  (<HTMLInputElement>document.getElementById('tag-input')).value = "";
+}
+
+export function tagpage() {
+  let taglist = (<HTMLInputElement>document.getElementById("tag-input")).value;
+  let tags = taglist.split(' ');
+  
+  prsRequest("tagPage", {pagename: get_slug(), tags: tags}, (d: any) => {
+    if ('not_logged_in' in d && d.not_logged_in) {
+      createDialog("You must be logged in to vote on pages.");
+      return;
+    }
+
+    if ('result' in d && !d.result) {
+      createDialog("Failed to vote on page.");
+      return;
+    }
+  });
 };
 
-var pagehistory = function(pagenum=1, perpage=20) {
+export function pagehistory(pagenum: number = 1, perpage: number = 20) {
   hidePageUtilities();
-  prsRequest("pageHistory", {pagename: get_slug(), pagenum: pagenum, perpage: perpage}, (d) => {
+  prsRequest("pageHistory", {pagename: get_slug(), pagenum: pagenum, perpage: perpage}, (d: any) => {
     if ('result' in d && !d.result) {
       createDialog("Failed to open page history.");
       return;

@@ -46,6 +46,7 @@ export interface PRSReturnVal {
   rating: Nullable<number>;
   newRating: Nullable<number>;
   ratingModule: Nullable<string>;
+  tags: Nullable<Array<string>>;
   not_logged_in: boolean;
 };
 
@@ -55,14 +56,15 @@ export type PRSCallback = (result: PRSReturnVal) => any;
 function genReturnVal(): PRSReturnVal {
   return { result: false,
            error: null,
-         errorCode: null,
-         src: null,
-         title: null,
-         editlockBlocker: null,
-         rating: null,
-         newRating: null,
-         ratingModule: null,
-         not_logged_in: false };
+           errorCode: null,
+           src: null,
+           title: null,
+           editlockBlocker: null,
+           rating: null,
+           newRating: null,
+           ratingModule: null,
+           tags: null,
+           not_logged_in: false };
 }
 
 // generate an error'd return value
@@ -384,6 +386,24 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   }).catch((err) => { next(genErrorVal(err)); });
 };
 
+// get the list of tags
+function getTags(args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
+  
+  metadata.Metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.Metadata>) => {
+    if (!mObj) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    }
+
+    returnVal.tags = mObj.tags;
+    returnVal.result = true;
+    next(returnVal);
+  });
+}
+
 // get rating
 function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
@@ -439,6 +459,7 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     // functions that don't need the username
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
     else if (name === "pageHistory") { pageHistory(args, next); return; }
+    else if (name === "getTags") { getTags(args, next); return; }
 
     if (!username) {
       returnVal.not_logged_in = true;
@@ -451,6 +472,7 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     else if (name === 'removeEditLock') removeEditLock(username, args, next);
     else if (name === 'beginEditPage') beginEditPage(username, args, next);
     else if (name === 'voteOnPage') voteOnPage(username, args, next);
+    else if (name === 'tagPage') tagPage(username, args, next);
     else throw new Error("Improper PRS request " + name);
   });
 };
