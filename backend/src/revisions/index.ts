@@ -22,14 +22,14 @@ import { promises as fs } from 'fs';
 
 import AwaitLock from 'await-lock';
 import * as pg from 'pg';
-import * as simpleGit from 'simple-git';
-import { Git } from 'simple-git-types';
+import * as simpleGit from 'simple-git/promise';
+import { SimpleGit } from 'simple-git/promise';
 
 import { queryPromise as query } from 'app/sql';
 import { Revision } from 'app/metadata/revision';
 
 export class RevisionsService {
-  private git: Git;
+  private git: SimpleGit;
   private lock: AwaitLock;
 
   constructor(directory: string) {

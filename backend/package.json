@@ -27,8 +27,7 @@
     "@types/uuid": "^3.4.5",
     "gulp": "^4.0.0",
     "gulp-typescript": "^5.0.1",
-    "mocha": "^6.2.0",
-    "simple-git-types": "^1.53.10"
+    "mocha": "^6.2.0"
   },
   "main": "index.js",
   "scripts": {

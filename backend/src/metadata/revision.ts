@@ -48,37 +48,60 @@ export class Revision {
 
   // load revision by id
   static async loadById(revision_id: number): Promise<Nullable<Revision>> {
-    let res = await query("SELECT * FROM Revisions WHERE revision_id = $1;", [revision_id]);
-    if (res.rowCount === 0) return null;
-    else res = res.rows[0];
 
-    let revisionInst = new Revision(res.article_id, res.user_id, res.description, res.tags, res.title, res.flags, res.diff_link);
-    revisionInst.created_at = res.created_at;
-    revisionInst.revision_id = revision_id;
-    return revisionInst;
+    const result = await query(
+      `SELECT * FROM Revisions WHERE revision_id = $1;`,
+      [revision_id],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const {
+      revision_id,
+      article_id,
+      user_id,
+      git_commit,
+      description,
+      tags,
+      flags,
+      title,
+      created_at,
+    } = result.rows[0];
+
+    const revision = new Revision(article_id, user_id, description, tags, title, flags);
+    revision.gitCommit = git_commit;
+    revision.revisionId = revision_id;
+    revision.createdAt = created_at;
+    return revision;
   }
 
   // load array of revisions by the article
   static async load_array_by_article(article_id: number): Promise<Array<Revision>> {
     const result = await query(
-      "SELECT * FROM Revisions WHERE article_id = $1 ORDER BY created_at;",
+      `SELECT * FROM Revisions WHERE article_id = $1 ORDER BY created_at;`,
       [article_id],
     );
 
     for (const row of result.rows) {
-      let revision = new Revision(
+      const {
+        revision_id,
         article_id,
-        row.user_id,
-        row.description,
-        row.tags,
-        row.title,
-        row.flags,
-      );
+        user_id,
+        git_commit,
+        description,
+        tags,
+        flags,
+        title,
+        created_at,
+      } = row;
 
-      revision.git_commit = row.git_commit;
-      revision.created_at = row.created_at;
-      revision.revision_id = row.revision_id;
-      revision.article_revision_id = revisions.length;
+      const revision = new Revision(article_id, user_id, description, tags, title, flags);
+      revision.gitCommit = git_commit;
+      revision.revisionId = revision_id;
+      revision.createdAt = created_at;
+
       revisions.push(revision);
     }
 
