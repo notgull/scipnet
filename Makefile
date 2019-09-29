@@ -32,7 +32,7 @@ frontend/dist/404.js: frontend/package.json frontend/*.js
 	cd frontend && npm run gulp
 	cd frontend && npm run babel
 
-backend/dist/index.js: backend/package.json backend/**/*.ts
+backend/dist/index.js: backend/package.json backend/**/*.ts backend/*.ts
 	cd backend && npm run gulp
 
 clean:

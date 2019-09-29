@@ -26,7 +26,7 @@ import * as path from 'path';
 import { config } from 'app/config';
 import { ServiceConfig } from 'app/service_wrapper';
 
-const module_root = 'dist/server';
+const module_root = 'dist';
 
 export interface ServiceInfo {
   process: ChildProcess;
@@ -40,7 +40,7 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
   let module_path = path.join(process.cwd(), module_root, modname);
   let module_service = path.join(module_path, "service.js");
   if (!(fs.existsSync(module_service))) {
-    throw new Error("Service not found: " + modname);
+    throw new Error("Service not found: " + module_service);
   }
 
   return {process: fork(path.join(process.cwd(), "dist/server/service_wrapper.js"),
