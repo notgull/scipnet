@@ -232,7 +232,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      send_jsonrpc_message("pagereq", args, config.get('pagereq_ip'), config.get('pagereq_port')).then((response: any) => {
+      send_jsonrpc_message("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
