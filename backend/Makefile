@@ -24,7 +24,7 @@ default: dist/index.js
 prepare:
 	npm install
 
-dist/index.js: package.json *.ts **/*.ts
+dist/index.js: package.json tsconfig.json *.ts **/*.ts
 	npm run gulp
 
 clean:
