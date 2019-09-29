@@ -1,5 +1,5 @@
 /*
- * cookie.js
+ * cookie.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -20,18 +20,20 @@
 
 // get cookie from cookie string
 // from: https://www.w3schools.com/js/js_cookies.asp
-function getCookie(cname) {
-  var name = cname + "=";
-  var decodedCookie = decodeURIComponent(document.cookie);
-  var ca = decodedCookie.split(';');
-  for(var i = 0; i <ca.length; i++) {
-    var c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
+export function getCookie(cname: string): string {
+  const name = `${cname}=`;
+  const decodedCookie = decodeURIComponent(document.cookie);
+
+  const cookieParts = decodedCookie.split(';');
+  for (let part of cookieParts) {
+    while (part.charAt(0) === ' ') {
+      part = part.substring(1);
     }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
+
+    if (part.indexOf(name) === 0) {
+      return part.substring(name.length, part.length);
     }
   }
-  return "";
+
+  return '';
 }
