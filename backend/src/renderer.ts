@@ -64,9 +64,9 @@ export async function render(
   let loginBar;
   if (loginInfo) {
     username = loginInfo;
-    loginBar = fs.readFileSync(path.join(process.cwd(), '../templates/lbar_li.html')).toString();
+    loginBar = fs.readFileSync(path.join(process.cwd(), '../templates/lbar_li.j2')).toString();
   } else {
-    loginBar = fs.readFileSync(path.join(process.cwd(), '../templates/lbar_nli.html')).toString();
+    loginBar = fs.readFileSync(path.join(process.cwd(), '../templates/lbar_nli.j2')).toString();
   }
 
   let content;

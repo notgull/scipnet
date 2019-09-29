@@ -180,7 +180,7 @@ app.get("/sys/fonts/itc-bauhaus-lt-demi.eot", function(req: express.Request, res
 
 // get login page
 app.get("/sys/login", function(req: express.Request, res: express.Response) {
-  render_page(req, true, '../templates/login.html', "Login",
+  render_page(req, true, '../templates/login.j2', "Login",
         (d) => {res.send(d)});
 });
 
@@ -245,7 +245,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 
 // get registration page
 app.get("/sys/register", function(req: express.Request, res: express.Response) {
-  render_page(req, true, '../templates/register.html', 'Register',
+  render_page(req, true, '../templates/register.j2', 'Register',
              (d) => {res.send(d);});
 });
 
