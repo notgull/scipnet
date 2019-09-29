@@ -31,7 +31,7 @@ var editpage = function(use_404_param=false) {
   hidePageUtilities();
   var pagename = get_slug();
   if (use_404_param)
-    pagename = get_parameter("original_page");
+    pagename = getParameter("original_page");
 
   var args = {};
   args.pagename = pagename;
@@ -82,7 +82,7 @@ var savepage = function(refresh, use_404_param=false) {
   args.comment = document.getElementById('commentbox').value;
 
   if (use_404_param)
-    args.pagename = get_parameter("original_page");
+    args.pagename = getParameter("original_page");
 
   prsRequest("changePage", args, (d) => {
     if (refresh)

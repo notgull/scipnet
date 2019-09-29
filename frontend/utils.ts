@@ -1,5 +1,5 @@
 /*
- * get_param.js
+ * utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,16 +18,4 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// courtesy of https://stackoverflow.com/a/5448595/11187995
-function get_parameter(parameterName) {
-    var result = null,
-        tmp = [];
-    location.search
-        .substr(1)
-        .split("&")
-        .forEach(function (item) {
-          tmp = item.split("=");
-          if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-        });
-    return result;
-}
+export type Nullable<T> = T | null;
