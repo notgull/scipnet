@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// this file renders html from markdown stored in data files
+// this file renders.j2 from markdown stored in data files
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -126,7 +126,7 @@ export async function render(
 
   const second_stage_replacements = { username };
 
-  let page = env.render("template.html", first_stage_replacements);
+  let page = env.render("template.j2", first_stage_replacements);
   page = env.renderString(page, second_stage_replacements);
 
   return page;

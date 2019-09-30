@@ -60,7 +60,7 @@ export function outdated_check() {
 
 // add an editlock to the table
 export function add_editlock(slug: string, username: string): EditLock {
-  let el = new exports.editlock(slug, username, new Date());
+  let el = new EditLock(slug, username, new Date());
   editlock_table.push(el);
   return el;
 }
