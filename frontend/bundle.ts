@@ -19,37 +19,39 @@
  */
 
 // browserify needs all of the methods in once place
+const anyWindow: any = <any>window;
+
 import { getCookie } from './cookie';
-(<any>window).getCookie = getCookie;
+anyWindow.getCookie = getCookie;
 
 import { createDialog, destroyDialog } from './dialog';
-(<any>window).createDialog = createDialog;
-(<any>window).destroyDialog = destroyDialog;
+anyWindow.createDialog = createDialog;
+anyWindow.destroyDialog = destroyDialog;
 
 import { get_slug, prsRequest } from './pagereq';
-(<any>window).get_slug = get_slug;
-(<any>window).prsRequest = prsRequest;
+anyWindow.get_slug = get_slug;
+anyWindow.prsRequest = prsRequest;
 
 import { toggle_404_param, savepage, canceleditpage, editpage, scpvote, showrater,
          showtagger, cleartags, tagpage, pagehistory } from './page_utils';
-(<any>window).editpage = editpage;
-(<any>window).toggle_404_param = toggle_404_param;
-(<any>window).savepage = savepage;
-(<any>window).canceleditpage = canceleditpage;
-(<any>window).editpage = editpage;
-(<any>window).scpvote = scpvote;
-(<any>window).showrater = showrater;
-(<any>window).showtagger = showtagger;
-(<any>window).cleartags = cleartags;
-(<any>window).tagpage = tagpage;
-(<any>window).pagehistory = pagehistory;
+anyWindow.editpage = editpage;
+anyWindow.toggle_404_param = toggle_404_param;
+anyWindow.savepage = savepage;
+anyWindow.canceleditpage = canceleditpage;
+anyWindow.editpage = editpage;
+anyWindow.scpvote = scpvote;
+anyWindow.showrater = showrater;
+anyWindow.showtagger = showtagger;
+anyWindow.cleartags = cleartags;
+anyWindow.tagpage = tagpage;
+anyWindow.pagehistory = pagehistory;
 
 import { getParameter } from './parameters';
-(<any>window).getParameter = getParameter;
+anyWindow.getParameter = getParameter;
 
 import { hash_password } from './pbkdf2';
-(<any>window).hash_password = hash_password
+anyWindow.hash_password = hash_password
 
 import { create_post_form, send_post_data } from './post';
-(<any>window).create_post_form = create_post_form;
-(<any>window).send_post_data = send_post_data;
+anyWindow.create_post_form = create_post_form;
+anyWindow.send_post_data = send_post_data;
