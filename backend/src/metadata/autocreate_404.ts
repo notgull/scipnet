@@ -18,28 +18,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// automatically create the 404 and main pages
 import * as diff from 'diff';
 import * as fs from 'fs';
 import * as path from 'path';
 
 import { config } from 'app/config';
 import { Revision } from './revision';
+import { revisionsService } from 'app/revisions';
 import * as metadata from 'app/metadata';
 import * as validate from 'app/user/validate';
 
 const contentDir = config.get('files.data.content');
-
-// just create a raw revision - good for pages
-function raw_revision(article_id: number, article_name: string, user_id: number, comment: string, title: string): Revision {
-  let dataLoc = path.join(contentDir, article_name);
-  let data = fs.readFileSync(dataLoc) + "";
-  let patch = diff.createPatch(dataLoc, "", data, "", "");
-  let revision = new Revision(article_id, user_id, comment, [], title, 'N');
-
-  fs.writeFileSync(revision.diff_link, patch);
-  return revision;
-}
 
 function copy_file(orig: string, dest: string) {
   fs.createReadStream(orig).pipe(fs.createWriteStream(dest));
@@ -66,7 +55,7 @@ export function autocreate(next: (r: number) => any) {
     _404.submit().then(() => {
       let article_id = _404.article_id;
       let _404_author = new metadata.Author(article_id, user_id, "author");
-      let _404_revision = raw_revision(article_id, _404.slug, user_id, "Created 404 page", _404.title);
+      let _404_revision = new Revision(article_id, user_id, 'Creating _404 page', [], '_404', 'N');
 
       _404.authors.push(_404_author);
       _404.revisions.push(_404_revision);
@@ -81,7 +70,7 @@ export function autocreate(next: (r: number) => any) {
         mainpage.submit().then(() => {
           let article_id = mainpage.article_id;
           let mainpage_author = new metadata.Author(article_id, user_id, "author");
-          let mainpage_revision = raw_revision(article_id, mainpage.slug, user_id, "Created main page", mainpage.title);
+          let mainpage_revision = new Revision(article_id, user_id, 'Creating main page', [], 'main', 'N');
 
           mainpage.authors.push(mainpage_author);
           mainpage.revisions.push(mainpage_revision);

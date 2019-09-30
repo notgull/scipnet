@@ -47,19 +47,19 @@ export class Revision {
   }
 
   // load revision by id
-  static async loadById(revision_id: number): Promise<Nullable<Revision>> {
-
-    const result = await query(
-      `SELECT * FROM Revisions WHERE revision_id = $1;`,
-      [revision_id],
-    );
+  static async loadById(revisionId: number): Promise<Nullable<Revision>> {
+    const result = await query(`
+      SELECT
+        article_id, user_id, git_commit, description, tags, flags, title, created_at
+      FROM Revisions
+      WHERE revision_id = $1;
+    `, [revisionId]);
 
     if (result.rowCount === 0) {
       return null;
     }
 
     const {
-      revision_id,
       article_id,
       user_id,
       git_commit,
@@ -71,8 +71,8 @@ export class Revision {
     } = result.rows[0];
 
     const revision = new Revision(article_id, user_id, description, tags, title, flags);
+    revision.revisionId = revisionId;
     revision.gitCommit = git_commit;
-    revision.revisionId = revision_id;
     revision.createdAt = created_at;
     return revision;
   }
@@ -84,6 +84,7 @@ export class Revision {
       [article_id],
     );
 
+    const revisions = [];
     for (const row of result.rows) {
       const {
         revision_id,

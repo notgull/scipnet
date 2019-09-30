@@ -25,6 +25,7 @@ import * as pg from 'pg';
 import * as simpleGit from 'simple-git/promise';
 import { SimpleGit } from 'simple-git/promise';
 
+import { config } from 'app/config';
 import { queryPromise as query } from 'app/sql';
 import { Revision } from 'app/metadata/revision';
 
@@ -87,3 +88,5 @@ export class RevisionsService {
     }
   }
 }
+
+export const revisionsService = new RevisionsService(config.get('files.data.diff'));

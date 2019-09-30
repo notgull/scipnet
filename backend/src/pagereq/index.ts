@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// page request system - for things like upvoting, creating pages, etc.
-import * as diff from 'diff';
 import * as fs from 'fs';
 import * as nunjucks from 'nunjucks';
 import * as path from 'path';
@@ -30,6 +28,8 @@ import { Nullable } from 'app/utils';
 import { get_user_id, get_username } from 'app/user/validate';
 import * as metadata from 'app/metadata';
 import { render_rating_module } from 'app/renderer';
+
+import { revisionsService } from 'app/revisions';
 
 const data_dir = config.get('files.data.content');
 const diff_dir = config.get('files.data.metadata');
@@ -95,7 +95,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
       pMeta.editlock = el;
 
       let dataLoc = path.join(data_dir, args.pagename);
-      let data = "" + fs.readFileSync(dataLoc);
+      let data = fs.readFileSync(dataLoc).toString();
       returnVal.src = data;
       returnVal.title = pMeta.title;
 
@@ -195,29 +195,17 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   // get the old source
   let dataLoc = path.join(data_dir, args.pagename);
   let data = args.src;
-  let oldData;
-  if (fs.existsSync(dataLoc))
-    oldData = "" + fs.readFileSync(dataLoc);
-  else
-    oldData = "";
-  fs.writeFileSync(dataLoc, data);
 
   // write revision
-  //console.log(dataLoc, oldData, data);
-  let patch = diff.createPatch(dataLoc, oldData, data, "", "");
   let comment = "";
   if (args.comment) comment = args.comment;
   let flags = isNewPage ? "N" : "S";
 
   let revision = new metadata.Revision(pMeta.article_id, args.user_id, comment, pMeta.tags, pMeta.title, flags);
-  console.log("Revision loc: " + revision.diff_link);
-  fs.writeFileSync(revision.diff_link, patch);
-  //console.log(pMeta);
   pMeta.revisions.push(revision);
 
   await pMeta.submit(true);
-  // also submit the revision, since that's done manually
-  await revision.submit();
+  await revisionsService.commit(revision, dataLoc, data);
 
   returnVal.result = true;
   return returnVal;
@@ -278,12 +266,12 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   let history = [history_header];
   async function render_revision(revision: metadata.Revision, i: number) {
     history[i] = nunjucks.renderString(history_row, {
-      rev_number: revision.revision_number,
+      rev_number: revision.revisionId,
       buttons: "V S R",
       flags: "N",
-      author: await get_username_async(revision.user_id),
-      date: revision.created_at.toLocaleDateString("en-US"),
-      comments: ""
+      author: await get_username_async(revision.userId),
+      date: revision.createdAt.toLocaleDateString("en-US"),
+      comments: "",
     });
   };
 
@@ -325,11 +313,10 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   mObj.tags = args.tags;
 
   // revision
-  // TODO: figure out how to do this w/ git
   let latest_revision = mObj.revisions[mObj.revisions.length - 1];
-  let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A", latest_revision.diff_link);
+  let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A");
   mObj.submit(false);
-  revision.submit();
+  // TODO revisionsService.commit() with filename
 
   returnVal.result = true;
   return returnVal;
