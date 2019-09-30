@@ -26,6 +26,8 @@ export function hidePageUtilities() {
   document.getElementById("editor").classList.add("vanished");
   document.getElementById("rater").classList.add("vanished");
   document.getElementById("revisions").classList.add("vanished");
+  document.getElementById('tags').classList.add("vanished");
+  document.getElementById("pagesrc").classList.add("vanished");
 };
 
 export function editpage(use_404_param: boolean = false) {
@@ -200,8 +202,17 @@ var printpage = function() {
 
 };
 
-var pagesource = function() {
+export function pagesource() {
+  hidePageUtilities();
+  prsRequest("getPageSource", {pagename: get_slug()}, (d: any) => {
+    if ('result' in d && !d.result) {
+      createDialog("Failed to open page source.");
+      return;
+    }
 
+    document.getElementById("page-source-box").innerHTML = d.src.split('\n').join('<br />');
+    document.getElementById("pagesrc").classList.remove("vanished");
+  });
 };
 
 var pageparent = function() {
