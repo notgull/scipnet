@@ -33,7 +33,7 @@ anyWindow.get_slug = get_slug;
 anyWindow.prsRequest = prsRequest;
 
 import { toggle_404_param, savepage, canceleditpage, editpage, scpvote, showrater,
-         showtagger, cleartags, tagpage, pagehistory, pagesource } from './page_utils';
+         showtagger, cleartags, tagpage, pagehistory, pagesource, hidePageUtilities } from './page_utils';
 anyWindow.editpage = editpage;
 anyWindow.toggle_404_param = toggle_404_param;
 anyWindow.savepage = savepage;
@@ -46,6 +46,7 @@ anyWindow.cleartags = cleartags;
 anyWindow.tagpage = tagpage;
 anyWindow.pagehistory = pagehistory;
 anyWindow.pagesource = pagesource;
+anyWindow.hidePageUtilities = hidePageUtilities;
 
 import { getParameter } from './parameters';
 anyWindow.getParameter = getParameter;
