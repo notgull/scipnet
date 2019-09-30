@@ -18,9 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { promises as fs } from 'fs';
+import { writeFile, existsSync } from 'fs';
+import { promisify } from 'util';
+
+const writeFilePromise = promisify(writeFile);
 
 import AwaitLock from 'await-lock';
+import * as path from 'path';
 import * as pg from 'pg';
 import * as simpleGit from 'simple-git/promise';
 import { SimpleGit } from 'simple-git/promise';
@@ -35,6 +39,12 @@ export class RevisionsService {
 
   constructor(directory: string) {
     this.git = simpleGit(directory);
+
+    // if the git repo isn't init'd yet, init it
+    if (!(existsSync(path.join(directory, '.git')))) {
+      this.git.init();
+    }
+
     this.lock = new AwaitLock();
   }
 
@@ -50,7 +60,7 @@ export class RevisionsService {
         INSERT INTO Revisions
             (article_id, user_id, git_commit, description, tags, title, flags, created_at)
           VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamp)
+            ($1, $2, $3, $4, $5, $6, $7, $8::timestamp)
           RETURNING revision_id;
         `,
         [
@@ -65,7 +75,8 @@ export class RevisionsService {
         ],
       );
 
-      await fs.writeFile(filename, newData);
+      // note: apparently typescript can't run writeFile yet, so we need a workaround
+      await writeFilePromise(filename, newData);
 
       const message = JSON.stringify({
         article_id: revision.articleId,
@@ -75,6 +86,7 @@ export class RevisionsService {
 
       const commitSummary = await this.git.commit(message, filename);
       revision.gitCommit = commitSummary.commit;
+      console.log(`REVISION GIT COMMIT: ${revision.gitCommit}`);
 
       await query(`
         UPDATE Revisions
@@ -89,4 +101,4 @@ export class RevisionsService {
   }
 }
 
-export const revisionsService = new RevisionsService(config.get('files.data.diff'));
+export const revisionsService = new RevisionsService(config.get('files.data.content')); // this might not be what you want

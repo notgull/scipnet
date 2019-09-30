@@ -36,7 +36,7 @@ export function initialize_pages(next: (n: number) => any) {
 
     // also create the revision table
     const revision_table_sql = `
-      CREATE SEQUENCE revisions_seq START 1 INCREMENT 1;
+      CREATE SEQUENCE IF NOT EXISTS revisions_seq START 1 INCREMENT 1;
 
       CREATE TABLE IF NOT EXISTS Revisions (
         revision_id INTEGER PRIMARY KEY DEFAULT nextval('revisions_seq'),

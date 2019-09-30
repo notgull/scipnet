@@ -27,9 +27,9 @@ if (!should_tables_be_deleted) {
   process.exit();
 }
 
-var config = require('./../dist/server/config');
+var config = require('app/config');
 var fs = require('fs');
-var sql = require('./../dist/server/sql');
+var sql = require('app/sql');
 
 // remove all files in the content dir
 
@@ -39,10 +39,13 @@ async function removeAll() {
     DROP TABLE passwords; DROP TABLE authors;
     DROP TABLE files; DROP TABLE revisions;
     DROP TABLE ratings; DROP TABLE parents;
+    DROP SEQUENCE revisions_seq;
   `;
 
   await sql.queryPromise(query, []);
 }
+
+removeAll().then(()=>{}).catch((e)=>{console.error("Error: " + e);});
 
 function rmdir(dir) {
   var files = fs.readdirSync(dir);
@@ -54,5 +57,3 @@ function rmdir(dir) {
     else fs.unlinkSync(file);
   }
 }
-
-rmdir(config.get('files.data.content'));
