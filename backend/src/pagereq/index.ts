@@ -69,7 +69,7 @@ function genReturnVal(): PRSReturnVal {
 
 // generate an error'd return value
 function genErrorVal(err: Error): PRSReturnVal {
-  console.log("PAGEREQ ERROR: " + err);
+  console.log(`PAGEREQ ERROR: ${err}`);
 
   let returnVal = genReturnVal();
   returnVal.error = err;
