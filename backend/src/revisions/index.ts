@@ -37,7 +37,7 @@ export class RevisionsService {
   private git: SimpleGit;
   private lock: AwaitLock;
 
-  constructor(directory: string) {
+  constructor(private directory: string) {
     this.git = simpleGit(directory);
 
     // if the git repo isn't init'd yet, init it
@@ -56,7 +56,7 @@ export class RevisionsService {
     }
 
     try {
-      revision.revisionId = await query(`
+      revision.revisionId = (await query(`
         INSERT INTO Revisions
             (article_id, user_id, git_commit, description, tags, title, flags, created_at)
           VALUES
@@ -73,7 +73,7 @@ export class RevisionsService {
           revision.flags,
           revision.createdAt,
         ],
-      );
+      )).rows[0].revision_id;
 
       // note: apparently typescript can't run writeFile yet, so we need a workaround
       await writeFilePromise(filename, newData);
@@ -84,9 +84,12 @@ export class RevisionsService {
         revision_id: revision.revisionId,
       });
 
+      // basically just run git add -A here
+      this.git.add(path.join(this.directory,'*'));
+
       const commitSummary = await this.git.commit(message, filename);
       revision.gitCommit = commitSummary.commit;
-      console.log(`REVISION GIT COMMIT: ${revision.gitCommit}`);
+      console.log(`REVISION GIT COMMIT: ${JSON.stringify(revision.gitCommit)}`);
 
       await query(`
         UPDATE Revisions
