@@ -320,6 +320,9 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   let latest_revision = mObj.revisions[mObj.revisions.length - 1];
   let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A");
   mObj.submit(false);
+
+  let dataLoc = path.join(data_dir, args.pagename);
+
   // TODO revisionsService.commit() with filename
 
   returnVal.result = true;
@@ -432,6 +435,31 @@ function getRatingModule(args: ArgsMapping, next: PRSCallback) {
   }).catch((err: Error) => { next(genErrorVal(err)); });
 }
 
+// retrieve page source
+function getPageSource(args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
+  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.Metadata>) => {
+    if (!pMeta) {
+      returnVal.error = "Page does not exist";
+      returnVal.errorCode = 4;
+      next(returnVal);
+      return;
+    }
+
+    let dataLoc = path.join(data_dir, args.pagename);
+    fs.readFile(dataLoc, (err: Error, data: Buffer) => {
+      if (err) {
+        next(genErrorVal(err));
+        return;
+      }
+      
+      returnVal.result = true;
+      returnVal.src = data.toString();
+      next(returnVal);
+    });
+  }).catch((err: Error) => { next(genErrorVal(err)); });
+}
+
 // master prs function
 export function request(name: string, username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
@@ -449,6 +477,7 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
     else if (name === "pageHistory") { pageHistory(args, next); return; }
     else if (name === "getTags") { getTags(args, next); return; }
+    else if (name === "getPageSource") { getPageSource(args, next); return; }
 
     if (!username) {
       returnVal.not_logged_in = true;
