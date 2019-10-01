@@ -238,6 +238,13 @@
           font-size: 95%;
           padding: 0 8px;
         }
+
+        #page-source-box-container {
+           box-sizing: border-box;
+           width: 100%;
+           height: 100%;
+           resize: none;
+        }
     </style>
     <script type="text/javascript" src="/sys/bundle.js"></script> 
 </head>
@@ -353,8 +360,12 @@
                     </div>
                     <div id="pagesrc" class="vanished">
                         <h1>Page Source</h1>
-                        <blockquote id="page-source-box"> 
-                        </blockquote>
+                        <form>
+                          <div id="page-source-box-contaner">
+                            <textarea id="page-source-box" style="width: 100%; height: 1000px;" readonly>
+                            </textarea>
+                          </div>
+                        </form>
                     </div>
                 </div>
                 <!-- end utility block -->

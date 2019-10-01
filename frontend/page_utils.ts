@@ -210,7 +210,7 @@ export function pagesource() {
       return;
     }
 
-    document.getElementById("page-source-box").innerHTML = d.src.split('\n').join('<br />');
+    (<HTMLInputElement>document.getElementById("page-source-box")).value = d.src;
     document.getElementById("pagesrc").classList.remove("vanished");
   });
 };
