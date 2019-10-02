@@ -167,17 +167,20 @@ export function cleartags() {
 export function tagpage() {
   let taglist = (<HTMLInputElement>document.getElementById("tag-input")).value;
   let tags = taglist.split(' ');
+  console.log("Tags are: " + JSON.stringify(tags));
   
   prsRequest("tagPage", {pagename: get_slug(), tags: tags}, (d: any) => {
     if ('not_logged_in' in d && d.not_logged_in) {
-      createDialog("You must be logged in to vote on pages.");
+      createDialog("You must be logged in to tag pages.");
       return;
     }
 
     if ('result' in d && !d.result) {
-      createDialog("Failed to vote on page.");
+      createDialog("Failed to tag page.");
       return;
     }
+
+    window.location.reload();
   });
 };
 

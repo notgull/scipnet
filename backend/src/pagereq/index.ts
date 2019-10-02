@@ -311,10 +311,10 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   }
 
   if (!args.tags) {
-    args.tags = [];
+    mObj.tags = [];
+  } else {
+    mObj.tags = args.tags.split(',');
   }
-
-  mObj.tags = args.tags;
 
   // revision
   let latest_revision = mObj.revisions[mObj.revisions.length - 1];
