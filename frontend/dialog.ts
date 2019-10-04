@@ -18,12 +18,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Nullable } from './utils';
+
 // pops open dialog boxes
-let currentDialog = false;
+let dialog_container: Nullable<HTMLElement>;
 
 export function createDialog(message: string) {
-  // TODO: actual system
+  // just run alert() for now
   alert(message);
+  return;
+
+  let body = document.getElementById("main-body");
+
+  // create container
+  dialog_container = document.createElement("div");
+  dialog_container.id = "dialog-container";
+
+  // create shader
+  let dialog_shader = document.createElement("div");
+  dialog_shader.id = "dialog-shader";
+  dialog_container.appendChild(dialog_shader);
+
+  // create dialog box
+  let dialog_box = document.createElement("div");
+  dialog_box.classList.add("dialog-window");
+  
+  let W_width = window.screen.width;
+  let W_height = window.screen.height;
+  
+  let D_width = 50;
+  
+  let left_position = (W_width - D_width) / 2;
+  let top_position = W_height / 2;
+
+  dialog_box.setAttribute("style", `left: ${left_position}px; top: ${top_position}px;`);
+  dialog_box.innerHTML = message; // TODO: better
+  dialog_container.appendChild(dialog_box);
+
+  body.appendChild(dialog_container);
 }
 
 export function destroyDialog() {}
