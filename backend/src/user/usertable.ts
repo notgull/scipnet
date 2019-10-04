@@ -21,8 +21,15 @@
 import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
 
+export interface UserIdPair {
+  id: number;
+  user: string;
+  expiry: Date;
+  ip_addrs: Array<string>
+}
+
 export class UserTable {
-  userset: Array<User>;
+  userset: Array<UserIdPair>;
   prevId: number;
 
   constructor() {
@@ -36,12 +43,12 @@ export class UserTable {
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.user === user) {
-      if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
-        if (!change_ip)
-          chckUser.ip_addrs.push(ip_addr);
-        else
-          chckUser.ip_addrs = [ip_addr];
-      }
+        if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
+          if (!change_ip)
+            chckUser.ip_addrs.push(ip_addr);
+          else
+            chckUser.ip_addrs = [ip_addr];
+        }
       return chckUser.id;
       }
     }
@@ -73,7 +80,6 @@ export class UserTable {
 
   // check to make sure a session conforms to the ip address
   check_session(session: number, ip_addr: string): Nullable<string> {
-    //console.log("Checking for id " + session);
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.id === session) {
@@ -85,7 +91,6 @@ export class UserTable {
       }
     }
 
-    // console.log("Did not find user");
     return null;
   }
 

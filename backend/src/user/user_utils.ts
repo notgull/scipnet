@@ -1,5 +1,5 @@
 /*
- * errors.ts
+ * user_utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,14 +18,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export enum ErrorCode {
-  SUCCESS = 0,
-  INTERNAL_ERROR = 3,
-  USER_NOT_FOUND = 5,
-  PASSWORD_INCORRECT = 7,
-  SESSION_MISMATCH = 11,
-  SESSION_EXPIRY = 13,
-  EMAIL_NOT_FOUND = 17,
-  USER_EXISTS = 19,
-  EMAIL_EXISTS = 23,
-}
+// quick functions to make it easy to get certain details of users without going through the model
+import { Nullable } from 'app/utils';
+
+// get the ID of a user by its username
+export async function getUserId(user: string): Promise<Nullable<Number>> {
+  const userid_query = "SELECT user_id FROM Users WHERE username=$1;";
+  let res = await query(userid_query, [user]);
+  
+  if (res.rowCount === 0) return null;
+  else return res.rows[0].user_id;
+};
+
+// get the username of a user by its id
+export async function getUsername(user_id: number): Promise<Nullable<String>> {
+  let res = await query("SELECT username FROM Users WHERE user_id=$1;", [user_id]);
+  
+  if (res.rowCount === 0) return null;
+  else return res.rows[0].username;
+};
+
