@@ -19,37 +19,46 @@
  */
 
 // create the initial database
-import * as path from 'path';
-
 import { query } from 'app/sql';
 
 export function initialize_users(next: (n: number) => any) {
   // create user and pwhash tables
-  const user_table_sql = "CREATE TABLE IF NOT EXISTS Users (" +
-                        "user_id BIGSERIAL PRIMARY KEY," +
-                        "username TEXT NOT NULL UNIQUE," +
-                        "email TEXT NOT NULL UNIQUE," +
-                        "karma INTEGER NOT NULL," +
-                        "join_date TIMESTAMP NOT NULL," +
-                        "status INTEGER NOT NULL," +
-                        "website TEXT," +
-                        "about TEXT," +
-                        "city TEXT," +
-                        "avatar TEXT NOT NULL," +
-                        "gender TEXT" +
-                        ");";
-  query(user_table_sql, [], (err: any, res: any) => {
-    if (err) throw new Error(err);
-    const pwHash_table_sql = "CREATE TABLE IF NOT EXISTS Passwords (" +
-                               "hash_id BIGSERIAL PRIMARY KEY," +
-                         "user_id INTEGER REFERENCES Users(user_id)," +
-                           "salt JSONB NOT NULL UNIQUE," +
-                         "pwhash TEXT NOT NULL" +
+  const userTableSql = "CREATE TABLE IF NOT EXISTS Users (" +
+                           "user_id BIGSERIAL PRIMARY KEY," +
+                           "username TEXT NOT NULL UNIQUE," +
+                           "email TEXT NOT NULL UNIQUE," +
+                           "karma INTEGER NOT NULL," +
+                           "join_date TIMESTAMP NOT NULL," +
+                           "status INTEGER NOT NULL," +
+//                           "role_id INTEGER REFERENCES Roles(role_id)," +
+                           "website TEXT," +
+                           "about TEXT," +
+                           "city TEXT," +
+                           "avatar TEXT NOT NULL," +
+                           "gender TEXT" +
+                         ");";
+  const pwTableSql = "CREATE TABLE IF NOT EXISTS Passwords (" +
+                       "hash_id BIGSERIAL PRIMARY KEY," +
+                       "user_id INTEGER REFERENCES Users(user_id)," +
+                       "salt JSONB NOT NULL UNIQUE," +
+                       "pwhash TEXT NOT NULL" +
+                     ");";
+  const roleTableSql = "CREATE TABLE IF NOT EXISTS Roles (" +
+                         "role_id BIGSERIAL PRIMARY KEY," +
+                         "role_name TEXT NOT NULL UNIQUE," +
+                         "permset BIGINT NOT NULL" +
                        ");";
-    query(pwHash_table_sql, [], (err: any, res: any) => {
+  query(roleTableSql, [], (err: any, res: any) => {
+    if (err) throw new Error(err);
+
+    query(userTableSql, [], (err: any, res: any) => {
       if (err) throw new Error(err);
 
-      next(0);
+      query(pwTableSql, [], (err: any, res: any) => {
+        if (err) throw new Error(err);
+
+        next(0);
+      });
     });
   });
 };

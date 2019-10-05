@@ -43,7 +43,6 @@ export class User {
               public city: Nullable<string>,
               public avatar: string,
               public gender: Nullable<string>) {
-
   }
 
   // helper function: hash a password
@@ -142,5 +141,13 @@ export class User {
 
     if (return_user) return User.loadById(user_id);
     return ErrorCode.SUCCESS;
+  }
+
+  // update a user in its database with new details
+  async submit(): Promise<void> {
+    const updateUserSql = "UPDATE Users SET username=$1, email=$2, karma=$3, website=$4, about=$5," +
+                          "city=$6, avatar=$7, gender=$8 WHERE user_id=$9;";
+    await query(updateUserSql, [this.username, this.email, this.karma, this.website, this.about,
+                                this.city, this.avatar, this.gender, this.user_id]);
   }
 }
