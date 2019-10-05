@@ -201,7 +201,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
       if (result !== ErrorCode.SUCCESS) {
         res.redirect(`/sys/login?errorCode=${result}`);
       }
-      else {
+      } else {
         // add user to user table
         let ip_addr = getIPAddress(req);
         let expiry = new Date();
