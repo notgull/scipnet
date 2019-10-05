@@ -214,7 +214,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
         let sessionId = ut.register(user, ip_addr, expiry, change_ip);
         console.log(`Logged session ${sessionId}`);
         res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
-        res.redirect('/' + new_url);
+        res.redirect(`/${newUrl}`);
       }
     }).catch((err: Error) => { console.error(err); });
   }).catch((err: Error) => { console.error(err); });
