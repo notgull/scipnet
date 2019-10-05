@@ -203,7 +203,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
       }
       } else {
         // add user to user table
-        let ip_addr = getIPAddress(req);
+        const ipAddr = getIPAddress(req);
         let expiry = new Date();
         if (push_expiry) {
           expiry.setDate(expiry.getDate() + 7);
