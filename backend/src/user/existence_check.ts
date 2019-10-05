@@ -33,4 +33,3 @@ export async function checkEmailUsage(email: string): Promise<boolean> {
   let res = await query(check_email_sql, [email]);
   return res.rowCount !== 0;
 }
-
