@@ -198,7 +198,9 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   // firstly, validate both whether the user exists and whether the password is correct
   User.loadByUsername(username).then((user: User) => {
     user.validate(pwHash).then((result: ErrorCode) => {
-      if (result !== ErrorCode.SUCCESS) { res.redirect(`/sys/login?errorCode=${result}`); }
+      if (result !== ErrorCode.SUCCESS) {
+        res.redirect(`/sys/login?errorCode=${result}`);
+      }
       else {
         // add user to user table
         let ip_addr = getIPAddress(req);
