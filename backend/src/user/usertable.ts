@@ -20,9 +20,17 @@
 
 import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
+import { User } from 'app/user';
+
+export interface UserIdPair {
+  id: number;
+  user: User;
+  expiry: Date;
+  ip_addrs: Array<string>
+}
 
 export class UserTable {
-  userset: Array<User>;
+  userset: Array<UserIdPair>;
   prevId: number;
 
   constructor() {
@@ -31,18 +39,18 @@ export class UserTable {
   }
 
   // register a user and ip address into the user table
-  register(user: string, ip_addr: string, expiry: Date, change_ip: boolean): number {
+  register(user: User, ip_addr: string, expiry: Date, change_ip: boolean): number {
     // check if the user is already in here
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.user === user) {
-      if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
-        if (!change_ip)
-          chckUser.ip_addrs.push(ip_addr);
-        else
-          chckUser.ip_addrs = [ip_addr];
-      }
-      return chckUser.id;
+        if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
+          if (!change_ip)
+            chckUser.ip_addrs.push(ip_addr);
+          else
+            chckUser.ip_addrs = [ip_addr];
+        }
+        return chckUser.id;
       }
     }
 
@@ -73,19 +81,17 @@ export class UserTable {
 
   // check to make sure a session conforms to the ip address
   check_session(session: number, ip_addr: string): Nullable<string> {
-    //console.log("Checking for id " + session);
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.id === session) {
         if (chckUser.ip_addrs.indexOf(ip_addr) !== -1) {
-          return chckUser.user;
+          return chckUser.user.username;
         } else {
           return null;
         }
       }
     }
 
-    // console.log("Did not find user");
     return null;
   }
 
