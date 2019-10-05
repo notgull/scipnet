@@ -129,7 +129,7 @@ export class User {
     let user_id = res.rows[0].user_id;
     
     // generate salt and password hash
-    // NOTE TO FUTURE SELF: don't try to optimize this with Promise.all()
+    // Password hashing is intentionally synchronous, do not use Promise.all()
     let salt = await randomBytesPromise(16); 
     let pwHash = await User.hashPassword(password, salt);
 
