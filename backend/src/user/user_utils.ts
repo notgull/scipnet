@@ -1,5 +1,5 @@
 /*
- * user_utils.ts
+ * user-utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
