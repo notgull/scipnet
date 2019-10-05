@@ -20,10 +20,11 @@
 
 import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
+import { User } from 'app/user';
 
 export interface UserIdPair {
   id: number;
-  user: string;
+  user: User;
   expiry: Date;
   ip_addrs: Array<string>
 }
@@ -38,7 +39,7 @@ export class UserTable {
   }
 
   // register a user and ip address into the user table
-  register(user: string, ip_addr: string, expiry: Date, change_ip: boolean): number {
+  register(user: User, ip_addr: string, expiry: Date, change_ip: boolean): number {
     // check if the user is already in here
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
@@ -49,7 +50,7 @@ export class UserTable {
           else
             chckUser.ip_addrs = [ip_addr];
         }
-      return chckUser.id;
+        return chckUser.id;
       }
     }
 
@@ -84,7 +85,7 @@ export class UserTable {
       let chckUser = this.userset[i];
       if (chckUser.id === session) {
         if (chckUser.ip_addrs.indexOf(ip_addr) !== -1) {
-          return chckUser.user;
+          return chckUser.user.username;
         } else {
           return null;
         }

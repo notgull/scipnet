@@ -19,7 +19,8 @@
  */
 
 import { checkUserExistence, checkEmailUsage } from "app/user/existence_check";
-import { ErrorCode } from "app/utils";
+import { ErrorCode } from "app/errors";
+import { getFormattedDate } from "app/utils/date";
 import { Nullable, timeout } from "app/utils";
 import { queryPromise as query } from "app/sql";
 
@@ -32,10 +33,10 @@ const randomBytesPromise = promisify(randomBytes);
 // represents a user
 // TODO: figure out the best way to incorporate stats into this
 export class User {
-  constructor(public user_id: Number,
+  constructor(public user_id: number,
               public username: string,
               public email: string,
-              public karma: Number,
+              public karma: number,
               public join_date: Date,
               public website: Nullable<string>,
               public about: Nullable<string>,
@@ -52,24 +53,24 @@ export class User {
   }
 
   // validate if a password corresponds to a user
-  async validate(password: string): Promise<boolean> {
+  async validate(password: string): Promise<ErrorCode> {
     // get the pwhash from the database
     let res = await query("SELECT salt, pwhash FROM Passwords WHERE user_id=$1;", [this.user_id]);
     if (res.rowCount === 0) {
-      console.error("
+      return ErrorCode.USER_NOT_FOUND;
     }
     
-    let truePwHash = res.rows[0].pwHash;
+    let truePwHash = res.rows[0].pwhash;
     let salt = new Buffer(res.rows[0].salt.data);
 
     // hash the currently input password
     let pwHash = await User.hashPassword(password, salt);
     
-    if (pwHash === truePwHash) return true;
+    if (pwHash === truePwHash) return ErrorCode.SUCCESS;
     else {
       // block execution for a second- this actually makes the system much, MUCH more secure
       await timeout(1000);
-      return false;
+      return ErrorCode.PASSWORD_INCORRECT;
     } 
   }
 
@@ -102,7 +103,7 @@ export class User {
   }
 
   // helper function- validate a user by its id or username
-  static async validateCredentials(user: Number | string, password: string): Promise<boolean> {
+  static async validateCredentials(user: Number | string, password: string): Promise<ErrorCode> {
     let user_object: User;
     if (user instanceof Number) user_object = await User.loadById(user);
     else user_object = await User.loadByUsername(user);
@@ -123,8 +124,8 @@ export class User {
 
     // insert user into database
     const addUserSql = "INSERT INTO Users (username, email, karma, join_date, status, avatar) " +
-                         "VALUES ($1, $2, 0, $3::timestamp, 0, '') RETURNING user_id;";
-    let res = await query(addUserSql, [user, email, getFormattedDate(new Date())]);
+                       "VALUES ($1, $2, 0, $3::timestamp, 0, '') RETURNING user_id;";
+    let res = await query(addUserSql, [username, email, getFormattedDate(new Date())]);
     let user_id = res.rows[0].user_id;
     
     // generate salt and password hash
@@ -139,6 +140,7 @@ export class User {
     const addPasswordSql = "INSERT INTO Passwords (user_id, salt, pwhash) VALUES ($1, $2, $3);";
     await query(addPasswordSql, [user_id, stringifiedSalt, pwHash]);
 
-    if (return_user) return await User.loadById
+    if (return_user) return User.loadById(user_id);
+    return ErrorCode.SUCCESS;
   }
 }

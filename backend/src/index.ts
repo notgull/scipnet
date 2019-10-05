@@ -34,7 +34,8 @@ import { initialize_pages } from 'app/metadata/initialize_database';
 
 import { initialize_users }  from 'app/user/initialize_database';
 import { UserTable } from 'app/user/usertable';
-import * as validate from 'app/user/validate';
+import { User } from 'app/user';
+import { checkUserExistence, checkEmailUsage } from 'app/user/existence_check';
 
 import { ArgsMapping } from 'app/pagereq';
 import * as renderer from 'app/renderer';
@@ -195,25 +196,26 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   let new_url = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
-  validate.validate_user(username, pwHash, (result: number, err: Error) => {
-    if (result === 3) console.log(err);
+  User.loadByUsername(username).then((user: User) => {
+    user.validate(pwHash).then((result: ErrorCode) => {
+      if (result !== ErrorCode.SUCCESS) { res.redirect(`/sys/login?errorCode=${result}`); }
+      else {
+        // add user to user table
+        let ip_addr = getIPAddress(req);
+        let expiry = new Date();
+        if (push_expiry) {
+          expiry.setDate(expiry.getDate() + 7);
+        } else {
+          expiry.setDate(expiry.getDate() + 1);
+        }
 
-    if (result !== 0) res.redirect("/sys/login?errorCode=" + result);
-    else {
-      // add user to user table
-      let ip_addr = getIPAddress(req);
-      let expiry = new Date();
-      if (push_expiry)
-      expiry.setDate(expiry.getDate() + 7);
-      else
-      expiry.setDate(expiry.getDate() + 1);
-
-      let sessionId = ut.register(username, ip_addr, expiry, change_ip);
-      console.log("Logged session " + sessionId);
-      res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
-      res.redirect('/' + new_url);
-    }
-  });
+        let sessionId = ut.register(user, ip_addr, expiry, change_ip);
+        console.log("Logged session " + sessionId);
+        res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
+        res.redirect('/' + new_url);
+      }
+    }).catch((err: Error) => { console.error(err); });
+  }).catch((err: Error) => { console.error(err); });
 });
 
 // hookup to PRS system
@@ -222,7 +224,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
 
   console.log("PRS Request: " + JSON.stringify(req.body));
 
-  // get username
+  //get username
   let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
 
   // pull all parameters from req.body and put them in args
@@ -250,9 +252,8 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
 });
 
 function onEmailVerify(username: string, pwHash: string, email: string): void {
-  validate.add_new_user(username, email, pwHash, (i: number, err: Error) => {
-    console.log("Err: " + i + "\n" + err);
-  });
+  User.createNewUser(username, email, pwHash).then(() => { console.log("Created user " + username); })
+    .catch((err: Error) => { console.error(`User creation error: ${err}`); });
 };
 
 // process registration
@@ -268,27 +269,26 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
-  validate.check_user_existence(username, function(result: any, err: Error): void {
-    //console.log(err);
-    if (result == ErrorCode.INTERNAL_ERROR) {
-      console.log(err);
-      res.redirect('/sys/register?errors=512');
-    } else if (result !== ErrorCode.USER_NOT_FOUND) {
+  checkUserExistence(username).then((result: boolean) => {   
+    if (result) {
       res.redirect('/sys/register?errors=128')
     } else {
-      validate.check_email_usage(email, function(result: number, err: Error) {
-        if (result === ErrorCode.INTERNAL_ERROR) {
-          //console.log(err);
-        res.redirect('/sys/register?errors=512');
-        } else if (result !== ErrorCode.EMAIL_NOT_FOUND)
-        res.redirect('/sys/register?errors=256');
-        else {
+      checkEmailUsage(email).then((result: boolean) => {
+        if (result) {
+          res.redirect('/sys/register?errors=256');
+        } else {
           // TODO: verify via email
-        res.redirect('/sys/login');
+          res.redirect('/sys/login');
           onEmailVerify(username, pwHash, email);
         }
+      }).catch((err: Error) => {
+        console.error(err);
+        res.redirect("/sys/register?errors=512");
       });
     }
+  }).catch((err: Error) => {
+   console.error(err);
+   res.redirect("/sys/register?errors=512");  
   });
 });
 

@@ -20,6 +20,6 @@
 
 export type Nullable<T> = T | null;
 
-export async function timeout(ms: Number) {
+export async function timeout(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

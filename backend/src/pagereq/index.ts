@@ -25,7 +25,7 @@ import * as uuid from 'uuid/v4';
 
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
-import { get_user_id, get_username } from 'app/user/validate';
+import { getUserId, getUsername } from 'app/user/user_utils';
 import * as metadata from 'app/metadata';
 import { render_rating_module } from 'app/renderer';
 
@@ -226,17 +226,6 @@ history_header += "<tr><td>rev.</td><td>&nbsp;&nbsp;&nbsp;</td><td>flags</td><td
 const history_row = "<tr><td>{{ rev_number }}</td><td></td><td>{{ flags }}</td><td>{{ buttons }}</td><td>{{ author }}</td><td>{{ date }}</td><td>{{ comments }}</td></tr>";
 const history_footer = '</tbody></table>';
 
-// history helper function: async version of get_username
-async function get_username_async(user_id: number): Promise<string> {
-  return new Promise((resolve: any, reject: any) => {
-    get_username(user_id, (res: any, err: Nullable<Error>) => {
-      if (err) reject(err);
-      else resolve(res);
-          //else reject('Unknown error');
-    });
-  });
-};
-
 // get the history of a page
 async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
@@ -273,7 +262,7 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
       rev_number: revision.revisionId,
       buttons: "V S R",
       flags: "N",
-      author: await get_username_async(revision.userId),
+      author: await getUsername(revision.userId),
       date: revision.createdAt.toLocaleDateString("en-US"),
       comments: "",
     });
@@ -465,8 +454,8 @@ export function request(name: string, username: string, args: ArgsMapping, next:
   let returnVal = genReturnVal();
 
   // also get the user id
-  get_user_id(username, (user_id: number, err: Error) => {
-    if (err && username) { next(genErrorVal(err)); return; }
+  getUserId(username).then((user_id: Nullable<number>) => {
+    if ((!user_id) && username) { next(genErrorVal(new Error("Bad user id"))); return; }
 
     if (!args["pagename"] || args["pagename"].length === 0)
       args["pagename"] = "main";
@@ -492,5 +481,5 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     else if (name === 'voteOnPage') voteOnPage(username, args, next);
     else if (name === 'tagPage') tagPage(username, args, next);
     else throw new Error("Improper PRS request " + name);
-  });
+  }).catch((err: Error) => { next(genErrorVal(err)); });
 };

@@ -23,10 +23,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { config } from 'app/config';
+import { ErrorCode } from 'app/errors';
 import { Revision } from './revision';
 import { revisionsService } from 'app/revisions';
+import { User } from 'app/user';
+
 import * as metadata from 'app/metadata';
-import * as validate from 'app/user/validate';
 
 const contentDir = config.get('files.data.content');
 
@@ -37,12 +39,15 @@ function copy_file(orig: string, dest: string) {
 // put more pages in this if we need them
 export function autocreate(next: (r: number) => any) {
   // add system user
-  validate.add_new_user("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", (user_id: number, err: Error) => {
-    if (err) {
+  User.createNewUser("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", true)
+    .then((user: ErrorCode | User) => {
+    if (!(user instanceof User)) {
       // failed to add user; already exists
-      console.error("Failed to add user: already exists");
+      console.error("Failed to add system user: already exists");
       return;
     }
+
+    let user_id = user.user_id;
 
     let _404 = new metadata.Metadata("_404");
     _404.title = "404";

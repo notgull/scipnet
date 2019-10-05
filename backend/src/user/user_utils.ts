@@ -20,9 +20,10 @@
 
 // quick functions to make it easy to get certain details of users without going through the model
 import { Nullable } from 'app/utils';
+import { queryPromise as query } from 'app/sql';
 
 // get the ID of a user by its username
-export async function getUserId(user: string): Promise<Nullable<Number>> {
+export async function getUserId(user: string): Promise<Nullable<number>> {
   const userid_query = "SELECT user_id FROM Users WHERE username=$1;";
   let res = await query(userid_query, [user]);
   
@@ -31,7 +32,7 @@ export async function getUserId(user: string): Promise<Nullable<Number>> {
 };
 
 // get the username of a user by its id
-export async function getUsername(user_id: number): Promise<Nullable<String>> {
+export async function getUsername(user_id: number): Promise<Nullable<string>> {
   let res = await query("SELECT username FROM Users WHERE user_id=$1;", [user_id]);
   
   if (res.rowCount === 0) return null;
