@@ -67,7 +67,7 @@ export class User {
     
     if (pwHash === truePwHash) {
       return ErrorCode.SUCCESS;
-    else {
+    } else {
       // block execution for a second- this actually makes the system much, MUCH more secure
       await timeout(1000);
       return ErrorCode.PASSWORD_INCORRECT;

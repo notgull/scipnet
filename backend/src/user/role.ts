@@ -38,7 +38,7 @@ function setPermsetVal(permset: number, index: number, value: boolean): number {
 
 // represents a role- e.g. moderator, admin, etc.
 export class Role {
-  role_id: number;
+  roleId: number;
   // TODO: list permissions here
   createPages: boolean;
   
@@ -69,7 +69,7 @@ export class Role {
   // create a role from a role-like object (e.g. an sql row)
   static fromRow(row: any): Role {
     let role = Role.fromPermset(row.role_name, row.permset);
-    role.role_id = row.role_id;
+    role.roleId = row.role_id;
     return role;
   }
 

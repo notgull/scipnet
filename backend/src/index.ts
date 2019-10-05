@@ -193,14 +193,13 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   let pwHash = req.body.pwHash;
   let push_expiry = (req.body.remember === "true");
   let change_ip = (req.body.change_ip === "true");
-  let new_url = req.query.new_url || "";
+  let newUrl = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
   User.loadByUsername(username).then((user: User) => {
     user.validate(pwHash).then((result: ErrorCode) => {
       if (result !== ErrorCode.SUCCESS) {
         res.redirect(`/sys/login?errorCode=${result}`);
-      }
       } else {
         // add user to user table
         const ipAddr = getIPAddress(req);
@@ -211,7 +210,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
           expiry.setDate(expiry.getDate() + 1);
         }
 
-        let sessionId = ut.register(user, ip_addr, expiry, change_ip);
+        let sessionId = ut.register(user, ipAddr, expiry, change_ip);
         console.log(`Logged session ${sessionId}`);
         res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
         res.redirect(`/${newUrl}`);
