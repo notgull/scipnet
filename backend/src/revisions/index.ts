@@ -55,6 +55,8 @@ export class RevisionsService {
       throw new Error(`Revision object has gitCommit value: '${revision.gitCommit}'.`);
     }
 
+    filename = path.join(this.directory, filename);
+
     try {
       revision.revisionId = (await query(`
         INSERT INTO Revisions
@@ -84,8 +86,7 @@ export class RevisionsService {
         revision_id: revision.revisionId,
       });
 
-      // basically just run git add -A here
-      this.git.add(path.join(this.directory,'*'));
+      this.git.add(filename);
 
       const commitSummary = await this.git.commit(message, filename);
       revision.gitCommit = commitSummary.commit;
