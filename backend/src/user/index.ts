@@ -65,7 +65,8 @@ export class User {
     // hash the currently input password
     let pwHash = await User.hashPassword(password, salt);
     
-    if (pwHash === truePwHash) return ErrorCode.SUCCESS;
+    if (pwHash === truePwHash) {
+      return ErrorCode.SUCCESS;
     else {
       // block execution for a second- this actually makes the system much, MUCH more secure
       await timeout(1000);
