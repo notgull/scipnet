@@ -44,7 +44,7 @@ export class Role {
   
   constructor(public rolename: string) {
     this.createPages = true;
-    this.role_id = -1;
+    this.roleId = -1;
   } 
 
   // apply a set of permissions (in the form of a 64-bit number) to a role
