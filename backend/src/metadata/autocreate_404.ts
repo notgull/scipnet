@@ -22,18 +22,70 @@ import * as diff from 'diff';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { promisify } from 'util';
+
 import { config } from 'app/config';
 import { ErrorCode } from 'app/errors';
 import { Revision } from './revision';
 import { revisionsService } from 'app/revisions';
 import { User } from 'app/user';
+import { Role } from 'app/user/role';
 
 import * as metadata from 'app/metadata';
 
 const contentDir = config.get('files.data.content');
+const readFilePromise = promisify(fs.readFile);
 
 function copy_file(orig: string, dest: string) {
   fs.createReadStream(orig).pipe(fs.createWriteStream(dest));
+}
+
+// an async way of going about this
+async function autocreateAsync(): Promise<number> {
+  // TODO: check for roles beforehand
+
+  // create roles for system, admin, and for default users
+  let systemRole = await Role.createNewRole("system", ~0, true);
+  let defaultRole = await Role.createNewRole("default", null, true);
+  let adminRole = await Role.createNewRole("admin", ~0, true);
+  Role.systemRole = systemRole;
+  Role.defaultRole = defaultRole;
+  Role.adminRole = adminRole;
+
+  // create system user
+  let systemUser = await User.createNewUser("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", true);
+  if (!(user instanceof User)) {
+    console.error("Failed to add system user: already exists");
+    User.systemUser = await User.loadByUsername("system");
+    return;
+  }
+  User.systemUser = systemUser;
+
+  let systemUserId = systemUser.user_id;
+  
+  // create 404 page
+  let _404 = new metadata.Metadata("_404");
+  _404.title = "404";
+  _404.locked_at = new Date();
+
+  // copy source of default 404 to content dir
+  let _404Source = await readFilePromise(path.join(process.cwd(), "../templates/_404.ftml")).toString();
+
+  await _404.submit();
+
+  let articleId = _404.article_id;
+  let _404Author = new metadata.Author(articleId, systemUserId, "author");
+  let _404Revision = new Revision(article_id, user_id, "Created _404 page", [], "_404", "N");
+
+  revisionService.commit(_404Revision, path.join(contentDir,
+  
+  _404.authors.push(_404Author);
+  _404.revisions.push(_404Revision);
+
+  await _404.submit(true);
+
+  // create main page
+  let main = new metadata.Metadata("_404");
 }
 
 // put more pages in this if we need them

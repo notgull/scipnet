@@ -23,6 +23,7 @@ import { ErrorCode } from "app/errors";
 import { getFormattedDate } from "app/utils/date";
 import { Nullable, timeout } from "app/utils";
 import { queryPromise as query } from "app/sql";
+import { Role } from "app/user/role";
 
 import { pbkdf2, randomBytes } from "crypto";
 import { promisify } from "util";
@@ -33,6 +34,8 @@ const randomBytesPromise = promisify(randomBytes);
 // represents a user
 // TODO: figure out the best way to incorporate stats into this
 export class User {
+  public static systemUser: Nullable<User> = null;
+
   constructor(public user_id: number,
               public username: string,
               public email: string,
@@ -42,7 +45,8 @@ export class User {
               public about: Nullable<string>,
               public city: Nullable<string>,
               public avatar: string,
-              public gender: Nullable<string>) {
+              public gender: Nullable<string>,
+              public role: Role) {
   }
 
   // helper function: hash a password
@@ -75,7 +79,7 @@ export class User {
   }
 
   // create a user from an object that has user-like properties (most likely an SQL row)
-  static fromRow(row: any): User {
+  static async fromRow(row: any): Promise<User> {
     return new User(row.user_id,
                     row.username,
                     row.email,
@@ -85,7 +89,8 @@ export class User {
                     row.about,
                     row.city,
                     row.avatar,
-                    row.gender);
+                    row.gender,
+                    await Role.loadById(row.role_id));
   }
 
   // load a user by its ID
@@ -116,16 +121,21 @@ export class User {
   static async createNewUser(username: string, 
                              email: string, 
                              password: string,
+                             role: Role | number,
                              return_user: boolean = false): Promise<ErrorCode | User> {
     // check for user and email existence
     let results = await Promise.all([checkUserExistence(username), checkEmailUsage(email)]);
     if (results[0]) return ErrorCode.USER_EXISTS;
     else if (results[1]) return ErrorCode.EMAIL_EXISTS;
 
+    if (role instanceof Role) {
+      role = role.role_id;
+    }
+
     // insert user into database
-    const addUserSql = "INSERT INTO Users (username, email, karma, join_date, status, avatar) " +
-                       "VALUES ($1, $2, 0, $3::timestamp, 0, '') RETURNING user_id;";
-    let res = await query(addUserSql, [username, email, getFormattedDate(new Date())]);
+    const addUserSql = "INSERT INTO Users (username, email, karma, join_date, status, avatar, role_id) " +
+                       "VALUES ($1, $2, 0, $3::timestamp, 0, '', $4) RETURNING user_id;";
+    let res = await query(addUserSql, [username, email, getFormattedDate(new Date()), role]);
     let user_id = res.rows[0].user_id;
     
     // generate salt and password hash
@@ -147,8 +157,8 @@ export class User {
   // update a user in its database with new details
   async submit(): Promise<void> {
     const updateUserSql = "UPDATE Users SET username=$1, email=$2, karma=$3, website=$4, about=$5," +
-                          "city=$6, avatar=$7, gender=$8 WHERE user_id=$9;";
+                          "city=$6, avatar=$7, gender=$8, role_id=$9 WHERE user_id=$10;";
     await query(updateUserSql, [this.username, this.email, this.karma, this.website, this.about,
-                                this.city, this.avatar, this.gender, this.user_id]);
+                                this.city, this.avatar, this.gender, this.role.role_id, this.user_id]);
   }
 }

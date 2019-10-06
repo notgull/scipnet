@@ -20,55 +20,34 @@
 
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
+import { Permset } from 'app/user/permissions';
 import { queryPromise as query } from "app/sql";
-
-// helper functions for using perm sets
-function getPermsetVal(permset: number, index: number): boolean {
-  return (permset & (1 << index)) > 0;
-}
-
-function setPermsetVal(permset: number, index: number, value: boolean): number {
-  if (value) {
-    permset |= (1 << index);
-  } else {
-    permset &= ~(1 << index);
-  }
-  return permset;
-}
 
 // represents a role- e.g. moderator, admin, etc.
 export class Role {
   roleId: number;
-  // TODO: list permissions here
-  createPages: boolean;
+  permset: Permset;
+  public static defaultRole: Nullable<Role> = null;
+  public static systemRole: Nullable<Role> = null;
+  public static adminRole: Nullable<Role> = null;
   
-  constructor(public rolename: string) {
-    this.createPages = true;
+  constructor(public rolename: string, permset: Nullable<Permset | number> = null) {
+    if (permset) {
+      if (permset instanceof Permset) {
+        this.permset = permset;
+      } else {
+        this.permset = Permset.fromNumber(permset);
+      }
+    } else {
+      this.permset = new Permset();
+    }
+
     this.roleId = -1;
   } 
 
-  // apply a set of permissions (in the form of a 64-bit number) to a role
-  applyPermset(permset: number) {
-    this.createPages = getPermsetVal(permset, 0);
-  }
-
-  // get the permset of the role
-  getPermset(): number {
-    let permset = setPermsetVal(0, 0, this.createPages);
-
-    return permset;
-  }
-
-  // create a role from a name and a permset
-  static fromPermset(rolename: string, permset: number): Role {
-    let role = new Role(rolename);
-    role.applyPermset(permset);
-    return role;
-  }
-
   // create a role from a role-like object (e.g. an sql row)
   static fromRow(row: any): Role {
-    let role = Role.fromPermset(row.role_name, row.permset);
+    let role = new Role(row.role_name, row.permset);
     role.roleId = row.role_id;
     return role;
   }
@@ -81,7 +60,17 @@ export class Role {
   }
 
   // create a new role in the database
-  static async createNewRole(rolename: string, permset: number, return_role: boolean): Promise<Role | ErrorCode> {
+  static async createNewRole(rolename: string, 
+                             permset: Nullable<Permset | number>, 
+                             return_role: boolean): Promise<Role | ErrorCode> {
+    if (permset) {
+      if (permset instanceof Permset) {
+        permset = permset.getNumber();
+      }
+    } else {
+      permset = new Permset().getNumber();
+    }
+
     let res = await query("INSERT INTO Roles (role_name, permset) VALUES ($1, $2) RETURNING role_id",
                           [rolename, permset]);
     let role_id = res.rows[0].role_id;
@@ -91,6 +80,6 @@ export class Role {
 
   // update role in database
   async updateRole(): Promise<void> {
-    await query("UPDATE Roles SET role_name=$1, permset=$2;", [this.rolename, this.getPermset()]);
+    await query("UPDATE Roles SET role_name=$1, permset=$2;", [this.rolename, this.permset.getNumber()]);
   }
 };
