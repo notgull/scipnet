@@ -69,29 +69,29 @@ export function initialize_pages(next: (n: number) => any) {
                              "author_type TEXT NOT NULL," +
                              "created_at TIMESTAMP NOT NULL" +
                            ");";
-      query(author_table_sql, [], (err: any, res: any) => {
-          if (err) throw new Error(err);
-
-          const file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
-                           "file_id BIGSERIAL PRIMARY KEY," +
-                           "article_id INTEGER REFERENCES Pages(article_id)," +
-                           "description TEXT NOT NULL," +
-                           "file_uri TEXT NOT NULL," +
-                           "filename TEXT NOT NULL" +
-                         ");";
-          query(file_table_sql, [], (err: any, res: any) => {
+        query(author_table_sql, [], (err: any, res: any) => {
             if (err) throw new Error(err);
 
-            const parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
-                               "article_id INTEGER REFERENCES Pages(article_id)," +
-                               "parent_article_id INTEGER REFERENCES Pages(article_id)" +
-                             ");";
-          query(parent_table_sql, [], (err, res) => {
+            const file_table_sql = "CREATE TABLE IF NOT EXISTS Files (" +
+                             "file_id BIGSERIAL PRIMARY KEY," +
+                             "article_id INTEGER REFERENCES Pages(article_id)," +
+                             "description TEXT NOT NULL," +
+                             "file_uri TEXT NOT NULL," +
+                             "filename TEXT NOT NULL" +
+                           ");";
+            query(file_table_sql, [], (err: any, res: any) => {
               if (err) throw new Error(err);
-            next(0);
+
+              const parent_table_sql = "CREATE TABLE IF NOT EXISTS Parents (" +
+                                 "article_id INTEGER REFERENCES Pages(article_id)," +
+                                 "parent_article_id INTEGER REFERENCES Pages(article_id)" +
+                               ");";
+            query(parent_table_sql, [], (err, res) => {
+                if (err) throw new Error(err);
+              next(0);
+            });
           });
         });
-      });
       });
     });
   });
