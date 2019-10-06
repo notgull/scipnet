@@ -1,5 +1,5 @@
 /*
- * role.ts
+ * services/user/role.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -26,6 +26,7 @@ import { queryPromise as query } from "app/sql";
 // represents a role- e.g. moderator, admin, etc.
 export class Role {
   roleId: number;
+
   permset: Permset;
   public static defaultRole: Nullable<Role> = null;
   public static systemRole: Nullable<Role> = null;
@@ -41,9 +42,8 @@ export class Role {
     } else {
       this.permset = new Permset();
     }
-
     this.roleId = -1;
-  } 
+  }
 
   // create a role from a role-like object (e.g. an sql row)
   static fromRow(row: any): Role {
@@ -55,7 +55,7 @@ export class Role {
   // load a role by its role id from the database
   static async loadById(role_id: number): Promise<Nullable<Role>> {
     let res = await query("SELECT * FROM Roles WHERE role_id=$1;", [role_id]);
-    if (res.rowCount === 0) return null; 
+    if (res.rowCount === 0) return null;
     return Role.fromRow(res.rows[0]);
   }
 

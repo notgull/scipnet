@@ -28,40 +28,44 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 
-import { autocreate } from 'app/metadata/autocreate_404';
-import * as metadata from 'app/metadata';
-import { initialize_pages } from 'app/metadata/initialize_database';
+import { autocreate } from 'app/services/metadata/autocreate-404';
+import * as metadata from 'app/services/metadata';
+import { initialize_pages } from 'app/services/metadata/initialize-database';
 
-import { initialize_users }  from 'app/user/initialize_database';
-import { UserTable } from 'app/user/usertable';
-import { User } from 'app/user';
-import { checkUserExistence, checkEmailUsage } from 'app/user/existence_check';
+import { initialize_users }  from 'app/services/user/initialize-database';
+import { UserTable } from 'app/services/user/usertable';
+import { User } from 'app/services/user';
+import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
-import { ArgsMapping } from 'app/pagereq';
-import * as renderer from 'app/renderer';
+import { ArgsMapping } from 'app/services/pagereq';
+import { render } from 'app/services/render';
 import { slugify } from 'app/slug';
-import * as service from 'app/service';
+import * as service from 'app/old-service';
 import { Nullable } from 'app/utils';
-import { send_jsonrpc_message } from 'app/utils/jsonrpc';
+import { callJsonMethod } from 'app/utils/jsonrpc';
 import { ErrorCode } from 'app/errors';
 
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
-console.log("SCPWiki v" + version);
+console.log(`SCPWiki v${version}`);
 
 let s_port = config.get('services.scipnet.port');
 
 // create folders before sql initialization
-function check_dir(dirname: string) {
-  if (!(fs.existsSync(dirname))) {
-    fs.mkdirSync(dirname, { recursive: true });
+function checkDirs(names: Array<string>) {
+  const baseDirectory = config.get('files.data.directory');
+
+  for (const name of names) {
+    const directory = path.join(baseDirectory, name);
+
+    if (!(fs.existsSync(directory))) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
   }
 }
 
-check_dir(config.get('files.data.content'));
-check_dir(config.get('files.data.metadata'));
-check_dir(config.get('files.data.diff'));
-check_dir(config.get('files.data.attachments'));
+// TODO: move init to separate function
+checkDirs(['metadata', 'pages']);
 
 // load up the SQL before we start up
 initialize_users((_o: any) => {
@@ -101,7 +105,7 @@ function loginInfo(req: express.Request): Nullable<string> {
 // function to render a page
 async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
   if (isHTML) {
-    return renderer.render('', name, pageTitle, loginInfo(req));
+    return render('', name, pageTitle, loginInfo(req));
   } else {
     var md = await metadata.Metadata.load_by_slug(name);
 
@@ -112,7 +116,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
       else
         title = "404";
 
-    return renderer.render(name, '', title, loginInfo(req), md);
+    return render(name, '', title, loginInfo(req), md);
   }
 }
 
@@ -235,7 +239,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      send_jsonrpc_message("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
+      callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
@@ -270,7 +274,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
-  checkUserExistence(username).then((result: boolean) => {   
+  checkUserExistence(username).then((result: boolean) => {
     if (result) {
       res.redirect('/sys/register?errors=128')
     } else {
@@ -289,7 +293,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
     }
   }).catch((err: Error) => {
    console.error(err);
-   res.redirect("/sys/register?errors=512");  
+   res.redirect("/sys/register?errors=512");
   });
 });
 

@@ -1,5 +1,5 @@
 /*
- * autocreate_404.js
+ * services/metadata/autocreate_404.js
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -27,14 +27,17 @@ import { promisify } from 'util';
 import { config } from 'app/config';
 import { ErrorCode } from 'app/errors';
 import { Revision } from './revision';
-import { revisionsService } from 'app/revisions';
-import { User } from 'app/user';
-import { Role } from 'app/user/role';
 
-import * as metadata from 'app/metadata';
+import { revisionsService } from 'app/services/revisions';
+import { User } from 'app/services/user';
+import { Role } from 'app/services/user/role';
 
-const contentDir = config.get('files.data.content');
+import { Author, Metadata } from 'app/services/metadata';
+
 const readFilePromise = promisify(fs.readFile);
+
+const contentDir = path.join(config.get('files.data.directory'), 'pages');
+
 
 function copy_file(orig: string, dest: string) {
   fs.createReadStream(orig).pipe(fs.createWriteStream(dest));
@@ -101,7 +104,7 @@ export function autocreate(next: (r: number) => any) {
 
     let user_id = user.user_id;
 
-    let _404 = new metadata.Metadata("_404");
+    let _404 = new Metadata("_404");
     _404.title = "404";
     _404.locked_at = new Date();
 
@@ -111,7 +114,7 @@ export function autocreate(next: (r: number) => any) {
     // save the page to the database so that we have a page id to work with
     _404.submit().then(() => {
       let article_id = _404.article_id;
-      let _404_author = new metadata.Author(article_id, user_id, "author");
+      let _404_author = new Author(article_id, user_id, "author");
       let _404_revision = new Revision(article_id, user_id, 'Creating _404 page', [], '_404', 'N');
 
       _404.authors.push(_404_author);
@@ -119,14 +122,14 @@ export function autocreate(next: (r: number) => any) {
 
       _404.submit(true).then(() => {
         // we also need the main page
-        let mainpage = new metadata.Metadata("main");
+        let mainpage = new Metadata("main");
         mainpage.title = "";
         mainpage.locked_at = new Date();
 
         copy_file(path.join(process.cwd(), "../templates/main.ftml"), path.join(contentDir, 'main'));
         mainpage.submit().then(() => {
           let article_id = mainpage.article_id;
-          let mainpage_author = new metadata.Author(article_id, user_id, "author");
+          let mainpage_author = new Author(article_id, user_id, "author");
           let mainpage_revision = new Revision(article_id, user_id, 'Creating main page', [], 'main', 'N');
 
           mainpage.authors.push(mainpage_author);

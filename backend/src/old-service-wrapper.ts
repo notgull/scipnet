@@ -56,5 +56,6 @@ function runservice(modname: string, serv_config: ServiceConfig) {
   server.http().listen(port);
 }
 
-if (require.main === module)
+if (require.main === module) {
   runservice(process.argv[2], JSON.parse(process.argv[3]));
+}

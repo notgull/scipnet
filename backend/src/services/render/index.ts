@@ -1,5 +1,5 @@
 /*
- * renderer.ts
+ * services/render/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -24,8 +24,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as nunjucks from 'nunjucks';
 
-import { renderFtml } from 'app/ftml';
-import * as md from 'app/metadata';
+import { renderFtml } from 'app/services/ftml';
+import { Metadata } from 'app/services/metadata';
 
 // nunjucks environment
 const templates_folder = path.join(process.cwd(), "../templates");
@@ -35,13 +35,7 @@ let env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templates_folde
 
 import { config } from 'app/config';
 
-const contentDir = config.get('files.data.content');
-const rating_mod_src = "[[=]]\n[[module Rate]]\n[[/=]]";
-
-export async function render_rating_module(metadata: any): Promise<string> {
-  // render a rating module
-  return renderFtml("Rating Module", rating_mod_src, metadata);
-};
+const contentDir = path.join(config.get('files.data.directory'), 'pages');
 
 // add a filter used for rendering usernames
 env.addFilter("usermodule", function(str: string, add_pfp: boolean = false) {
@@ -72,19 +66,19 @@ export async function render(
   let content;
   if (!htmlFileName || htmlFileName.length === 0) {
     if (!metadata) {
-      return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
+      return render("_404", '', title, loginInfo, await Metadata.load_by_slug('_404'));
     }
 
     // test for existence first
     let filepath = path.join(contentDir, modName); // new change: using folder w/ modname
     if (!fs.existsSync(filepath)) {
-      return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
+      return render("_404", '', title, loginInfo, await Metadata.load_by_slug('_404'));
     }
 
     let src = fs.readFileSync(filepath) + "";
     content = await renderFtml(modName, src, metadata);
   } else {
-    content = '' + fs.readFileSync(htmlFileName);
+    content = fs.readFileSync(htmlFileName).toString();
   }
 
   const lb_replacement_string = "[INSERT_LOGINBAR_HERE]";
