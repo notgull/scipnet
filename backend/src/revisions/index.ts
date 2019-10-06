@@ -105,4 +105,6 @@ export class RevisionsService {
   }
 }
 
-export const revisionsService = new RevisionsService(config.get('files.data.content')); // this might not be what you want
+const pagesDir = path.join(config.get('files.data.directory'), 'pages');
+
+export const revisionsService = new RevisionsService(pagesDir); // this might not be what you want

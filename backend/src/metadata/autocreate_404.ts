@@ -30,7 +30,7 @@ import { User } from 'app/user';
 
 import * as metadata from 'app/metadata';
 
-const contentDir = config.get('files.data.content');
+const contentDir = path.join(config.get('files.data.directory'), 'pages');
 
 function copy_file(orig: string, dest: string) {
   fs.createReadStream(orig).pipe(fs.createWriteStream(dest));
