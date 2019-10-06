@@ -25,6 +25,19 @@ export const CONFIG_DIR = path.join(process.cwd(), 'config');
 
 type RawConfig = { [key: string]: any };
 
+export type ConfigKey =
+  | 'files.data.directory'
+  | 'database.username'
+  | 'database.password'
+  | 'database.name'
+  | 'database.host'
+  | 'services.scipnet.port'
+  | 'services.ftml.host'
+  | 'services.ftml.port'
+  | 'services.pagereq.host'
+  | 'services.pagereq.port'
+  | 'ui.editor.lock_timeout';
+
 function loadJson(file: string, optional: boolean = false): RawConfig {
   try {
     const buf = fs.readFileSync(file);
@@ -49,7 +62,7 @@ export class Config {
     Object.assign(this.data, loadJson(overridePath, true));
   }
 
-  public get(key: string): any {
+  public get(key: ConfigKey): any {
     const value = this.data[key];
     if (value === undefined) {
       throw new Error(`No such configuration key: '${key}'.`);

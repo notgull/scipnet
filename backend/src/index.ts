@@ -47,21 +47,25 @@ import { ErrorCode } from 'app/errors';
 
 // get version
 const version = require(path.join(process.cwd(), 'package.json')).version;
-console.log("SCPWiki v" + version);
+console.log(`SCPWiki v${version}`);
 
 let s_port = config.get('services.scipnet.port');
 
 // create folders before sql initialization
-function check_dir(dirname: string) {
-  if (!(fs.existsSync(dirname))) {
-    fs.mkdirSync(dirname, { recursive: true });
+function checkDirs(names: Array<string>) {
+  const baseDirectory = config.get('files.data.directory');
+
+  for (const name of names) {
+    const directory = path.join(baseDirectory, name);
+
+    if (!(fs.existsSync(directory))) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
   }
 }
 
-check_dir(config.get('files.data.content'));
-check_dir(config.get('files.data.metadata'));
-check_dir(config.get('files.data.diff'));
-check_dir(config.get('files.data.attachments'));
+// TODO: move init to separate function
+checkDirs(['metadata', 'pages']);
 
 // load up the SQL before we start up
 initialize_users((_o: any) => {
@@ -270,7 +274,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
-  checkUserExistence(username).then((result: boolean) => {   
+  checkUserExistence(username).then((result: boolean) => {
     if (result) {
       res.redirect('/sys/register?errors=128')
     } else {
@@ -289,7 +293,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
     }
   }).catch((err: Error) => {
    console.error(err);
-   res.redirect("/sys/register?errors=512");  
+   res.redirect("/sys/register?errors=512");
   });
 });
 

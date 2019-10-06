@@ -1,8 +1,5 @@
 {
-    "files.data.content": "data/scp-content",
-    "files.data.metadata": "data/scp-metadata",
-    "files.data.diff": "data/scp-diff",
-    "files.data.attachments": "data/attachments",
+    "files.data.directory": "local-data",
 
     "database.username": "scipnet",
     "database.password": "GoodPassword222",

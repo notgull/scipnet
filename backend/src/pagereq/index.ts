@@ -27,12 +27,10 @@ import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 import { getUserId, getUsername } from 'app/user/user_utils';
 import * as metadata from 'app/metadata';
-import { render_rating_module } from 'app/renderer';
 
 import { revisionsService } from 'app/revisions';
 
-const data_dir = config.get('files.data.content');
-const diff_dir = config.get('files.data.metadata');
+const dataDir = path.join(config.get('files.data.directory'), 'pages');
 
 export type ArgsMapping = { [key: string]: any };
 
@@ -98,7 +96,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
     if (pMeta) {
       pMeta.editlock = el;
 
-      let dataLoc = path.join(data_dir, args.pagename);
+      let dataLoc = path.join(dataDir, args.pagename);
       let data = fs.readFileSync(dataLoc).toString();
       returnVal.src = data;
       returnVal.title = pMeta.title;
@@ -197,7 +195,7 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   pMeta.title = args.title || "";
 
   // get the old source
-  let dataLoc = path.join(data_dir, args.pagename);
+  let dataLoc = path.join(dataDir, args.pagename);
   let data = args.src;
 
   // write revision
@@ -310,7 +308,7 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A");
   mObj.submit(false);
 
-  let dataLoc = path.join(data_dir, args.pagename);
+  let dataLoc = path.join(dataDir, args.pagename);
 
   // TODO revisionsService.commit() with filename
 
@@ -370,7 +368,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
 // get the list of tags
 function getTags(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
-  
+
   metadata.Metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.Metadata>) => {
     if (!mObj) {
       returnVal.error = "Page does not exist";
@@ -416,11 +414,7 @@ function getRatingModule(args: ArgsMapping, next: PRSCallback) {
       return;
     }
 
-    render_rating_module(pMeta).then((ratingModule: string) => {
-      returnVal.ratingModule = ratingModule;
-      returnVal.result = true;
-      next(returnVal);
-    }).catch((err: Error) => { next(genErrorVal(err)); });
+    next(returnVal);
   }).catch((err: Error) => { next(genErrorVal(err)); });
 }
 
@@ -435,13 +429,13 @@ function getPageSource(args: ArgsMapping, next: PRSCallback) {
       return;
     }
 
-    let dataLoc = path.join(data_dir, args.pagename);
+    let dataLoc = path.join(dataDir, args.pagename);
     fs.readFile(dataLoc, (err: Error, data: Buffer) => {
       if (err) {
         next(genErrorVal(err));
         return;
       }
-      
+
       returnVal.result = true;
       returnVal.src = data.toString();
       next(returnVal);
