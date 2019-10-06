@@ -1,5 +1,5 @@
 /*
- * user/usertable.ts
+ * services/user/usertable.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -20,7 +20,7 @@
 
 import { randomInt } from 'app/utils/random';
 import { Nullable } from 'app/utils';
-import { User } from 'app/user';
+import { User } from 'app/services/user';
 
 export interface UserIdPair {
   id: number;

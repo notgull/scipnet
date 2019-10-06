@@ -1,5 +1,5 @@
 /*
- * pagereq/service.ts
+ * services/pagereq/service.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as pagereq from 'app/pagereq';
+import * as pagereq from 'app/services/pagereq';
 import { ServiceCallback, ServiceParams, Service } from 'app/old-service-wrapper';
 
 // asynchronous pr

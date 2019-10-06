@@ -1,5 +1,5 @@
 /*
- * metadata/index.ts
+ * services/metadata/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -41,16 +41,16 @@ import { Nullable } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
 import { queryPromise as query } from 'app/sql';
 
-import { Rating } from 'app/metadata/rating';
-import { Revision } from 'app/metadata/revision';
-import { Author } from 'app/metadata/author';
-import { Parent } from 'app/metadata/parent';
+import { Rating } from './rating'
+import { Revision } from './revision';
+import { Author } from './author';
+import { Parent } from './parent';
 import {
   EditLock,
   add_editlock,
   remove_editlock,
   check_editlock,
-} from 'app/metadata/editlock';
+} from './editlock';
 
 export {
   Rating,

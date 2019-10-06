@@ -1,5 +1,5 @@
 /*
- * revisions/index.ts
+ * services/revisions/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -31,7 +31,7 @@ import { SimpleGit } from 'simple-git/promise';
 
 import { config } from 'app/config';
 import { queryPromise as query } from 'app/sql';
-import { Revision } from 'app/metadata/revision';
+import { Revision } from 'app/services/metadata/revision';
 
 export class RevisionsService {
   private git: SimpleGit;

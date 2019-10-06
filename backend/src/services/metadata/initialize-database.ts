@@ -1,5 +1,5 @@
 /*
- * initialize_database.ts
+ * services/metadata/initialize_database.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith

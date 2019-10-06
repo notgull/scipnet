@@ -1,5 +1,5 @@
 #
-# sources/mk
+# sources.mk
 #
 # scipnet - SCP Hosting Platform
 # Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -23,5 +23,4 @@ BACKEND_SOURCES := \
 	backend/gulpfile.js \
 	backend/package.json \
 	backend/tsconfig.json \
-	backend/src/**/*.ts \
-	backend/src/*.ts
+	backend/src/**/*

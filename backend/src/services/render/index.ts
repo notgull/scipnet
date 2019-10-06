@@ -1,5 +1,5 @@
 /*
- * renderer.ts
+ * services/render/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -24,8 +24,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as nunjucks from 'nunjucks';
 
-import { renderFtml } from 'app/ftml';
-import * as md from 'app/metadata';
+import { renderFtml } from 'app/services/ftml';
+import { Metadata } from 'app/services/metadata';
 
 // nunjucks environment
 const templates_folder = path.join(process.cwd(), "../templates");
@@ -66,13 +66,13 @@ export async function render(
   let content;
   if (!htmlFileName || htmlFileName.length === 0) {
     if (!metadata) {
-      return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
+      return render("_404", '', title, loginInfo, await Metadata.load_by_slug('_404'));
     }
 
     // test for existence first
     let filepath = path.join(contentDir, modName); // new change: using folder w/ modname
     if (!fs.existsSync(filepath)) {
-      return render("_404", '', title, loginInfo, await md.Metadata.load_by_slug('_404'));
+      return render("_404", '', title, loginInfo, await Metadata.load_by_slug('_404'));
     }
 
     let src = fs.readFileSync(filepath) + "";

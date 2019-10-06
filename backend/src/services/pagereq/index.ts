@@ -1,5 +1,5 @@
 /*
- * pagereq/index.ts
+ * services/pagereq/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -25,10 +25,17 @@ import * as uuid from 'uuid/v4';
 
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
-import { getUserId, getUsername } from 'app/user/user_utils';
-import * as metadata from 'app/metadata';
+import { getUserId, getUsername } from 'app/services/user/utils';
+import {
+  add_editlock,
+  check_editlock,
+  remove_editlock,
+  Metadata,
+  Rating,
+  Revision,
+} from 'app/services/metadata';
 
-import { revisionsService } from 'app/revisions';
+import { revisionsService } from 'app/services/revisions';
 
 const dataDir = path.join(config.get('files.data.directory'), 'pages');
 
@@ -80,7 +87,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
   // fetch the metadata
-  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.Metadata>) => {
+  Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<Metadata>) => {
     // check for an edit lock
     if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== username)) {
       returnVal.error = "Page is locked by " + pMeta.editlock.username;
@@ -90,7 +97,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
     }
 
     // set an edit lock, if possible
-    let el = metadata.add_editlock(args.pagename, username);
+    let el = add_editlock(args.pagename, username);
 
     // if necessary, set the editlock in the metadata to it
     if (pMeta) {
@@ -119,9 +126,9 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.Metadata>) => {
+  Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<Metadata>) => {
     // get the edit lock
-    let el = metadata.check_editlock(args.pagename);
+    let el = check_editlock(args.pagename);
 
     if (!el) {
       // nothing to do!
@@ -139,7 +146,7 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
 
     // if the edit lock belongs to the user, remove it
     if (el.username === username) {
-      metadata.remove_editlock(el.slug);
+      remove_editlock(el.slug);
 
       // if necessary, set the editlock on the metadata to none
       if (pMeta) {
@@ -167,25 +174,26 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
 async function changePageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  let pMeta = await metadata.Metadata.load_by_slug(args.pagename);
+  let pMeta = await Metadata.load_by_slug(args.pagename);
 
   // before anything, check to see if there's an editlock
   // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
-  let el = metadata.check_editlock(args.pagename);
+  let el = check_editlock(args.pagename);
   if (el && el.username !== username) {
     returnVal.errorCode = 1;
     returnVal.error = "Page is locked by " + el.username;
     returnVal.editlockBlocker = el.username;
     return returnVal;
   } else if (el) { // username is the same, then remove the editlock
-    metadata.remove_editlock(args.pagename);
-    if (pMeta)
+    remove_editlock(args.pagename);
+    if (pMeta) {
       pMeta.editlock = null;
+    }
   }
 
   let isNewPage = false;
   if (!pMeta) {
-    pMeta = new metadata.Metadata(args.pagename);
+    pMeta = new Metadata(args.pagename);
     isNewPage = true;
 
     // submit so we get the metadata ID
@@ -203,7 +211,7 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   if (args.comment) comment = args.comment;
   let flags = isNewPage ? "N" : "S";
 
-  let revision = new metadata.Revision(pMeta.article_id, args.user_id, comment, pMeta.tags, pMeta.title, flags);
+  let revision = new Revision(pMeta.article_id, args.user_id, comment, pMeta.tags, pMeta.title, flags);
   pMeta.revisions.push(revision);
 
   await pMeta.submit(true);
@@ -228,7 +236,7 @@ const history_footer = '</tbody></table>';
 async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  let mObj = await metadata.Metadata.load_by_slug(args.pagename);
+  let mObj = await Metadata.load_by_slug(args.pagename);
   if (!mObj) {
     returnVal.error = "Page does not exist";
     returnVal.errorCode = 4;
@@ -255,7 +263,7 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
   // compile into html
   // we can take advantage of promises.all to run all of the needed promises at once
   let history = [history_header];
-  async function render_revision(revision: metadata.Revision, i: number) {
+  async function render_revision(revision: Revision, i: number) {
     history[i] = nunjucks.renderString(history_row, {
       rev_number: revision.revisionId,
       buttons: "V S R",
@@ -290,7 +298,7 @@ function pageHistory(args: ArgsMapping, next: PRSCallback) {
 async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  let mObj = await metadata.Metadata.load_by_slug(args.pagename);
+  let mObj = await Metadata.load_by_slug(args.pagename);
   if (!mObj) {
     returnVal.error = "Page does not exist";
     returnVal.errorCode = 4;
@@ -305,7 +313,7 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
 
   // revision
   let latest_revision = mObj.revisions[mObj.revisions.length - 1];
-  let revision = new metadata.Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A");
+  let revision = new Revision(mObj.article_id, args.user_id, "", mObj.tags, mObj.title, "A");
   mObj.submit(false);
 
   let dataLoc = path.join(dataDir, args.pagename);
@@ -325,7 +333,7 @@ function tagPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.Metadata.load_by_slug(args.pagename).then((mObj: metadata.Metadata) => {
+  Metadata.load_by_slug(args.pagename).then((mObj: Metadata) => {
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -341,7 +349,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
     }
 
     // search for rater if needed
-    let rater = new metadata.Rating(mObj.article_id, args.user_id, args.rating);
+    let rater = new Rating(mObj.article_id, args.user_id, args.rating);
     let found = false;
     console.log("User id is " + args.user_id);
     for (let i = 0; i < mObj.ratings.length; i++) {
@@ -369,7 +377,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
 function getTags(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.Metadata.load_by_slug(args.pagename).then((mObj: Nullable<metadata.Metadata>) => {
+  Metadata.load_by_slug(args.pagename).then((mObj: Nullable<Metadata>) => {
     if (!mObj) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -387,7 +395,7 @@ function getTags(args: ArgsMapping, next: PRSCallback) {
 function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: metadata.Metadata) => {
+  Metadata.load_by_slug(args.pagename).then((pMeta: Metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -406,7 +414,7 @@ function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
 function getRatingModule(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
-  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: metadata.Metadata) => {
+  Metadata.load_by_slug(args.pagename).then((pMeta: Metadata) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;
@@ -421,7 +429,7 @@ function getRatingModule(args: ArgsMapping, next: PRSCallback) {
 // retrieve page source
 function getPageSource(args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
-  metadata.Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<metadata.Metadata>) => {
+  Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<Metadata>) => {
     if (!pMeta) {
       returnVal.error = "Page does not exist";
       returnVal.errorCode = 4;

@@ -1,5 +1,5 @@
 /*
- * role.ts
+ * services/user/role.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -41,11 +41,11 @@ export class Role {
   roleId: number;
   // TODO: list permissions here
   createPages: boolean;
-  
+
   constructor(public rolename: string) {
     this.createPages = true;
     this.roleId = -1;
-  } 
+  }
 
   // apply a set of permissions (in the form of a 64-bit number) to a role
   applyPermset(permset: number) {
@@ -76,7 +76,7 @@ export class Role {
   // load a role by its role id from the database
   static async loadById(role_id: number): Promise<Nullable<Role>> {
     let res = await query("SELECT * FROM Roles WHERE role_id=$1;", [role_id]);
-    if (res.rowCount === 0) return null; 
+    if (res.rowCount === 0) return null;
     return Role.fromRow(res.rows[0]);
   }
 

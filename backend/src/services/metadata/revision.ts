@@ -1,5 +1,5 @@
 /*
- * revision.ts
+ * services/metadata/revision.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
