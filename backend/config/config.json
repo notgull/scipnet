@@ -2,7 +2,6 @@
     "files.data.content": "data/scp-content",
     "files.data.metadata": "data/scp-metadata",
     "files.data.diff": "data/scp-diff",
-    "files.data.attachments": "data/attachments",
 
     "database.username": "scipnet",
     "database.password": "GoodPassword222",

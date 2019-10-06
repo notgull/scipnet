@@ -61,7 +61,6 @@ function check_dir(dirname: string) {
 check_dir(config.get('files.data.content'));
 check_dir(config.get('files.data.metadata'));
 check_dir(config.get('files.data.diff'));
-check_dir(config.get('files.data.attachments'));
 
 // load up the SQL before we start up
 initialize_users((_o: any) => {
@@ -270,7 +269,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
-  checkUserExistence(username).then((result: boolean) => {   
+  checkUserExistence(username).then((result: boolean) => {
     if (result) {
       res.redirect('/sys/register?errors=128')
     } else {
@@ -289,7 +288,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
     }
   }).catch((err: Error) => {
    console.error(err);
-   res.redirect("/sys/register?errors=512");  
+   res.redirect("/sys/register?errors=512");
   });
 });
 
