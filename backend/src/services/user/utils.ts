@@ -1,5 +1,5 @@
 /*
- * existence_check.ts
+ * services/users/utils.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,18 +18,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// quick functions to make it easy to get certain details of users without going through the model
+import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
-// check to see if a username already exists
-export async function checkUserExistence(user: string): Promise<boolean> {
-  const check_user_sql = "SELECT username FROM Users WHERE username=$1;";
-  let res = await query(check_user_sql, [user]);
-  return res.rowCount !== 0;
+// get the ID of a user by its username
+export async function getUserId(user: string): Promise<Nullable<number>> {
+  const userid_query = "SELECT user_id FROM Users WHERE username=$1;";
+  let res = await query(userid_query, [user]);
+
+  if (res.rowCount === 0) return null;
+  else return res.rows[0].user_id;
 };
 
-// check to see if an email already exists
-export async function checkEmailUsage(email: string): Promise<boolean> {
-  const check_email_sql = "SELECT username FROM Users WHERE email=$1;";
-  let res = await query(check_email_sql, [email]);
-  return res.rowCount !== 0;
-}
+// get the username of a user by its id
+export async function getUsername(user_id: number): Promise<Nullable<string>> {
+  let res = await query("SELECT username FROM Users WHERE user_id=$1;", [user_id]);
+
+  if (res.rowCount === 0) return null;
+  else return res.rows[0].username;
+};
+

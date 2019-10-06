@@ -24,7 +24,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { config } from 'app/config';
-import { ServiceConfig } from 'app/service_wrapper';
+import { ServiceConfig } from 'app/old-service-wrapper';
 
 const module_root = 'dist';
 

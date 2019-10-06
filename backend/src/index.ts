@@ -28,21 +28,21 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 
-import { autocreate } from 'app/metadata/autocreate_404';
-import * as metadata from 'app/metadata';
-import { initialize_pages } from 'app/metadata/initialize_database';
+import { autocreate } from 'app/services/metadata/autocreate-404';
+import * as metadata from 'app/services/metadata';
+import { initialize_pages } from 'app/services/metadata/initialize-database';
 
-import { initialize_users }  from 'app/user/initialize_database';
-import { UserTable } from 'app/user/usertable';
-import { User } from 'app/user';
-import { checkUserExistence, checkEmailUsage } from 'app/user/existence_check';
+import { initialize_users }  from 'app/services/user/initialize-database';
+import { UserTable } from 'app/services/user/usertable';
+import { User } from 'app/services/user';
+import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
-import { ArgsMapping } from 'app/pagereq';
-import * as renderer from 'app/renderer';
+import { ArgsMapping } from 'app/services/pagereq';
+import { render } from 'app/services/render';
 import { slugify } from 'app/slug';
-import * as service from 'app/service';
+import * as service from 'app/old-service';
 import { Nullable } from 'app/utils';
-import { send_jsonrpc_message } from 'app/utils/jsonrpc';
+import { callJsonMethod } from 'app/utils/jsonrpc';
 import { ErrorCode } from 'app/errors';
 
 // get version
@@ -105,7 +105,7 @@ function loginInfo(req: express.Request): Nullable<string> {
 // function to render a page
 async function render_page_async(req: express.Request, isHTML: boolean, name: string, pageTitle: string): Promise<Nullable<string>> {
   if (isHTML) {
-    return renderer.render('', name, pageTitle, loginInfo(req));
+    return render('', name, pageTitle, loginInfo(req));
   } else {
     var md = await metadata.Metadata.load_by_slug(name);
 
@@ -116,7 +116,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
       else
         title = "404";
 
-    return renderer.render(name, '', title, loginInfo(req), md);
+    return render(name, '', title, loginInfo(req), md);
   }
 }
 
@@ -239,7 +239,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      send_jsonrpc_message("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
+      callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);

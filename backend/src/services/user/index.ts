@@ -1,5 +1,5 @@
 /*
- * user/index.ts
+ * services/user/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { checkUserExistence, checkEmailUsage } from "app/user/existence_check";
+import { checkUserExistence, checkEmailUsage } from "app/services/user/existence-check";
 import { ErrorCode } from "app/errors";
 import { getFormattedDate } from "app/utils/date";
 import { Nullable, timeout } from "app/utils";
@@ -33,22 +33,23 @@ const randomBytesPromise = promisify(randomBytes);
 // represents a user
 // TODO: figure out the best way to incorporate stats into this
 export class User {
-  constructor(public user_id: number,
-              public username: string,
-              public email: string,
-              public karma: number,
-              public join_date: Date,
-              public website: Nullable<string>,
-              public about: Nullable<string>,
-              public city: Nullable<string>,
-              public avatar: string,
-              public gender: Nullable<string>) {
-  }
+  constructor(
+    public user_id: number,
+    public username: string,
+    public email: string,
+    public karma: number,
+    public join_date: Date,
+    public website: Nullable<string>,
+    public about: Nullable<string>,
+    public city: Nullable<string>,
+    public avatar: string,
+    public gender: Nullable<string>,
+  ) {}
 
   // helper function: hash a password
   static async hashPassword(password: string, salt: Buffer): Promise<string> {
     let pwHash = await pbkdf2Promise(password, salt, 100000, 64, "sha512");
-    return pwHash.toString("hex"); 
+    return pwHash.toString("hex");
   }
 
   // validate if a password corresponds to a user
@@ -58,20 +59,20 @@ export class User {
     if (res.rowCount === 0) {
       return ErrorCode.USER_NOT_FOUND;
     }
-    
+
     let truePwHash = res.rows[0].pwhash;
     let salt = new Buffer(res.rows[0].salt.data);
 
     // hash the currently input password
     let pwHash = await User.hashPassword(password, salt);
-    
+
     if (pwHash === truePwHash) {
       return ErrorCode.SUCCESS;
     } else {
       // block execution for a second- this actually makes the system much, MUCH more secure
       await timeout(1000);
       return ErrorCode.PASSWORD_INCORRECT;
-    } 
+    }
   }
 
   // create a user from an object that has user-like properties (most likely an SQL row)
@@ -113,8 +114,8 @@ export class User {
 
   // add a new user to the database
   // NOTE: number returned is an error code
-  static async createNewUser(username: string, 
-                             email: string, 
+  static async createNewUser(username: string,
+                             email: string,
                              password: string,
                              return_user: boolean = false): Promise<ErrorCode | User> {
     // check for user and email existence
@@ -127,10 +128,10 @@ export class User {
                        "VALUES ($1, $2, 0, $3::timestamp, 0, '') RETURNING user_id;";
     let res = await query(addUserSql, [username, email, getFormattedDate(new Date())]);
     let user_id = res.rows[0].user_id;
-    
+
     // generate salt and password hash
     // Password hashing is intentionally synchronous, do not use Promise.all()
-    let salt = await randomBytesPromise(16); 
+    let salt = await randomBytesPromise(16);
     let pwHash = await User.hashPassword(password, salt);
 
     // stringify the salt so it can be stored easily in the database
