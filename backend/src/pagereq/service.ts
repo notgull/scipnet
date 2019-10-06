@@ -19,7 +19,7 @@
  */
 
 import * as pagereq from 'app/pagereq';
-import { ServiceCallback, ServiceParams, Service } from 'app/service_wrapper';
+import { ServiceCallback, ServiceParams, Service } from 'app/old-service-wrapper';
 
 // asynchronous pr
 async function async_pr(name: string, username: string, args: pagereq.ArgsMapping): Promise<pagereq.PRSReturnVal> {

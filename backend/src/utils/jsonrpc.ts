@@ -20,7 +20,7 @@
 
 // Function to send a json message to a port via JSON-rpc
 import * as jayson from 'jayson/promise';
-export async function send_jsonrpc_message(
+export async function callJsonMethod(
   name: string,
   message: any,
   host: string,

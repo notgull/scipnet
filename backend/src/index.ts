@@ -40,9 +40,9 @@ import { checkUserExistence, checkEmailUsage } from 'app/user/existence_check';
 import { ArgsMapping } from 'app/pagereq';
 import * as renderer from 'app/renderer';
 import { slugify } from 'app/slug';
-import * as service from 'app/service';
+import * as service from 'app/old-service';
 import { Nullable } from 'app/utils';
-import { send_jsonrpc_message } from 'app/utils/jsonrpc';
+import { callJsonMethod } from 'app/utils/jsonrpc';
 import { ErrorCode } from 'app/errors';
 
 // get version
@@ -239,7 +239,7 @@ app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
   args["username"] = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      send_jsonrpc_message("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
+      callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
