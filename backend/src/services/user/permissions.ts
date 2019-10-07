@@ -67,7 +67,7 @@ export class Permset {
   permissions: Array<PermissionValuePair>;
 
   constructor() {
-    permissions = DefaultPermissions;
+    this.permissions = DefaultPermissions;
   }
 
   // get a permset from a stored number
@@ -91,7 +91,7 @@ export class Permset {
   // get the value of a permissions
   hasPermission(permname: string): boolean {
     for (let i = 0; i < NumPermissions; i++) {
-      let permission = permissions[i];
+      let permission = this.permissions[i];
       if (permission.permission.name === permname) {
         return permission.value;
       }
@@ -102,10 +102,10 @@ export class Permset {
   // set the value of a permission
   setPermission(permname: string, value: boolean) {
     for (let i = 0; i < NumPermissions; i++) {
-      let permission = permissions[i];
+      let permission = this.permissions[i];
       if (permission.permission.name === permname) {
         permission.value = value;
-        permissions[i] = permission;
+        this.permissions[i] = permission;
         return;
       }
     }

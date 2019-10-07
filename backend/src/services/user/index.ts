@@ -23,7 +23,7 @@ import { ErrorCode } from "app/errors";
 import { getFormattedDate } from "app/utils/date";
 import { Nullable, timeout } from "app/utils";
 import { queryPromise as query } from "app/sql";
-import { Role } from "app/user/role";
+import { Role } from "app/services/user/role";
 
 import { pbkdf2, randomBytes } from "crypto";
 import { promisify } from "util";
@@ -46,6 +46,7 @@ export class User {
     public city: Nullable<string>,
     public avatar: string,
     public gender: Nullable<string>,
+    public role: Role
   ) {}
 
   // helper function: hash a password
@@ -89,7 +90,7 @@ export class User {
                     row.city,
                     row.avatar,
                     row.gender,
-                    await Role.loadById(row.role_id));
+                    await Role.loadById(row.roleId));
   }
 
   // load a user by its ID
@@ -128,7 +129,7 @@ export class User {
     else if (results[1]) return ErrorCode.EMAIL_EXISTS;
 
     if (role instanceof Role) {
-      role = role.role_id;
+      role = role.roleId;
     }
 
     // insert user into database
@@ -158,6 +159,6 @@ export class User {
     const updateUserSql = "UPDATE Users SET username=$1, email=$2, karma=$3, website=$4, about=$5," +
                           "city=$6, avatar=$7, gender=$8, role_id=$9 WHERE user_id=$10;";
     await query(updateUserSql, [this.username, this.email, this.karma, this.website, this.about,
-                                this.city, this.avatar, this.gender, this.role.role_id, this.user_id]);
+                                this.city, this.avatar, this.gender, this.role.roleId, this.user_id]);
   }
 }

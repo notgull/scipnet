@@ -20,7 +20,7 @@
 
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
-import { Permset } from 'app/user/permissions';
+import { Permset } from 'app/services/user/permissions';
 import { queryPromise as query } from "app/sql";
 
 // represents a role- e.g. moderator, admin, etc.
@@ -63,6 +63,13 @@ export class Role {
   static async createNewRole(rolename: string, 
                              permset: Nullable<Permset | number>, 
                              return_role: boolean): Promise<Role | ErrorCode> {
+    // check if the role already exists first
+    let rolecheck = await query("SELECT * FROM Roles WHERE role_name=$1;", [rolename]);
+    if (rolecheck.rowCount > 0) {
+      if (return_role) return Role.fromRow(rolecheck.rows[0]);
+      else return ErrorCode.ROLE_EXISTS;
+    }
+
     if (permset) {
       if (permset instanceof Permset) {
         permset = permset.getNumber();

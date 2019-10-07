@@ -28,4 +28,5 @@ export enum ErrorCode {
   EMAIL_NOT_FOUND = 17,
   USER_EXISTS = 19,
   EMAIL_EXISTS = 23,
+  ROLE_EXISTS = 29,
 }

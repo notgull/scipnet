@@ -35,6 +35,7 @@ import { initialize_pages } from 'app/services/metadata/initialize-database';
 import { initialize_users }  from 'app/services/user/initialize-database';
 import { UserTable } from 'app/services/user/usertable';
 import { User } from 'app/services/user';
+import { Role } from 'app/services/user/role';
 import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
 import { ArgsMapping } from 'app/services/pagereq';
@@ -257,7 +258,7 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
 });
 
 function onEmailVerify(username: string, pwHash: string, email: string): void {
-  User.createNewUser(username, email, pwHash).then(() => { console.log("Created user " + username); })
+  User.createNewUser(username, email, pwHash, Role.defaultRole).then(() => { console.log("Created user " + username); })
     .catch((err: Error) => { console.error(`User creation error: ${err}`); });
 };
 
