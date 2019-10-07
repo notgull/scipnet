@@ -48,6 +48,7 @@ export async function renderFtml(url: string, src: string, metadata: any): Promi
     tags: metadata.tags,
   };
 
+  console.log(`page_info is ${JSON.stringify(page_info)}, src is ${src}`);
   let response = await client.request("render", [page_info, src]);
   console.log("Received response: " + JSON.stringify(response));
 

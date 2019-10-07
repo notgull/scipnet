@@ -23,4 +23,6 @@ BACKEND_SOURCES := \
 	backend/gulpfile.js \
 	backend/package.json \
 	backend/tsconfig.json \
-	backend/src/**/*
+	backend/src/* \
+	backend/src/**/* \
+	backend/src/**/**/* 

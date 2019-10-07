@@ -267,7 +267,7 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
     history[i] = nunjucks.renderString(history_row, {
       rev_number: revision.revisionId,
       buttons: "V S R",
-      flags: "N",
+      flags: revision.flags,
       author: await getUsername(revision.userId),
       date: revision.createdAt.toLocaleDateString("en-US"),
       comments: "",

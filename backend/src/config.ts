@@ -21,6 +21,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { promisify } from 'util';
+
 export const CONFIG_DIR = path.join(process.cwd(), 'config');
 
 type RawConfig = { [key: string]: any };
@@ -72,4 +74,17 @@ export class Config {
   }
 }
 
+// NOTE: moving checkDirs from index.ts to here to prevent race conditions (e.g. loading
+// modules that require the pages dir without making the pages dir first)
+function checkDirs(baseDirectory: string, names: Array<string>) {
+  for (const name of names) {
+    const directory = path.join(baseDirectory, name);
+
+    if (!(fs.existsSync(directory))) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
+  }
+}
+
 export const config = new Config(CONFIG_DIR);
+checkDirs(config.get("files.data.directory"), ['metadata', 'pages']);

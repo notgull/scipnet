@@ -89,7 +89,7 @@ async function autocreateAsync(): Promise<number> {
   let _404Author = new Author(articleId, systemUserId, "author");
   let _404Revision = new Revision(articleId, systemUserId, "Created _404 page", [], "_404", "N");
 
-  await revisionsService.commit(_404Revision, path.join(contentDir, "_404"), _404Source);
+  await revisionsService.commit(_404Revision, "_404", _404Source);
   
   _404.authors.push(_404Author);
   _404.revisions.push(_404Revision);
@@ -108,7 +108,7 @@ async function autocreateAsync(): Promise<number> {
   articleId = main.article_id;
   let mainAuthor = new Author(articleId, systemUserId, "author");
   let mainRevision = new Revision(articleId, systemUserId, "Created main page", [], "main", "N");
-  await revisionsService.commit(mainRevision, path.join(contentDir, "main"), mainSource);
+  await revisionsService.commit(mainRevision, "main", mainSource);
 
   main.authors.push(mainAuthor);
   main.revisions.push(mainRevision);
