@@ -5,6 +5,7 @@
   "author": "not_a_seagull, Ammon Smith",
   "license": "AGPL-3.0",
   "dependencies": {
+    "@types/knex": "^0.16.1",
     "await-lock": "^2.0.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
@@ -34,7 +35,10 @@
   "scripts": {
     "gulp": "node node_modules/gulp/bin/gulp.js",
     "server": "NODE_PATH=dist node dist/index.js",
-    "reset_db": "NODE_PATH=dist node bin/reset_db.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "knex": "node node_modules/knex/bin/cli.js",
+    "knex:migrate:make": "node node_modules/knex/bin/cli.js --knexfile db/knexfile.ts -x ts migrate:make",
+    "knex:migrate:latest": "node node_modules/knex/bin/cli.js --knexfile db/knexfile.ts migrate:latest",
+    "knex:migrate:rollback": "node node_modules/knex/bin/cli.js --knexfile db/knexfile.ts migrate:rollback",
+    "reset_db": "NODE_PATH=dist node bin/reset_db.js"
   }
 }
