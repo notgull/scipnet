@@ -17,7 +17,7 @@ $ git submodule update
 
 TODO: add section about ssl certs
 
-Initialize database:
+Initialize database: (TODO: remove)
 ```
 $ bin/setup_db.js | psql
 ```
@@ -28,7 +28,7 @@ $ bin/setup_db.js | psql
 
 ```
 $ npm install
-$ make
+$ make BUILD=release
 ```
 
 **Running:**

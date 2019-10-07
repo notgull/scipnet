@@ -21,9 +21,11 @@ include deepwell/sources.mk
 include frontend/sources.mk
 include backend/sources.mk
 
+BUILD := debug
+
 ARTIFACTS := \
-	deepwell/target/release/deepwell \
-	ftml-json/target/release/ftml-json \
+	deepwell/target/$(BUILD)/deepwell \
+	ftml-json/target/$(BUILD)/ftml-json \
 	frontend/release/bundle.js \
 	backend/dist/index.js
 
@@ -35,8 +37,14 @@ prepare:
 	make -C frontend prepare
 	make -C backend prepare
 
+deepwell/target/debug/deepwell: $(DEEPWELL_SOURCES)
+	cd deepwell && cargo build
+
 deepwell/target/release/deepwell: $(DEEPWELL_SOURCES)
 	cd deepwell && cargo build --release
+
+ftml-json/target/debug/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
+	cd ftml-json && cargo build
 
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
