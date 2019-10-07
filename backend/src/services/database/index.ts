@@ -1,5 +1,5 @@
 /*
- * services/deepwell/index.ts
+ * services/database/index.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -44,13 +44,6 @@ export class DatabaseHandle {
         user,
         password,
         database,
-      },
-      migrations: {
-        tableName: 'knex_migrations',
-        directory: `${process.cwd()}/db/migrations`,
-      },
-      seeds: {
-        directory: `${process.cwd()}/db/seeds`,
       },
       pool: {
         min: 0,
