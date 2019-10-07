@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+include deepwell/sources.mk
 include frontend/sources.mk
 include backend/sources.mk
 
 ARTIFACTS := \
+	deepwell/target/release/deepwell \
 	ftml-json/target/release/ftml-json \
 	frontend/release/bundle.js \
 	backend/dist/index.js
@@ -32,6 +34,9 @@ default: $(ARTIFACTS)
 prepare:
 	make -C frontend prepare
 	make -C backend prepare
+
+deepwell/target/release/deepwell: $(DEEPWELL_SOURCES)
+	cd deepwell && cargo build --release
 
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
