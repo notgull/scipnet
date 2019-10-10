@@ -28,7 +28,10 @@ export type AuthorType =
   | 'maintainer'
   ;
 
-// represents an author, as there can be more than one per article
+// Represents an author, or a particular contributor to a page.
+// This is distinct from a user, who is just an account.
+// Multiple authors may be associated with a page (e.g. translator, co-author),
+// and a user may be associated multiple times (e.g. original author, rewriter).
 export class Author {
   article_id: number;
   user_id: number;
