@@ -19,37 +19,44 @@
  */
 
 import { config } from 'app/config';
+import { Nullable } from 'app/utils';
 
 import * as knex from 'knex';
 
-export class DatabaseHandle {
-  private handle: knex;
+function createDatabase() {
+  const host = config.get('database.host');
+  const user = config.get('database.username');
+  const password = config.get('database.password');
+  const database = config.get('database.name');
+  const version = config.get('database.version');
+  const maxThreadPool = config.get('database.max_threads');
+  const debug = config.get('database.debug');
 
-  constructor() {
-    const host = config.get('database.host');
-    const user = config.get('database.username');
-    const password = config.get('database.password');
-    const database = config.get('database.name');
-    const version = config.get('database.version');
-    const maxThreadPool = config.get('database.max_threads');
-    const debug = config.get('database.debug');
+  const url = `postgresql://${user}:${password}@${host}/${database}`;
 
-    const url = `postgresql://${user}:${password}@${host}/${database}`;
+  return knex({
+    client: 'postgresql',
+    version,
+    connection: {
+      host,
+      user,
+      password,
+      database,
+    },
+    pool: {
+      min: 0,
+      max: maxThreadPool,
+    },
+    debug,
+  });
+}
 
-    this.handle = knex({
-      client: 'postgresql',
-      version,
-      connection: {
-        host,
-        user,
-        password,
-        database,
-      },
-      pool: {
-        min: 0,
-        max: maxThreadPool,
-      },
-      debug,
-    });
+let handle: Nullable<knex> = null;
+
+export function db(): knex {
+  if (handle === null) {
+    handle = createDatabase();
   }
+
+  return handle;
 }
