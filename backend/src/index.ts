@@ -210,18 +210,20 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
 // hookup to PRS system
 app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
-  let ip_addr = getIPAddress(req);
+  let ipAddr = getIPAddress(req);
 
-  console.log("PRS Request: " + JSON.stringify(req.body));
+  console.log(`pagereq: ${JSON.stringify(req.body)}`);
 
   //get username
-  let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
+  let username = ut.check_session(parseInt(req.body.sessionId, 10), ipAddr);
 
   // pull all parameters from req.body and put them in args
   let args: ArgsMapping = {};
-  for (var key in req.body)
+  for (var key in req.body) {
     args[key] = req.body[key];
-  args["username"] = username;
+  }
+
+  args.username = username;
 
   // TODO: replace this with whatever event bus system we come up with
       callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
@@ -302,7 +304,7 @@ app.get("/:pageid", function(req, res) {
     return;
   }
 
-  console.log("RENDERING: " + slug);
+  console.log(`RENDERING: ${slug}`);
 
   render_page(req, false, pageid, '',
               (d) => {
