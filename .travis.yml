@@ -8,11 +8,17 @@ os:
 env:
   - NODE_VERSION='8.10.0'
 
+services:
+  - postgresql
+
 cache:
   - cargo
   - npm
   - directories:
     - /home/travis/build/Nu-SCPTheme/scipnet/ftml-json/target
+
+addons:
+  postgresql: '11'
 
 before_script:
   - git submodule init
@@ -20,8 +26,10 @@ before_script:
   - nvm install $NODE_VERSION
   - (cd frontend && npm install)
   - (cd backend && npm install)
+  - psql -c 'CREATE USER overseer PASSWORD "blackmoon";' -U postgres
+  - psql -c 'CREATE DATABASE deepwell OWNER overseer;' -U postgres
 
-script: make
+script: make DATABASE_URL=postgres://overseer:blackmoon@localhost/deepwell
 
 notifications:
   - email:
