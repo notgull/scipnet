@@ -12,7 +12,7 @@ Platform for multi-tenant writing wikis.
 * npm compatible with the above
 * Cargo / rustc stable 1.38.0
 * diesel\_cli (installable using `cargo install diesel_cli --features postgres`)
-* Postgres 11 or later
+* Postgres 10 or later
 
 **Setup:**
 

@@ -18,7 +18,11 @@ cache:
     - /home/travis/build/Nu-SCPTheme/scipnet/ftml-json/target
 
 addons:
-  postgresql: '11'
+  postgresql: '10'
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 
 before_script:
   - git submodule init
