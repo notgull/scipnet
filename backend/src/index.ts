@@ -28,11 +28,8 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 
-import { autocreate } from 'app/services/metadata/autocreate-404';
 import * as metadata from 'app/services/metadata';
-import { initialize_pages } from 'app/services/metadata/initialize-database';
 
-import { initialize_users }  from 'app/services/user/initialize-database';
 import { UserTable } from 'app/services/user/usertable';
 import { User } from 'app/services/user';
 import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
@@ -66,13 +63,6 @@ function checkDirs(names: Array<string>) {
 
 // TODO: move init to separate function
 checkDirs(['metadata', 'pages']);
-
-// load up the SQL before we start up
-initialize_users((_o: any) => {
-  initialize_pages((_o: any) => {
-    autocreate((_o: any) => {});
-  });
-});
 
 // initialize node.js app
 const app = express();
