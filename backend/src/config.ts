@@ -32,6 +32,7 @@ export type ConfigKey =
   | 'database.name'
   | 'database.host'
   | 'database.version'
+  | 'database.timeout'
   | 'database.max_threads'
   | 'database.debug'
   | 'services.scipnet.port'

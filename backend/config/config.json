@@ -6,6 +6,7 @@
     "database.name": "scipnet",
     "database.host": "127.0.0.1",
     "database.version": "12",
+    "database.timeout": 500,
     "database.max_threads": "6",
     "database.debug": true,
 
