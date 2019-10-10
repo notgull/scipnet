@@ -21,15 +21,22 @@
 import { Nullable } from 'app/utils';
 import { queryPromise as query } from 'app/sql';
 
+export type AuthorType =
+  | 'author'
+  | 'rewrite'
+  | 'translator'
+  | 'maintainer'
+  ;
+
 // represents an author, as there can be more than one per article
 export class Author {
   article_id: number;
   user_id: number;
-  author_type: string;
+  author_type: AuthorType;
   created_at: Date;
   author_id: number;
 
-  constructor(article_id: number, user_id: number, role: string) {
+  constructor(article_id: number, user_id: number, role: AuthorType) {
     this.article_id = article_id;
     this.user_id = user_id;
     this.author_type = role;
