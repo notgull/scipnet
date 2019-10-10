@@ -3,8 +3,7 @@ language: rust
 rust: stable
 
 env:
-  - DATABASE_URL=postgres://overseer:blackmoon@localhost/deepwell
-  - NODE_VERSION='8.10.0'
+  - DATABASE_URL=postgres://overseer:blackmoon@localhost/deepwell NODE_VERSION='8.10.0'
 
 services:
   - postgresql
