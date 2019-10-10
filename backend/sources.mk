@@ -25,4 +25,4 @@ BACKEND_SOURCES := \
 	backend/package.json \
 	backend/tsconfig.json \
 	backend/src/services/database/schema.ts \
-	backend/src/**/*
+	backend/src/**/*.ts
