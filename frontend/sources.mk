@@ -24,5 +24,5 @@ FRONTEND_SOURCES := \
 	frontend/gulpfile.js \
 	frontend/package.json \
 	frontend/tsconfig.json \
-	frontend/*.js \
-	frontend/*.ts
+	$(wildcard frontend/*.js) \
+	$(wildcard frontend/*.ts)
