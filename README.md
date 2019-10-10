@@ -12,6 +12,7 @@ Platform for multi-tenant writing wikis.
 * npm compatible with the above
 * Cargo / rustc stable 1.38.0
 * diesel\_cli (installable using `cargo install diesel_cli --features postgres`)
+* Postgres 11 or later
 
 **Setup:**
 
@@ -19,16 +20,11 @@ Initialize submodules:
 ```
 $ git submodule init
 $ git submodule update
+$ cd deepwell
+$ DATABASE_URL=(postgres database url) diesel migration run
 ```
 
-TODO: add section about ssl certs
-
-Initialize database: (TODO: remove)
-```
-$ bin/setup_db.js | psql
-```
-
-(`sudo -u postgres psql` or similar if you're running Postgres as another user)
+TODO: ~~add section about ssl certs~~ remove ssl certs
 
 **Build:**
 
