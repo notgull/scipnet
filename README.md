@@ -5,7 +5,13 @@ Platform for multi-tenant writing wikis.
 
 ### Running
 
-Uses Node.JS version 8.10.0
+**Requirements:**
+
+* GNU make
+* node.js version 8.10.0
+* npm compatible with the above
+* Cargo / rustc stable 1.38.0
+* diesel\_cli (installable using `cargo install diesel_cli --features postgres`)
 
 **Setup:**
 
@@ -27,7 +33,7 @@ $ bin/setup_db.js | psql
 **Build:**
 
 ```
-$ npm install
+$ make prepare
 $ make BUILD=release
 ```
 
