@@ -1,9 +1,6 @@
+dist: xenial
 language: rust
 rust: stable
-
-os:
-  - linux
-  - osx
 
 env:
   - DATABASE_URL=postgres://overseer:blackmoon@localhost/deepwell
