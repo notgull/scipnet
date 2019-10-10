@@ -48,7 +48,7 @@ backend/src/services/database/schema.ts: deepwell/target/$(BUILD)/deepwell
 	# TODO: determine DATABASE_URL from config
 	# not sure where it would fit in the build pipeline, since this needs
 	# to happen *before* TS is compiled
-	@[[ -n '$(DATABASE_URL)' ]] || { echo 'DATABASE_URL is not set!'; exit 1; }
+	@[ -n '$(DATABASE_URL)' ] || { echo 'DATABASE_URL is not set!'; exit 1; }
 	$< > $@
 
 ftml-json/target/debug/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
