@@ -2,14 +2,14 @@
 
 type Nullable<T> = T | null;
 
-export interface Authors {
+export interface AuthorsModel {
   page_id: number;
   user_id: number;
   author_type: string;
   created_at: Date;
 }
 
-export interface Files {
+export interface FilesModel {
   file_id: number;
   file_name: string;
   file_uri: string;
@@ -17,7 +17,7 @@ export interface Files {
   page_id: number;
 }
 
-export interface Pages {
+export interface PagesModel {
   page_id: number;
   created_at?: Date;
   slug: string;
@@ -26,12 +26,12 @@ export interface Pages {
   tags: string[];
 }
 
-export interface Parents {
+export interface ParentsModel {
   page_id: number;
   parent_page_id: number;
 }
 
-export interface Revisions {
+export interface RevisionsModel {
   revision_id: number;
   created_at?: Date;
   page_id: number;
@@ -40,19 +40,19 @@ export interface Revisions {
   changes: object;
 }
 
-export interface Users {
+export interface UsersModel {
   user_id: number;
   name: string;
   created_at?: Date;
 }
 
-export interface Ratings {
+export interface RatingsModel {
   page_id: number;
   user_id: number;
   rating: number;
 }
 
-export interface RatingsHistory {
+export interface RatingsHistoryModel {
   rating_id: number;
   page_id: number;
   user_id: number;
