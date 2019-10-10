@@ -28,13 +28,12 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 
-import * as metadata from 'app/services/metadata';
-
 import { UserTable } from 'app/services/user/usertable';
 import { User } from 'app/services/user';
 import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
 import { ArgsMapping } from 'app/services/pagereq';
+import { Metadata } from 'app/services/metadata';
 import { render } from 'app/services/render';
 import { slugify } from 'app/slug';
 import * as service from 'app/old-service';
@@ -93,7 +92,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
   if (isHTML) {
     return render('', name, pageTitle, loginInfo(req));
   } else {
-    var md = await metadata.Metadata.load_by_slug(name);
+    var md = await Metadata.load_by_slug(name);
 
     let title = pageTitle;
     if (pageTitle.length === 0)
