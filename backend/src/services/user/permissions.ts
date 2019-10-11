@@ -33,6 +33,7 @@ export interface PermissionValuePair {
 export const DefaultPermissions = [
   { permission: { name: "editPages", display_name: "Edit Pages" }, value: true },
   { permission: { name: "createPages", display_name: "Create Pages" }, value: true },
+  { permission: { name: "voteOnPages", display_name: "Vote on Pages" }, value: true },
   { permission: { name: "tagPages", display_name: "Tag Pages" }, value: true },
   { permission: { name: "revertRevisions", display_name: "Revert Revisions" }, value: true },
   { permission: { name: "deletePages", display_name: "Delete Pages" }, value: false },

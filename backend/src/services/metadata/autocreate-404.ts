@@ -81,7 +81,7 @@ async function autocreateAsync(): Promise<number> {
   _404.locked_at = new Date();
 
   // copy source of default 404 to content dir
-  let _404Source = await readFilePromise(path.join(process.cwd(), "../templates/_404.ftml")).toString();
+  let _404Source = (await readFilePromise(path.join(process.cwd(), "../templates/_404.ftml"))).toString();
 
   await _404.submit(); // submitted to get the id
 
@@ -101,7 +101,7 @@ async function autocreateAsync(): Promise<number> {
   main.title = "";
   main.locked_at = new Date();
 
-  let mainSource = await readFilePromise(path.join(process.cwd(), "../templates/main.ftml")).toString();
+  let mainSource = (await readFilePromise(path.join(process.cwd(), "../templates/main.ftml"))).toString();
   
   await main.submit();
 

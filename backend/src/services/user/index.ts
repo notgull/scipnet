@@ -49,6 +49,11 @@ export class User {
     public role: Role
   ) {}
 
+  // tell if the user has permission to do something
+  hasPermission(permname: string): boolean {
+    return this.role.hasPermission(permname);
+  }
+
   // helper function: hash a password
   static async hashPassword(password: string, salt: Buffer): Promise<string> {
     let pwHash = await pbkdf2Promise(password, salt, 100000, 64, "sha512");
@@ -94,7 +99,7 @@ export class User {
   }
 
   // load a user by its ID
-  static async loadById(user_id: Number): Promise<Nullable<User>> {
+  static async loadById(user_id: number): Promise<Nullable<User>> {
     let res = await query("SELECT * FROM Users WHERE user_id=$1;", [user_id]);
     if (res.rowCount === 0) return null;
     else return User.fromRow(res.rows[0]);
@@ -105,15 +110,6 @@ export class User {
     let res = await query("SELECT * FROM Users WHERE username=$1;", [username]);
     if (res.rowCount === 0) return null;
     else return User.fromRow(res.rows[0]);
-  }
-
-  // helper function- validate a user by its id or username
-  static async validateCredentials(user: Number | string, password: string): Promise<ErrorCode> {
-    let user_object: User;
-    if (user instanceof Number) user_object = await User.loadById(user);
-    else user_object = await User.loadByUsername(user);
-
-    return user_object.validate(password);
   }
 
   // add a new user to the database

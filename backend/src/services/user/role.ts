@@ -45,6 +45,11 @@ export class Role {
     this.roleId = -1;
   }
 
+  // tell if a role has permission to do something
+  hasPermission(permname: string): boolean {
+    return this.permset.hasPermission(permname);
+  }
+
   // create a role from a role-like object (e.g. an sql row)
   static fromRow(row: any): Role {
     let role = new Role(row.role_name, row.permset);
