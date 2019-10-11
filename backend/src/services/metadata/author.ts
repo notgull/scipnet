@@ -19,7 +19,8 @@
  */
 
 import { Nullable } from 'app/utils';
-import { queryPromise as query } from 'app/sql';
+import { queryPromise as query, findMany } from 'app/sql';
+import { AuthorsModel } from 'app/sql/models';
 
 export type AuthorType =
   | 'author'
@@ -47,16 +48,21 @@ export class Author {
     this.author_id = -1;
   }
 
-  // load an author by its author id
-  static async load_by_id(author_id: number): Promise<Nullable<Author>> {
-    let res = await query("SELECT * FROM Authors WHERE author_id=$1;", [author_id]);
-    if (res.rowCount === 0) return null;
-    else res = res.rows[0];
+  static async loadAuthorsByPage(pageId: number): Promise<Array<Author>> {
+    const authorModels = await findMany<AuthorsModel>(`
+        SELECT user_id, author_type, created_at
+        FROM authors
+        WHERE page_id = $1
+        ORDER BY created_at ASC
+      `,
+      [pageId],
+    );
 
-    let authorInst = new Author(res.article_id, res.user_id, res.author_type);
-    authorInst.created_at = res.created_at;
-    authorInst.author_id = res.author_id;
-    return authorInst;
+    return authorModels.map(({
+      user_id: userId,
+      author_type: authorType,
+      created_at: createdAt,
+    }) => null); // TODO
   }
 
   // load an array of authors by the article_id

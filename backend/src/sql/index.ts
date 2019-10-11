@@ -88,5 +88,19 @@ export async function findMany<T>(sql: string, params: SqlType[]): Promise<Array
   return result.rows;
 }
 
-// deprecate
+export async function insertReturn<T>(sql: string, params: SqlType[]): Promise<T> {
+  const result = await rawQuery(sql, params);
+
+  if (result.rowCount !== 1) {
+    throw new DatabaseError(`Inserted row didn't return`);
+  }
+
+  return result.rows[0];
+}
+
+export async function execute(sql: string, params: SqlType[]): Promise<void> {
+  await rawQuery(sql, params);
+}
+
+// TODO: deprecate
 export const queryPromise = rawQuery;
