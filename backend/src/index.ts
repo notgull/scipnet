@@ -242,8 +242,11 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
 });
 
 function onEmailVerify(username: string, pwHash: string, email: string): void {
-  User.createNewUser(username, email, pwHash, Role.defaultRole).then(() => { console.log("Created user " + username); })
-    .catch((err: Error) => { console.error(`User creation error: ${err}`); });
+  Role.loadDefaultRole().then((role: Role) => {
+    User.createNewUser(username, email, pwHash, role).then(() => { 
+      console.log(`Created user ${username}`); 
+    }).catch((err: Error) => { console.error(`User creation error: ${err}`); });
+  }).catch((err: Error) => { console.error(`Error loading default role: ${err}`); });
 };
 
 // process registration

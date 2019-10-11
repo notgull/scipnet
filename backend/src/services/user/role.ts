@@ -28,9 +28,9 @@ export class Role {
   roleId: number;
 
   permset: Permset;
-  public static defaultRole: Nullable<Role> = null;
-  public static systemRole: Nullable<Role> = null;
-  public static adminRole: Nullable<Role> = null;
+  public static readonly defaultRoleName: string = "default";
+  public static readonly systemRoleName: string = "system";
+  public static readonly adminRoleName: string = "admin";
   
   constructor(public rolename: string, permset: Nullable<Permset | number> = null) {
     if (permset) {
@@ -62,6 +62,20 @@ export class Role {
     let res = await query("SELECT * FROM Roles WHERE role_id=$1;", [role_id]);
     if (res.rowCount === 0) return null;
     return Role.fromRow(res.rows[0]);
+  }
+
+  // load a role by its role name
+  static async loadByRoleName(rolename: string): Promise<Nullable<Role>> {
+    let res = await query("SELECT * FROM Roles WHERE role_name=$1;", [rolename]);
+    if (res.rowCount === 0) return null;
+    return Role.fromRow(res.rows[0]);
+  }
+
+  // load the default role
+  static async loadDefaultRole(): Promise<Role> {
+    let role = await Role.loadByRoleName(Role.defaultRoleName);
+    if (!role) throw new Error("Default role loaded to be null, please ensure autocreation occured sucessfully");
+    return role;
   }
 
   // create a new role in the database

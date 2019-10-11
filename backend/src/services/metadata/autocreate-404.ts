@@ -49,20 +49,19 @@ async function createRole(name: string, perms: Nullable<number>): Promise<Role> 
   if (!(role instanceof Role)) {
     throw new Error(`Error occured during role creation: ${role}`);
   }
+  if (!role) {
+    throw new Error(`Role creation returned null`);
+  }
   return role;
 }
 
 // an async way of going about this
 async function autocreateAsync(): Promise<number> {
-  // TODO: check for roles beforehand
-
   // create roles for system, admin, and for default users
-  let systemRole = await createRole("system", ~0);
-  let defaultRole = await createRole("default", null);
-  let adminRole = await createRole("admin", ~0);
-  Role.systemRole = systemRole;
-  Role.defaultRole = defaultRole;
-  Role.adminRole = adminRole;
+  let fullPermission = 0xFFFFFFFF;
+  let systemRole = await createRole(Role.defaultRoleName, fullPermission);
+  let defaultRole = await createRole(Role.systemRoleName, null);
+  let adminRole = await createRole(Role.adminRoleName, fullPermission); 
 
   // create system user
   let systemUser = await User.createNewUser("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", systemRole, true);

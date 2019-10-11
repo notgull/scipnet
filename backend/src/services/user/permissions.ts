@@ -94,6 +94,7 @@ export class Permset {
     for (let i = 0; i < NumPermissions; i++) {
       let permission = this.permissions[i];
       if (permission.permission.name === permname) {
+        console.log(`Found value for permission ${permission.permission.name}: ${permission.value}`);
         return permission.value;
       }
     }

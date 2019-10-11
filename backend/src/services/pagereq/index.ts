@@ -98,7 +98,6 @@ function permissionDenied(): PRSReturnVal {
 // request an edit for the page
 function beginEditPage(user: User, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
-  console.log(`User is ${user}`);
 
   // if the user does not have permission to edit pages, return
   if (!(user.hasPermission("editPages"))) {
@@ -115,9 +114,12 @@ function beginEditPage(user: User, args: ArgsMapping, next: PRSCallback) {
     }
 
     // if the page is locked and we don't have permission, return
+    console.log(`pMeta.locked_at is ${pMeta.locked_at}`);
     if (pMeta && pMeta.locked_at && !(user.hasPermission("modifyLockedPages"))) {
       next(permissionDenied());
       return;
+    } else if (user.hasPermission("modifyLockedPages")) {
+      console.log(`User ${user.username} has overrided the edit lock`);
     }
 
     // check for an edit lock
@@ -528,7 +530,8 @@ export function request(name: string, username: string, args: ArgsMapping, next:
       args["pagename"] = "main";
 
     args['user'] = user;
-    args['user_id'] = user.user_id;
+    if (user)
+      args['user_id'] = user.user_id;
 
     // functions that don't need the username
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
@@ -536,7 +539,7 @@ export function request(name: string, username: string, args: ArgsMapping, next:
     else if (name === "getTags") { getTags(args, next); return; }
     else if (name === "getPageSource") { getPageSource(args, next); return; }
 
-    if (!username) {
+    if (!user) {
       returnVal.not_logged_in = true;
       next(returnVal);
       return;

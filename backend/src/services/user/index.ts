@@ -51,6 +51,7 @@ export class User {
 
   // tell if the user has permission to do something
   hasPermission(permname: string): boolean {
+    console.log(`this.role = ${this.role}`);
     return this.role.hasPermission(permname);
   }
 
@@ -95,7 +96,7 @@ export class User {
                     row.city,
                     row.avatar,
                     row.gender,
-                    await Role.loadById(row.roleId));
+                    await Role.loadById(row.role_id));
   }
 
   // load a user by its ID
