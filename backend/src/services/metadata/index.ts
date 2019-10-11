@@ -125,7 +125,7 @@ export class Metadata {
     mObj.ratings = await Rating.load_array_by_article(res.article_id);
 
     // load authors
-    mObj.authors = await Author.load_array_by_article(res.article_id);
+    mObj.authors = await Author.loadAuthorsByPage(res.article_id);
     if (mObj.authors.length > 1) {
       mObj.author = null;
     } else {
