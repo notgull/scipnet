@@ -66,6 +66,7 @@ backend/dist/index.js: $(BACKEND_SOURCES)
 clean:
 	make -C frontend clean
 	make -C backend clean
+	rm backend/src/sql/models.ts
 
 clean-all: clean
 	cd ftml-json && cargo clean
