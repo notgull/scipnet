@@ -70,7 +70,6 @@ export class Metadata {
   title: string;
   ratings: Array<Rating>;
   authors: Array<Author>;
-  author: Nullable<Author>;
   editlock: Nullable<EditLock>;
   tags: Array<string>;
   revisions: Array<Revision>;
@@ -85,7 +84,6 @@ export class Metadata {
     this.title = "";
     this.ratings = [];
     this.authors = [];
-    this.author = null;
     this.editlock = null;
     this.tags = [];
     this.revisions = [];
@@ -126,11 +124,6 @@ export class Metadata {
 
     // load authors
     mObj.authors = await Author.loadAuthorsByPage(res.article_id);
-    if (mObj.authors.length > 1) {
-      mObj.author = null;
-    } else {
-      mObj.author = mObj.authors[0];
-    }
 
     // load revisions
     mObj.revisions = await Revision.load_array_by_article(res.article_id);
