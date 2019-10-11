@@ -1,5 +1,5 @@
 /*
- * services/existence_check.ts
+ * services/existence-check.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,18 +18,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { queryPromise as query } from 'app/sql';
+import { findOne } from 'app/sql';
+import { UsersModel } from 'app/sql/models';
 
 // check to see if a username already exists
-export async function checkUserExistence(user: string): Promise<boolean> {
-  const check_user_sql = "SELECT username FROM Users WHERE username=$1;";
-  let res = await query(check_user_sql, [user]);
-  return res.rowCount !== 0;
+export async function checkUserExistence(username: string): Promise<boolean> {
+  const userModel = await findOne<UsersModel>(
+    `SELECT 1 FROM users WHERE name = $1`,
+    [username],
+  );
+
+  return userModel !== null;
 };
 
 // check to see if an email already exists
 export async function checkEmailUsage(email: string): Promise<boolean> {
-  const check_email_sql = "SELECT username FROM Users WHERE email=$1;";
-  let res = await query(check_email_sql, [email]);
-  return res.rowCount !== 0;
+  const userModel = await findOne<UsersModel>(
+    `SELECT 1 FROM users WHERE email = $1`,
+    [email],
+  );
+
+  return userModel !== null;
 }

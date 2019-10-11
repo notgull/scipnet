@@ -19,7 +19,7 @@
  */
 
 import { Nullable } from 'app/utils';
-import { queryPromise as query } from 'app/sql';
+import { rawQuery } from 'app/sql';
 
 // represents a single upvote, downvote, or novote
 export class Rating {
@@ -34,38 +34,39 @@ export class Rating {
   }
 
   // load the rating by the article and user
-  static async load_by_article_and_user(article_id: number, user_id: number): Promise<Nullable<Rating>> {
-    let res = await query("SELECT * FROM Ratings WHERE article_id = $1 AND user_id = $2;",
-                          [article_id, user_id]);
-    if (res.rowCount === 0) return null;
-    else res = res.rows[0];
+  static async load_by_article_and_user(articleId: number, userId: number): Promise<Nullable<Rating>> {
+    const result = await rawQuery(
+      `SELECT * FROM Ratings WHERE article_id = $1 AND user_id = $2`,
+      [articleId, userId],
+    );
 
-    let vote = new Rating(article_id, user_id, res.rating);
-    return vote;
+    if (result.rowCount === 0) {
+      return null;
+    } else {
+      return new Rating(articleId, userId, result.rows[0].rating);
+    }
   }
 
   // load a list of ratings by the article id
-  static async load_array_by_article(article_id: number): Promise<Array<Rating>> {
-    let res = await query("SELECT * FROM Ratings WHERE article_id = $1;", [article_id]);
-    if (res.rowCount === 0) return [];
-    else res = res.rows;
+  static async load_array_by_article(articleId: number): Promise<Array<Rating>> {
+    const result = await rawQuery(
+      `SELECT * FROM Ratings WHERE article_id = $1`,
+      [articleId],
+    );
 
-    let ratings = [];
-    let row;
-    for (row of res) {
-      let vote = new Rating(article_id, row.user_id, row.rating);
-      ratings.push(vote);
-    }
-
-    return ratings;
+    return result.rows.map(row => new Rating(articleId, row.user_id, row.rating));
   }
 
   // save rating to database
   async submit(): Promise<void> {
-    let remove_query = "DELETE FROM Ratings WHERE article_id = $1 AND user_id = $2;";
-    await query(remove_query, [this.article_id, this.user_id]);
+    await rawQuery(
+      `DELETE FROM Ratings WHERE article_id = $1 AND user_id = $2`,
+      [this.article_id, this.user_id],
+    );
 
-    let insert_query = "INSERT INTO Ratings VALUES ($1, $2, $3);"
-    await query(insert_query, [this.article_id, this.user_id, this.rate]);
+    await rawQuery(
+      `INSERT INTO Ratings VALUES ($1, $2, $3)`,
+      [this.article_id, this.user_id, this.rate],
+    );
   }
 };

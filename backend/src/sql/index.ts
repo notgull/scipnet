@@ -21,7 +21,7 @@
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 
 import * as knex from 'knex';
 
@@ -62,12 +62,17 @@ function createPool() {
   });
 }
 
-export async function rawQuery(sql: string, params: SqlType[]): Promise<any> {
+export async function rawQuery(sql: string, params: SqlType[]): Promise<QueryResult> {
   if (pool == null) {
     pool = createPool();
   }
 
   return pool.query(sql, params);
+}
+
+export async function countRows(sql: string, params: SqlType[]): Promise<number> {
+  const result = await rawQuery(sql, params);
+  return result.rowCount;
 }
 
 export async function findOne<T>(sql: string, params: SqlType[]): Promise<Nullable<Partial<T>>> {
@@ -98,6 +103,6 @@ export async function insertReturn<T>(sql: string, params: SqlType[]): Promise<T
   return result.rows[0];
 }
 
-export async function execute(sql: string, params: SqlType[]): Promise<void> {
+export async function runQuery(sql: string, params: SqlType[]): Promise<void> {
   await rawQuery(sql, params);
 }

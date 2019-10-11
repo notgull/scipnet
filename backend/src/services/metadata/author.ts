@@ -19,7 +19,7 @@
  */
 
 import { Nullable } from 'app/utils';
-import { queryPromise as query, findMany } from 'app/sql';
+import { findMany, rawQuery } from 'app/sql';
 import { AuthorsModel } from 'app/sql/models';
 
 export type AuthorType =
@@ -61,7 +61,7 @@ export class Author {
 
   // submit the author to the database
   async submit(): Promise<void> {
-    await query("INSERT INTO Authors (article_id, user_id, author_type, created_at) VALUES (" +
+    await rawQuery("INSERT INTO Authors (article_id, user_id, author_type, created_at) VALUES (" +
               "$1, $2, $3, $4);", [this.pageId, this.userId, this.authorType, this.createdAt]);
   }
 };
