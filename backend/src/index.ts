@@ -36,7 +36,7 @@ import { ArgsMapping } from 'app/services/pagereq';
 import { Metadata } from 'app/services/metadata';
 import { render } from 'app/services/render';
 import { slugify } from 'app/slug';
-import * as service from 'app/old-service';
+import { runservice, runftmlservice } from 'app/old-service';
 import { Nullable } from 'app/utils';
 import { callJsonMethod } from 'app/utils/jsonrpc';
 import { ErrorCode } from 'app/errors';
@@ -136,14 +136,14 @@ const services = [
   },
 ];
 
-let sel_service: any;
-for (let i = 0; i < services.length; i++) {
-  sel_service = services[i];
-  console.log("Modname: " + sel_service.modname);
-  if (sel_service.modname !== "ftml")
-    service.runservice(sel_service.modname, sel_service.config);
-  else
-    service.runftmlservice();
+// TODO fix service execution
+for (const service of services) {
+  console.log(`Modname: ${service.modname}`);
+  if (service.modname !== "ftml") {
+    runservice(service.modname, service.config as any);
+  } else {
+    runftmlservice();
+  }
 }
 
 // special files
