@@ -1,10 +1,10 @@
 {
     "files.data.directory": "local-data",
 
-    "database.username": "scipnet",
-    "database.password": "GoodPassword222",
-    "database.name": "scipnet",
-    "database.host": "127.0.0.1",
+    "database.username": "overseer",
+    "database.password": "blackmoon",
+    "database.name": "deepwell",
+    "database.host": "::1",
     "database.timeout": 500,
     "database.max_threads": "6",
 
