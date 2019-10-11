@@ -19,24 +19,17 @@
  */
 
 // Date formatting function
-// from: https://stackoverflow.com/a/15764763/11187995
-export function getFormattedDate(date: Date): string {
-  let year = date.getFullYear();
+export function getFormattedDate(date: Date = null): string {
+  if (date === null) {
+    date = new Date();
+  }
 
-  let month = (1 + date.getMonth()).toString();
-  month = month.length > 1 ? month : '0' + month;
-
-  let day = date.getDate().toString();
-  day = day.length > 1 ? day : '0' + day;
-
-  let hour = date.getHours().toString();
-  hour = hour.length > 1 ? hour : '0' + hour;
-
-  let minutes = date.getMinutes().toString();
-  minutes = minutes.length > 1 ? minutes : '0' + minutes;
-
-  let seconds = date.getSeconds().toString();
-  seconds = seconds.length > 1 ? seconds : '0' + seconds;
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  const hour = `${date.getHours()}`.padStart(2, '0');
+  const minutes = `${date.getMinutes()}`.padStart(2, '0');
+  const seconds = `${date.getSeconds()}`.padStart(2, '0');
 
   return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
 }
