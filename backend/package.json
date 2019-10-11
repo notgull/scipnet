@@ -5,14 +5,12 @@
   "author": "not_a_seagull, Ammon Smith",
   "license": "AGPL-3.0",
   "dependencies": {
-    "@types/knex": "^0.16.1",
     "await-lock": "^2.0.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",
     "diff": "^4.0.1",
     "express": "^4.17.1",
     "jayson": "^3.0.2",
-    "knex": "^0.16.3",
     "nunjucks": "^3.2.0",
     "pg": "^7.12.0",
     "simple-git": "^1.126.0",
@@ -35,7 +33,6 @@
   "scripts": {
     "gulp": "node node_modules/gulp/bin/gulp.js",
     "server": "NODE_PATH=dist node dist/index.js",
-    "knex": "node node_modules/knex/bin/cli.js",
     "reset_db": "NODE_PATH=dist node bin/reset_db.js"
   }
 }

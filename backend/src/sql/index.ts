@@ -23,8 +23,6 @@ import { Nullable } from 'app/utils';
 
 import { Pool, QueryResult } from 'pg';
 
-import * as knex from 'knex';
-
 export type SqlType =
   | string
   | number
