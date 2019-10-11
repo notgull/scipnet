@@ -101,6 +101,3 @@ export async function insertReturn<T>(sql: string, params: SqlType[]): Promise<T
 export async function execute(sql: string, params: SqlType[]): Promise<void> {
   await rawQuery(sql, params);
 }
-
-// TODO: deprecate
-export const queryPromise = rawQuery;
