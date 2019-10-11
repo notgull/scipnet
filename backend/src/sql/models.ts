@@ -3,13 +3,13 @@
 
 type Nullable<T> = T | null;
 
-export interface PasswordsModel {
+export interface PasswordModel {
   user_id: number;
   hash: Buffer;
   salt: Buffer;
 }
 
-export interface WikisModel {
+export interface WikiModel {
   wiki_id: number;
   slug: string;
   name: string;
@@ -23,7 +23,7 @@ export interface WikiMembershipModel {
   joined_at: Date;
 }
 
-export interface RolesModel {
+export interface RoleModel {
   role_id: number;
   wiki_id: number;
   name: string;
@@ -37,7 +37,7 @@ export interface RoleMembershipModel {
   applied_at: Date;
 }
 
-export interface UsersModel {
+export interface UserModel {
   user_id: number;
   name: string;
   created_at?: Date;
@@ -49,14 +49,14 @@ export interface UsersModel {
   gender?: string;
 }
 
-export interface ParentsModel {
+export interface ParentModel {
   page_id: number;
   parent_page_id: number;
   parented_by: number;
   parented_at: Date;
 }
 
-export interface PagesModel {
+export interface PageModel {
   page_id: number;
   created_at?: Date;
   slug: string;
@@ -65,7 +65,7 @@ export interface PagesModel {
   tags: string[];
 }
 
-export interface RevisionsModel {
+export interface RevisionModel {
   revision_id: number;
   created_at?: Date;
   page_id: number;
@@ -74,7 +74,7 @@ export interface RevisionsModel {
   changes: object;
 }
 
-export interface RatingsModel {
+export interface RatingModel {
   page_id: number;
   user_id: number;
   rating: number;
@@ -88,14 +88,14 @@ export interface RatingsHistoryModel {
   rating: Nullable<number>;
 }
 
-export interface AuthorsModel {
+export interface AuthorModel {
   page_id: number;
   user_id: number;
   author_type: string;
   created_at: Date;
 }
 
-export interface FilesModel {
+export interface FileModel {
   file_id: number;
   file_name: string;
   file_uri: string;

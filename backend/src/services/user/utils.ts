@@ -21,11 +21,11 @@
 // quick functions to make it easy to get certain details of users without going through the model
 import { Nullable } from 'app/utils';
 import { findOne } from 'app/sql';
-import { UsersModel } from 'app/sql/models';
+import { UserModel } from 'app/sql/models';
 
 // get the ID of a user by its username
 export async function getUserId(username: string): Promise<Nullable<number>> {
-  const userModel = await findOne<UsersModel>(
+  const userModel = await findOne<UserModel>(
     `SELECT user_id FROM users WHERE name = $1`,
     [username],
   );
@@ -35,7 +35,7 @@ export async function getUserId(username: string): Promise<Nullable<number>> {
 
 // get the username of a user by its id
 export async function getUsername(userId: number): Promise<Nullable<string>> {
-  const userModel = await findOne<UsersModel>(
+  const userModel = await findOne<UserModel>(
     `SELECT name FROM users WHERE user_id = $1`,
     [userId],
   );

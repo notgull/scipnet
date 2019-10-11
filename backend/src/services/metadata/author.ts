@@ -20,7 +20,7 @@
 
 import { Nullable } from 'app/utils';
 import { findMany, rawQuery } from 'app/sql';
-import { AuthorsModel } from 'app/sql/models';
+import { AuthorModel } from 'app/sql/models';
 
 export type AuthorType =
   | 'author'
@@ -42,7 +42,7 @@ export class Author {
   ) {}
 
   static async loadAuthorsByPage(pageId: number): Promise<Array<Author>> {
-    const authorModels = await findMany<AuthorsModel>(`
+    const authorModels = await findMany<AuthorModel>(`
         SELECT user_id, author_type, created_at
         FROM authors
         WHERE page_id = $1

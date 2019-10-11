@@ -19,11 +19,11 @@
  */
 
 import { findOne } from 'app/sql';
-import { UsersModel } from 'app/sql/models';
+import { UserModel } from 'app/sql/models';
 
 // check to see if a username already exists
 export async function checkUserExistence(username: string): Promise<boolean> {
-  const userModel = await findOne<UsersModel>(
+  const userModel = await findOne<UserModel>(
     `SELECT 1 FROM users WHERE name = $1`,
     [username],
   );
@@ -33,7 +33,7 @@ export async function checkUserExistence(username: string): Promise<boolean> {
 
 // check to see if an email already exists
 export async function checkEmailUsage(email: string): Promise<boolean> {
-  const userModel = await findOne<UsersModel>(
+  const userModel = await findOne<UserModel>(
     `SELECT 1 FROM users WHERE email = $1`,
     [email],
   );
