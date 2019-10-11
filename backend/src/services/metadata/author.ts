@@ -34,19 +34,12 @@ export type AuthorType =
 // Multiple authors may be associated with a page (e.g. translator, co-author),
 // and a user may be associated multiple times (e.g. original author, rewriter).
 export class Author {
-  article_id: number;
-  user_id: number;
-  author_type: AuthorType;
-  created_at: Date;
-  author_id: number;
-
-  constructor(article_id: number, user_id: number, role: AuthorType) {
-    this.article_id = article_id;
-    this.user_id = user_id;
-    this.author_type = role;
-    this.created_at = new Date();
-    this.author_id = -1;
-  }
+  constructor(
+    public pageId: number,
+    public userId: number,
+    public authorType: AuthorType,
+    public createdAt: Date,
+  ) {}
 
   static async loadAuthorsByPage(pageId: number): Promise<Array<Author>> {
     const authorModels = await findMany<AuthorsModel>(`
@@ -59,36 +52,16 @@ export class Author {
     );
 
     return authorModels.map(({
-      user_id: userId,
-      author_type: authorType,
-      created_at: createdAt,
-    }) => null); // TODO
-  }
-
-  // load an array of authors by the article_id
-  static async load_array_by_article(article_id: number): Promise<Array<Author>> {
-    let res = await query("SELECT * FROM Authors WHERE article_id=$1;", [article_id]);
-    if (res.rowCount === 0) return [];
-    else res = res.rows;
-
-    let authors = [];
-    let row;
-    for (row of res) {
-      let authorInst = new Author(article_id, row.user_id, row.diff_link);
-      authorInst.created_at = row.created_at;
-      authorInst.author_id = row.author_id;
-      authors.push(authorInst);
-    }
-
-    return authors;
+        user_id: userId,
+        author_type: authorType,
+        created_at: createdAt,
+      }) => new Author(pageId, userId, authorType as AuthorType, createdAt),
+    );
   }
 
   // submit the author to the database
   async submit(): Promise<void> {
-    await query("DELETE FROM Authors WHERE author_id = $1;", [this.author_id]);
     await query("INSERT INTO Authors (article_id, user_id, author_type, created_at) VALUES (" +
-              "$1, $2, $3, $4);", [this.article_id, this.user_id, this.author_type, this.created_at]);
-    this.author_id = await query("SELECT author_id FROM Authors WHERE article_id = $1 AND " +
-                               "user_id = $2;", [this.article_id, this.user_id]);
+              "$1, $2, $3, $4);", [this.pageId, this.userId, this.authorType, this.createdAt]);
   }
 };
