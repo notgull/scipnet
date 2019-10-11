@@ -18,19 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { checkUserExistence, checkEmailUsage } from "app/services/user/existence-check";
-import { ErrorCode } from "app/errors";
-import { getFormattedDate } from "app/utils/date";
-import { Nullable, timeout } from "app/utils";
-import { rawQuery, insertReturn } from "app/sql";
+import { pbkdf2, randomBytes } from 'app/crypto';
+import { ErrorCode } from 'app/errors';
+import { Nullable, timeout } from 'app/utils';
+import { getFormattedDate } from 'app/utils/date';
+import { rawQuery, insertReturn } from 'app/sql';
+import { UserModel } from 'app/sql/models';
 
-import { pbkdf2, randomBytes } from "crypto";
-import { promisify } from "util";
+import { checkUserExistence, checkEmailUsage } from './existence-check';
 
-const pbkdf2Promise = promisify(pbkdf2);
-const randomBytesPromise = promisify(randomBytes);
-
-// represents a user
+// Represents a user with an account on the site.
 // TODO: figure out the best way to incorporate stats into this
 export class User {
   constructor(
@@ -48,7 +45,7 @@ export class User {
 
   // helper function: hash a password
   static async hashPassword(password: string, salt: Buffer): Promise<string> {
-    const pwHash = await pbkdf2Promise(password, salt, 100000, 64, "sha512");
+    const pwHash = await pbkdf2(password, salt, 100000, 64, "sha512");
     return pwHash.toString("hex");
   }
 
@@ -163,7 +160,7 @@ export class User {
     ) as number;
 
     // Password hashing is intentionally synchronous, do not use Promise.all()
-    const salt = await randomBytesPromise(16);
+    const salt = await randomBytes(16);
     const pwHash = await User.hashPassword(password, salt);
 
     // stringify the salt so it can be stored easily in the database

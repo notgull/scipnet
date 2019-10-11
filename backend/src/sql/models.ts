@@ -12,6 +12,10 @@ export interface PasswordModel {
   
   salt: Buffer;
   
+  iterations: number;
+  
+  digest: number;
+  
 }
 
 export interface WikiModel {
@@ -62,40 +66,6 @@ export interface RoleMembershipModel {
   
 }
 
-export interface UserModel {
-  
-  user_id: number;
-  
-  name: string;
-  
-  created_at?: Date;
-  
-  email: string;
-  
-  author_page?: string;
-  
-  website?: string;
-  
-  about?: string;
-  
-  location?: string;
-  
-  gender?: string;
-  
-}
-
-export interface ParentModel {
-  
-  page_id: number;
-  
-  parent_page_id: number;
-  
-  parented_by: number;
-  
-  parented_at: Date;
-  
-}
-
 export interface PageModel {
   
   page_id: number;
@@ -125,6 +95,28 @@ export interface RevisionModel {
   git_commit: string;
   
   changes: object;
+  
+}
+
+export interface UserModel {
+  
+  user_id: number;
+  
+  name: string;
+  
+  created_at?: Date;
+  
+  email: string;
+  
+  author_page?: string;
+  
+  website?: string;
+  
+  about?: string;
+  
+  location?: string;
+  
+  gender?: string;
   
 }
 
@@ -161,6 +153,18 @@ export interface AuthorModel {
   author_type: string;
   
   created_at: Date;
+  
+}
+
+export interface ParentModel {
+  
+  page_id: number;
+  
+  parent_page_id: number;
+  
+  parented_by: number;
+  
+  parented_at: Date;
   
 }
 
