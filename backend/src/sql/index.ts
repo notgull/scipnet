@@ -26,6 +26,7 @@ import { Pool, QueryResult } from 'pg';
 export type SqlType =
   | string
   | number
+  | Buffer
   | Date
   | object
   ;
