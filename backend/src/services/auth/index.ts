@@ -18,9 +18,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { pbkdf2, randomBytes } from 'app/crypto';
 import { findOne, DatabaseError } from 'app/sql';
 import { PasswordModel } from 'app/sql/models';
-import { Nullable } from 'app/utils'
+import { timeout, Nullable } from 'app/utils'
 
 function getDigest(digestNo: number): string {
   // Not using string formatting so we can accomodate non-SHA digests.
@@ -43,12 +44,16 @@ export class Password {
     public hash: Buffer,
     public salt: Buffer,
     public iterations: number,
+    public keySize: number,
     public digest: string,
   ) {}
 
   static async loadById(userId: number): Promise<Nullable<Password>> {
-    const model = await findOne<PasswordModel>(
-      `SELECT hash, salt, iterations, digest FROM passwords WHERE user_id = $1`,
+    const model = await findOne<PasswordModel>(`
+        SELECT hash, salt, iterations, key_size, digest
+        FROM passwords
+        WHERE user_id = $1
+      `,
       [userId],
     );
 
@@ -61,7 +66,12 @@ export class Password {
       model.hash,
       model.salt,
       model.iterations,
+      model.key_size,
       getDigest(model.digest),
     );
+  }
+
+  hashPassword(password: string): Promise<Buffer> {
+    return pbkdf2(password, this.salt, this.iterations, this.keySize, this.digest);
   }
 }
