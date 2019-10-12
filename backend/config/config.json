@@ -8,6 +8,11 @@
     "database.timeout": 500,
     "database.max_threads": "6",
 
+    "auth.salt_length": 32,
+    "auth.iterations": 1500000,
+    "auth.key_length": 128,
+    "auth.digest": "sha512",
+
     "services.scipnet.port": 8000,
     "services.ftml.host": "::1",
     "services.ftml.port": 3865,

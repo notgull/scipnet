@@ -18,22 +18,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { config } from 'app/config';
 import { pbkdf2, randomBytes } from 'app/crypto';
 import { findOne, DatabaseError } from 'app/sql';
 import { PasswordModel } from 'app/sql/models';
 import { timeout, Nullable } from 'app/utils'
+
+const saltLength = config.get('auth.salt_length');
+const iterations = config.get('auth.iterations');
+const keySize = config.get('auth.key_length');
+const digest = config.get('auth.digest');
 
 // Represents a password as stored in the database, with utility methods.
 // The actual plaintext is never stored anywhere.
 export class Password {
   constructor(
     public userId: number,
-    public hash: Buffer,
+    public hashed: Buffer,
     public salt: Buffer,
     public iterations: number,
     public keySize: number,
     public digest: string,
   ) {}
+
+  static async create(userId: number, plaintextPassword: string): Promise<Password> {
+    const salt = await randomBytes(saltLength);
+    const password = new Password(
+      userId,
+      Buffer.from(''),
+      salt,
+      iterations,
+      keySize,
+      digest,
+    );
+
+    password.hashed = await password.hash(plaintextPassword);
+    return password;
+  }
 
   static async loadById(userId: number): Promise<Nullable<Password>> {
     const model = await findOne<PasswordModel>(`
@@ -58,13 +79,13 @@ export class Password {
     );
   }
 
-  async hashPassword(password: string): Promise<Buffer> {
+  async hash(password: string): Promise<Buffer> {
     return pbkdf2(password, this.salt, this.iterations, this.keySize, this.digest);
   }
 
   async validate(password: string): Promise<boolean> {
-    const hash = await this.hashPassword(password);
-    if (this.hash === hash) {
+    const hashed = await this.hash(password);
+    if (this.hashed === hashed) {
       return true;
     }
 
