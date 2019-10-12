@@ -133,7 +133,6 @@ export class User {
     username: string,
     email: string,
     password: string,
-    returnUser: boolean = false,
   ): Promise<number> {
     // check for user and email existence
     const [userExists, emailExists] = await Promise.all([
@@ -149,6 +148,7 @@ export class User {
     }
 
     // insert user into database
+    // TODO replace
     const userId = await insertReturn(`
         INSERT INTO users
           (username, email, karma, join_date, status, avatar)
