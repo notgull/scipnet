@@ -20,7 +20,7 @@
 
 import { config } from 'app/config';
 import { pbkdf2, randomBytes } from 'app/crypto';
-import { findOne, DatabaseError } from 'app/sql';
+import { findOne, runQuery, DatabaseError } from 'app/sql';
 import { PasswordModel } from 'app/sql/models';
 import { timeout, Nullable } from 'app/utils'
 
@@ -34,11 +34,11 @@ const digest = config.get('auth.digest');
 export class Password {
   constructor(
     public userId: number,
-    public hashed: Buffer,
-    public salt: Buffer,
-    public iterations: number,
-    public keySize: number,
-    public digest: string,
+    private hashed: Buffer,
+    private salt: Buffer,
+    private iterations: number,
+    private keySize: number,
+    private digest: string,
   ) {}
 
   static async create(userId: number, plaintextPassword: string): Promise<Password> {
@@ -53,6 +53,7 @@ export class Password {
     );
 
     password.hashed = await password.hash(plaintextPassword);
+    await password.insert();
     return password;
   }
 
@@ -92,5 +93,24 @@ export class Password {
     // Purposely delay to make brute-forcing harder
     await timeout(2000);
     return false;
+  }
+
+  // Don't allow consumers to manipulate internals of the passwords table
+  private async insert(): Promise<void> {
+    await runQuery(`
+        INSERT INTO passwords
+          (user_id, hash, salt, iterations, key_size, digest)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7)
+      `,
+      [
+        this.userId,
+        this.hash,
+        this.salt,
+        this.iterations,
+        this.keySize,
+        this.digest,
+      ],
+    );
   }
 }
