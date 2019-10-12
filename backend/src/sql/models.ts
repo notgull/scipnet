@@ -5,9 +5,11 @@ type Nullable<T> = T | null;
 
 
 export interface AuthorModel {
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     author_type: string;
 
@@ -16,7 +18,8 @@ export interface AuthorModel {
 }
 
 export interface FileModel {
-    file_id?: number;
+    // Has default value
+    file_id: number;
 
     file_name: string;
 
@@ -24,14 +27,17 @@ export interface FileModel {
 
     description: string;
 
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
 }
 
 export interface PageModel {
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
-    created_at?: Date;
+    // Has default value
+    created_at: Date;
 
     slug: string;
 
@@ -44,18 +50,22 @@ export interface PageModel {
 }
 
 export interface ParentModel {
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
-    parent_page_id?: number;
+    // Has default value
+    parent_page_id: number;
 
-    parented_by?: number;
+    // Has default value
+    parented_by: number;
 
     parented_at: Date;
 
 }
 
 export interface PasswordModel {
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     hash: Buffer;
 
@@ -70,35 +80,45 @@ export interface PasswordModel {
 }
 
 export interface RatingModel {
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     rating: number;
 
 }
 
 export interface RatingsHistoryModel {
-    rating_id?: number;
+    // Has default value
+    rating_id: number;
 
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
-    created_at?: Date;
+    // Has default value
+    created_at: Date;
 
     rating: Nullable<number>;
 
 }
 
 export interface RevisionModel {
-    revision_id?: number;
+    // Has default value
+    revision_id: number;
 
-    created_at?: Date;
+    // Has default value
+    created_at: Date;
 
-    page_id?: number;
+    // Has default value
+    page_id: number;
 
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     git_commit: string;
 
@@ -107,20 +127,25 @@ export interface RevisionModel {
 }
 
 export interface RoleMembershipModel {
-    wiki_id?: number;
+    // Has default value
+    wiki_id: number;
 
-    role_id?: number;
+    // Has default value
+    role_id: number;
 
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     applied_at: Date;
 
 }
 
 export interface RoleModel {
-    role_id?: number;
+    // Has default value
+    role_id: number;
 
-    wiki_id?: number;
+    // Has default value
+    wiki_id: number;
 
     name: string;
 
@@ -129,30 +154,39 @@ export interface RoleModel {
 }
 
 export interface UserModel {
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     name: string;
 
-    created_at?: Date;
+    // Has default value
+    created_at: Date;
 
     email: string;
 
-    author_page?: string;
+    // Has default value
+    author_page: string;
 
-    website?: string;
+    // Has default value
+    website: string;
 
-    about?: string;
+    // Has default value
+    about: string;
 
-    location?: string;
+    // Has default value
+    location: string;
 
-    gender?: string;
+    // Has default value
+    gender: string;
 
 }
 
 export interface WikiMembershipModel {
-    wiki_id?: number;
+    // Has default value
+    wiki_id: number;
 
-    user_id?: number;
+    // Has default value
+    user_id: number;
 
     applied_at: Date;
 
@@ -161,7 +195,8 @@ export interface WikiMembershipModel {
 }
 
 export interface WikiModel {
-    wiki_id?: number;
+    // Has default value
+    wiki_id: number;
 
     slug: string;
 
