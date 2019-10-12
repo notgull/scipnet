@@ -26,7 +26,7 @@ export interface UserIdPair {
   id: number;
   user: User;
   expiry: Date;
-  ip_addrs: Array<string>
+  ipAddrs: Array<string>
 }
 
 export class UserTable {
@@ -38,17 +38,17 @@ export class UserTable {
     this.prevId = 0;
   }
 
-  // register a user and ip address into the user table
-  register(user: User, ip_addr: string, expiry: Date, change_ip: boolean): number {
+  register(user: User, ipAddr: string, expiry: Date, changeIp: boolean): number {
     // check if the user is already in here
     for (let i = 0; i < this.userset.length; i++) {
       let chckUser = this.userset[i];
       if (chckUser.user === user) {
-        if (chckUser.ip_addrs.indexOf(ip_addr) === -1) {
-          if (!change_ip)
-            chckUser.ip_addrs.push(ip_addr);
-          else
-            chckUser.ip_addrs = [ip_addr];
+        if (chckUser.ipAddrs.indexOf(ipAddr) === -1) {
+          if (!changeIp) {
+            chckUser.ipAddrs.push(ipAddr);
+          } else {
+            chckUser.ipAddrs = [ipAddr];
+          }
         }
         return chckUser.id;
       }
@@ -56,19 +56,21 @@ export class UserTable {
 
     let id = this.prevId;
     id += randomInt(2, 9);
-    if (id > 2999999) id -= this.prevId;
-    this.prevId = id;
+    if (id > 2999999) {
+      id -= this.prevId;
+    }
 
-    let userObj = {id: id,
-                   user: user,
-               expiry: expiry,
-               ip_addrs: [ip_addr]};
-    this.userset.push(userObj);
+    this.prevId = id;
+    this.userset.push({
+      id,
+      user,
+      expiry,
+      ipAddrs: [ipAddr],
+    });
 
     return id;
   }
 
-  // log a user out
   logout(id: number): void {
     for (let i = this.userset.length - 1; i >= 0; i--) {
       let chckUser = this.userset[i];
@@ -79,13 +81,11 @@ export class UserTable {
     }
   }
 
-  // check to make sure a session conforms to the ip address
-  check_session(session: number, ip_addr: string): Nullable<string> {
-    for (let i = 0; i < this.userset.length; i++) {
-      let chckUser = this.userset[i];
+  checkSession(session: number, ipAddr: string): Nullable<string> {
+    for (const chckUser of this.userset) {
       if (chckUser.id === session) {
-        if (chckUser.ip_addrs.indexOf(ip_addr) !== -1) {
-          return chckUser.user.username;
+        if (chckUser.ipAddrs.indexOf(ipAddr) !== -1) {
+          return chckUser.user.name;
         } else {
           return null;
         }
@@ -95,21 +95,13 @@ export class UserTable {
     return null;
   }
 
-  // remove expired sessions from the database
-  check_expiry() {
+  checkExpiry() {
     let now = new Date();
     for (var i = this.userset.length - 1; i >= 0; i--) {
       let chckUser = this.userset[i];
       if (now > chckUser.expiry) {
         this.userset.splice(1, i);
       }
-    }
-  }
-
-  // debug function
-  _printUsers() {
-    for (let i = 0; i < this.userset.length; i++) {
-      console.log(JSON.stringify(this.userset[i]));
     }
   }
 }

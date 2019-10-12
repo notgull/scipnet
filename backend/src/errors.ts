@@ -18,6 +18,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+export class ClientError extends Error {
+  constructor(
+    message: string,
+    public code: ErrorCode,
+  ) {
+    super(message);
+  }
+}
+
 export enum ErrorCode {
   SUCCESS = 0,
   INTERNAL_ERROR = 3,

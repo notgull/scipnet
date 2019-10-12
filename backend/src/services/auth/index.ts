@@ -57,6 +57,25 @@ export class Password {
     return password;
   }
 
+  // Don't allow consumers to manipulate database internals
+  private async insert(): Promise<void> {
+    await runQuery(`
+        INSERT INTO passwords
+          (user_id, hash, salt, iterations, key_size, digest)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7)
+      `,
+      [
+        this.userId,
+        this.hash,
+        this.salt,
+        this.iterations,
+        this.keySize,
+        this.digest,
+      ],
+    );
+  }
+
   static async loadById(userId: number): Promise<Nullable<Password>> {
     const model = await findOne<PasswordModel>(`
         SELECT hash, salt, iterations, key_size, digest
@@ -93,24 +112,5 @@ export class Password {
     // Purposely delay to make brute-forcing harder
     await timeout(2000);
     return false;
-  }
-
-  // Don't allow consumers to manipulate internals of the passwords table
-  private async insert(): Promise<void> {
-    await runQuery(`
-        INSERT INTO passwords
-          (user_id, hash, salt, iterations, key_size, digest)
-        VALUES
-          ($1, $2, $3, $4, $5, $6, $7)
-      `,
-      [
-        this.userId,
-        this.hash,
-        this.salt,
-        this.iterations,
-        this.keySize,
-        this.digest,
-      ],
-    );
   }
 }

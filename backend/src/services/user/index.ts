@@ -19,27 +19,65 @@
  */
 
 import { pbkdf2, randomBytes } from 'app/crypto';
-import { ErrorCode } from 'app/errors';
+import { ClientError, ErrorCode } from 'app/errors';
 import { Nullable, timeout } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
+
 import { findOne, rawQuery, insertReturn } from 'app/sql';
 import { UserModel } from 'app/sql/models';
 
+import { Password } from 'app/services/auth';
+
 // Represents a user with an account on the site.
-// TODO: figure out the best way to incorporate stats into this
+// TODO: figure out the best way to incorporate stats into this <-- should be separate table
+// TODO: allow updating user fields
 export class User {
   constructor(
     public userId: number,
-    public username: string,
+    public name: string,
+    public createdAt: Date,
     public email: string,
-    public karma: number,
-    public joinDate: Date,
-    public website: Nullable<string>,
-    public about: Nullable<string>,
-    public city: Nullable<string>,
-    public avatar: string,
-    public gender: Nullable<string>,
+    public authorPage: string,
+    public website: string,
+    public about: string,
+    public location: string,
+    public gender: string,
   ) {}
+
+  static async create(
+    username: string,
+    email: string,
+    password: string,
+  ): Promise<number> {
+    const { usernameExists, emailExists } = await User.checkExistence(username, email);
+
+    if (usernameExists) {
+      throw new ClientError(
+        `User with name ${username} already exists`,
+        ErrorCode.USER_EXISTS,
+      );
+    }
+
+    if (emailExists) {
+      throw new ClientError(
+        `User with email ${email} already exists`,
+        ErrorCode.EMAIL_EXISTS,
+      );
+    }
+
+    // TODO start transaction
+
+    const { user_id: userId } = await insertReturn<UserModel>(`
+        INSERT INTO users (name, email)
+        VALUES ($1, $2)
+        RETURNING user_id, created_at
+      `,
+      [username, email],
+    );
+
+    await Password.create(userId, password);
+    return userId;
+  }
 
   // helper function: hash a password
   static async hashPassword(password: string, salt: Buffer): Promise<string> {
@@ -74,55 +112,72 @@ export class User {
     }
   }
 
-  // create a user from an object that has user-like properties (most likely an SQL row)
-  static fromRow(row: any): User {
-    return new User(row.user_id,
-                    row.username,
-                    row.email,
-                    row.karma,
-                    row.join_date,
-                    row.website,
-                    row.about,
-                    row.city,
-                    row.avatar,
-                    row.gender);
-  }
-
-  // load a user by its ID
-  static async loadById(user_id: Number): Promise<Nullable<User>> {
-    let res = await rawQuery(
-      `SELECT * FROM Users WHERE user_id = $1`,
-      [user_id],
+  static async loadById(userId: number): Promise<Nullable<User>> {
+    const model = await findOne<UserModel>(`
+        SELECT
+          name,
+          created_at,
+          email,
+          author_page,
+          website,
+          about,
+          location,
+          gender
+        FROM users
+        WHERE user_id = $1
+      `,
+      [userId],
     );
 
-    if (res.rowCount === 0) {
+    if (model === null) {
       return null;
-    } else {
-      return User.fromRow(res.rows[0]);
     }
+
+    return new User(
+      userId,
+      model.name,
+      model.created_at,
+      model.email,
+      model.author_page,
+      model.website,
+      model.about,
+      model.location,
+      model.gender,
+    );
   }
 
-  // load a user by its username
-  static async loadByUsername(username: string): Promise<Nullable<User>> {
-    let res = await rawQuery(
-      `SELECT * FROM Users WHERE username = $1`,
+  static async loadByName(username: string): Promise<Nullable<User>> {
+    const model = await findOne<UserModel>(`
+        SELECT
+          user_id,
+          created_at,
+          email,
+          author_page,
+          website,
+          about,
+          location,
+          gender
+        FROM users
+        WHERE name = $1
+      `,
       [username],
     );
 
-    if (res.rowCount === 0) {
+    if (model === null) {
       return null;
-    } else {
-      return User.fromRow(res.rows[0]);
     }
-  }
 
-  // helper function- validate a user by its id or username
-  static async validateCredentials(user: Number | string, password: string): Promise<ErrorCode> {
-    let user_object: User;
-    if (user instanceof Number) user_object = await User.loadById(user);
-    else user_object = await User.loadByUsername(user);
-
-    return user_object.validate(password);
+    return new User(
+      model.user_id,
+      username,
+      model.created_at,
+      model.email,
+      model.author_page,
+      model.website,
+      model.about,
+      model.location,
+      model.gender,
+    );
   }
 
   private static async checkExistence(
@@ -145,80 +200,5 @@ export class User {
       usernameExists: model.name === username,
       emailExists: model.email === email,
     };
-  }
-
-  // add a new user to the database
-  // NOTE: number returned is an error code
-  static async createNewUser(
-    username: string,
-    email: string,
-    password: string,
-  ): Promise<number> {
-    const { usernameExists, emailExists } = await User.checkExistence(username, email);
-
-    if (usernameExists) {
-      return ErrorCode.USER_EXISTS;
-    }
-
-    if (emailExists) {
-      return ErrorCode.EMAIL_EXISTS;
-    }
-
-    // insert user into database
-    // TODO replace
-    const userId = await insertReturn(`
-        INSERT INTO users
-          (username, email, karma, join_date, status, avatar)
-        VALUES
-          ($1, $2, 0, $3::timestamp, 0, '')
-        RETURNING user_id
-      `,
-      [username, email, getFormattedDate()],
-    ) as number;
-
-    // Password hashing is intentionally synchronous, do not use Promise.all()
-    const salt = await randomBytes(16);
-    const pwHash = await User.hashPassword(password, salt);
-
-    // stringify the salt so it can be stored easily in the database
-    const stringifiedSalt = JSON.stringify(salt).split("'").join("\"");
-
-    // insert password hash into database
-    await rawQuery(`
-        INSERT INTO passwords (user_id, salt, hash)
-        VALUES ($1, $2, $3)
-      `,
-      [userId, stringifiedSalt, pwHash],
-    );
-
-    return userId;
-  }
-
-  // update a user in its database with new details
-  async submit(): Promise<void> {
-    await rawQuery(`
-        UPDATE users
-        SET
-          username = $1,
-          email = $2,
-          karma = $3,
-          website = $4,
-          about = $5,
-          city = $6,
-          gender = $8
-        WHERE user_id = $9
-      `,
-      [
-        this.username,
-        this.email,
-        this.karma,
-        this.website,
-        this.about,
-        this.city,
-        this.avatar,
-        this.gender,
-        this.userId,
-      ],
-    );
   }
 }

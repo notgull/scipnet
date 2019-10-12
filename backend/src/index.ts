@@ -74,16 +74,9 @@ let ut = new UserTable();
 // need a type to deal with parameters
 type Params = { [key: string]: string };
 
-// get an ip address from a request
-function getIPAddress(req: express.Request): string {
-  //return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  return req.ip;
-}
-
 // function that puts together login info for user
 function loginInfo(req: express.Request): Nullable<string> {
-  var ip_addr = getIPAddress(req);
-  return ut.check_session(Number(req.cookies.sessionId), ip_addr);
+  return ut.checkSession(Number(req.cookies.sessionId), req.ip);
 }
 
 // function to render a page
@@ -184,13 +177,12 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
   let newUrl = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
-  User.loadByUsername(username).then((user: User) => {
+  User.loadByName(username).then((user: User) => {
     user.validate(pwHash).then((result: ErrorCode) => {
       if (result !== ErrorCode.SUCCESS) {
         res.redirect(`/sys/login?errorCode=${result}`);
       } else {
         // add user to user table
-        const ipAddr = getIPAddress(req);
         const expiry = new Date();
         if (push_expiry) {
           expiry.setDate(expiry.getDate() + 7);
@@ -198,7 +190,7 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
           expiry.setDate(expiry.getDate() + 1);
         }
 
-        let sessionId = ut.register(user, ipAddr, expiry, change_ip);
+        let sessionId = ut.register(user, req.ip, expiry, change_ip);
         console.log(`Logged session ${sessionId}`);
         res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
         res.redirect(`/${newUrl}`);
@@ -209,23 +201,20 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
 // hookup to PRS system
 app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
-  let ipAddr = getIPAddress(req);
-
   console.log(`pagereq: ${JSON.stringify(req.body)}`);
 
-  //get username
-  let username = ut.check_session(parseInt(req.body.sessionId, 10), ipAddr);
+  const username = ut.checkSession(parseInt(req.body.sessionId, 10), req.ip);
 
   // pull all parameters from req.body and put them in args
-  let args: ArgsMapping = {};
-  for (var key in req.body) {
+  const args: ArgsMapping = {};
+  for (const key in req.body) {
     args[key] = req.body[key];
   }
 
   args.username = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
+  callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
@@ -241,11 +230,6 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
   render_page(req, true, '../templates/register.j2', 'Register',
              (d) => {res.send(d);});
 });
-
-function onEmailVerify(username: string, pwHash: string, email: string): void {
-  User.createNewUser(username, email, pwHash).then(() => { console.log("Created user " + username); })
-    .catch((err: Error) => { console.error(`User creation error: ${err}`); });
-};
 
 // process registration
 app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
