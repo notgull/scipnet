@@ -79,39 +79,6 @@ export class User {
     return userId;
   }
 
-  // helper function: hash a password
-  static async hashPassword(password: string, salt: Buffer): Promise<string> {
-    const pwHash = await pbkdf2(password, salt, 100000, 64, "sha512");
-    return pwHash.toString("hex");
-  }
-
-  // validate if a password corresponds to a user
-  async validate(password: string): Promise<ErrorCode> {
-    // get the pwhash from the database
-    let res = await rawQuery(
-      `SELECT salt, pwhash FROM passwords WHERE user_id = $1`,
-      [this.userId],
-    );
-
-    if (res.rowCount === 0) {
-      return ErrorCode.USER_NOT_FOUND;
-    }
-
-    let truePwHash = res.rows[0].pwhash;
-    let salt = new Buffer(res.rows[0].salt.data);
-
-    // hash the currently input password
-    let pwHash = await User.hashPassword(password, salt);
-
-    if (pwHash === truePwHash) {
-      return ErrorCode.SUCCESS;
-    } else {
-      // block execution for a second- this actually makes the system much, MUCH more secure
-      await timeout(1000);
-      return ErrorCode.PASSWORD_INCORRECT;
-    }
-  }
-
   static async loadById(userId: number): Promise<Nullable<User>> {
     const model = await findOne<UserModel>(`
         SELECT

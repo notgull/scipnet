@@ -29,6 +29,7 @@ import * as path from 'path';
 import { config } from 'app/config';
 
 import { UserTable } from 'app/services/user/usertable';
+import { Password } from 'app/services/auth';
 import { User } from 'app/services/user';
 
 import { ArgsMapping } from 'app/services/pagereq';
@@ -166,37 +167,45 @@ app.get("/sys/login", function(req: express.Request, res: express.Response) {
         (d) => {res.send(d)});
 });
 
-const day_constant = 86400000;
+const dayConstant = 86400000;
 
 // post request - used for logging in
-app.post("/sys/process-login", function(req: express.Request, res: express.Response) {
-  let username = req.body.username;
-  let pwHash = req.body.pwHash;
-  let push_expiry = (req.body.remember === "true");
-  let change_ip = (req.body.change_ip === "true");
-  let newUrl = req.query.new_url || "";
+app.post("/sys/process-login", async function(req: express.Request, res: express.Response) {
+  const { username, password } = req.body;
+  const pushExpiry = (req.body.remember === "true");
+  const changeIp = (req.body.change_ip === "true");
+  const newUrl = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
-  User.loadByName(username).then((user: User) => {
-    user.validate(pwHash).then((result: ErrorCode) => {
-      if (result !== ErrorCode.SUCCESS) {
-        res.redirect(`/sys/login?errorCode=${result}`);
-      } else {
-        // add user to user table
-        const expiry = new Date();
-        if (push_expiry) {
-          expiry.setDate(expiry.getDate() + 7);
-        } else {
-          expiry.setDate(expiry.getDate() + 1);
-        }
+  // TODO don't tell the user that the user exists
+  const user = await User.loadByName(username);
+  if (user === null) {
+    res.json({
+      error: ErrorCode.USER_NOT_FOUND,
+    });
+    return;
+  }
 
-        let sessionId = ut.register(user, req.ip, expiry, change_ip);
-        console.log(`Logged session ${sessionId}`);
-        res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
-        res.redirect(`/${newUrl}`);
-      }
-    }).catch((err: Error) => { console.error(err); });
-  }).catch((err: Error) => { console.error(err); });
+  const pwd = await Password.loadById(user.userId);
+  if (!pwd.validate(password)) {
+    res.json({
+      error: ErrorCode.PASSWORD_INCORRECT,
+    });
+    return;
+  }
+
+  // add user to user table
+  const expiry = new Date();
+  if (pushExpiry) {
+    expiry.setDate(expiry.getDate() + 7);
+  } else {
+    expiry.setDate(expiry.getDate() + 1);
+  }
+
+  let sessionId = ut.register(user, req.ip, expiry, changeIp);
+  console.log(`Logged session ${sessionId}`);
+  res.cookie("sessionId", sessionId, { maxAge: 8 * dayConstant });
+  res.redirect(`/${newUrl}`);
 });
 
 // hookup to PRS system
