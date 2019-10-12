@@ -71,7 +71,18 @@ export class Password {
     );
   }
 
-  hashPassword(password: string): Promise<Buffer> {
+  async hashPassword(password: string): Promise<Buffer> {
     return pbkdf2(password, this.salt, this.iterations, this.keySize, this.digest);
+  }
+
+  async validate(password: string): Promise<boolean> {
+    const hash = await this.hashPassword(password);
+    if (this.hash === hash) {
+      return true;
+    }
+
+    // Purposely delay to make brute-forcing harder
+    await timeout(2000);
+    return false;
   }
 }
