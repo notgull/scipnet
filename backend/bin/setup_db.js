@@ -20,6 +20,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO: update this with new config setup
+
 // attempt to load configuration
 var config;
 try {

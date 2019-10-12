@@ -39,7 +39,7 @@ async function removeAll() {
     DROP TABLE passwords; DROP TABLE authors;
     DROP TABLE files; DROP TABLE revisions;
     DROP TABLE ratings; DROP TABLE parents;
-    DROP SEQUENCE revisions_seq;
+    DROP SEQUENCE revisions_seq; DROP TABLE roles;
   `;
 
   await sql.queryPromise(query, []);

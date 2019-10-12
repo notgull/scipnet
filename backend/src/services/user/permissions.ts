@@ -73,9 +73,11 @@ export class Permset {
 
   // get a permset from a stored number
   static fromNumber(value: number): Permset {
+    console.log("== LOADING PERMSET FROM NUMBER ==");
     let permset = new Permset();
     for (let i = 0; i < NumPermissions; i++) {
       permset.permissions[i].value = getLargenumVal(value, i);
+      console.log(`PERMISSIONS - Value for ${permset.permissions[i].permission.name} is ${getLargenumVal(value, i)}`);
     }
     return permset;
   }

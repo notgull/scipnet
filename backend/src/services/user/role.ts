@@ -40,6 +40,7 @@ export class Role {
         this.permset = Permset.fromNumber(permset);
       }
     } else {
+      console.log("Generating default permset");
       this.permset = new Permset();
     }
     this.roleId = -1;
