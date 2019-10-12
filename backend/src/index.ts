@@ -50,7 +50,7 @@ import { ErrorCode } from 'app/errors';
 const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log(`SCPWiki v${version}`);
 
-let s_port = config.get('services.scipnet.port');
+const port = config.get('services.scipnet.port');
 
 // load up the SQL before we start up
 initialize_users((_o: any) => {
@@ -64,10 +64,6 @@ const app = express();
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({ extended: true }));
 app.use(cookie_parser());
-
-// load ssl certs
-const certs = { key: fs.readFileSync('certs/scpwiki.key'),
-                cert: fs.readFileSync('certs/scpwiki.pem') };
 
 // create a table of user sessions
 let ut = new UserTable();
@@ -328,7 +324,5 @@ app.get("/", function(req, res) {
 
 // initialize http servers
 const httpServer = http.createServer(app);
-const httpsServer = https.createServer(certs, app);
 
-httpServer.listen(8002);
-httpsServer.listen(s_port);
+httpServer.listen(port);
