@@ -23,7 +23,7 @@ import { ClientError, ErrorCode } from 'app/errors';
 import { Nullable, timeout } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
 
-import { findOne, rawQuery, insertReturn } from 'app/sql';
+import { findOne, insertReturn } from 'app/sql';
 import { UserModel } from 'app/sql/models';
 
 import { Password } from 'app/services/auth';
