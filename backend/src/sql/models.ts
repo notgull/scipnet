@@ -4,170 +4,170 @@
 type Nullable<T> = T | null;
 
 
-export interface PageModel {
-    page_id?: number;
-
-    created_at?: Date;
-
-    slug: string;
-
-    title: string;
-
-    alt_title: Nullable<string>;
-
-    tags: string[];
-
-}
-
-export interface RevisionModel {
-    revision_id?: number;
-
-    created_at?: Date;
-
-    page_id?: number;
-
-    user_id?: number;
-
-    git_commit: string;
-
-    changes: object;
-
-}
-
-export interface RatingModel {
-    page_id?: number;
-
-    user_id?: number;
-
-    rating: number;
-
-}
-
-export interface UserModel {
-    user_id?: number;
-
-    name: string;
-
-    created_at?: Date;
-
-    email: string;
-
-    author_page?: string;
-
-    website?: string;
-
-    about?: string;
-
-    location?: string;
-
-    gender?: string;
-
-}
-
-export interface RatingsHistoryModel {
-    rating_id?: number;
-
-    page_id?: number;
-
-    user_id?: number;
-
-    created_at?: Date;
-
-    rating: Nullable<number>;
-
-}
-
 export interface AuthorModel {
-    page_id?: number;
-
-    user_id?: number;
-
     author_type: string;
 
     created_at: Date;
 
+    page_id?: number;
+
+    user_id?: number;
+
 }
 
 export interface FileModel {
+    description: string;
+
     file_id?: number;
 
     file_name: string;
 
     file_uri: string;
 
-    description: string;
+    page_id?: number;
+
+}
+
+export interface PageModel {
+    alt_title: Nullable<string>;
+
+    created_at?: Date;
 
     page_id?: number;
+
+    slug: string;
+
+    tags: string[];
+
+    title: string;
 
 }
 
 export interface ParentModel {
     page_id?: number;
 
-    parent_page_id?: number;
+    parented_at: Date;
 
     parented_by?: number;
 
-    parented_at: Date;
+    parent_page_id?: number;
 
 }
 
 export interface PasswordModel {
-    user_id?: number;
+    digest: string;
 
     hash: Buffer;
-
-    salt: Buffer;
 
     iterations: number;
 
     key_size: number;
 
-    digest: string;
-
-}
-
-export interface WikiModel {
-    wiki_id?: number;
-
-    slug: string;
-
-    name: string;
-
-    created_at: Date;
-
-}
-
-export interface WikiMembershipModel {
-    wiki_id?: number;
+    salt: Buffer;
 
     user_id?: number;
 
-    applied_at: Date;
+}
 
-    joined_at: Date;
+export interface RatingModel {
+    page_id?: number;
+
+    rating: number;
+
+    user_id?: number;
 
 }
 
-export interface RoleModel {
-    role_id?: number;
+export interface RatingsHistoryModel {
+    created_at?: Date;
 
-    wiki_id?: number;
+    page_id?: number;
 
-    name: string;
+    rating: Nullable<number>;
 
-    permset: number;
+    rating_id?: number;
+
+    user_id?: number;
+
+}
+
+export interface RevisionModel {
+    changes: object;
+
+    created_at?: Date;
+
+    git_commit: string;
+
+    page_id?: number;
+
+    revision_id?: number;
+
+    user_id?: number;
 
 }
 
 export interface RoleMembershipModel {
-    wiki_id?: number;
+    applied_at: Date;
 
     role_id?: number;
 
     user_id?: number;
 
+    wiki_id?: number;
+
+}
+
+export interface RoleModel {
+    name: string;
+
+    permset: number;
+
+    role_id?: number;
+
+    wiki_id?: number;
+
+}
+
+export interface UserModel {
+    about?: string;
+
+    author_page?: string;
+
+    created_at?: Date;
+
+    email: string;
+
+    gender?: string;
+
+    location?: string;
+
+    name: string;
+
+    user_id?: number;
+
+    website?: string;
+
+}
+
+export interface WikiMembershipModel {
     applied_at: Date;
+
+    joined_at: Date;
+
+    user_id?: number;
+
+    wiki_id?: number;
+
+}
+
+export interface WikiModel {
+    created_at: Date;
+
+    name: string;
+
+    slug: string;
+
+    wiki_id?: number;
 
 }
 
