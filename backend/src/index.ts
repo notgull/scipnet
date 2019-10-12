@@ -30,7 +30,6 @@ import { config } from 'app/config';
 
 import { UserTable } from 'app/services/user/usertable';
 import { User } from 'app/services/user';
-import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
 import { ArgsMapping } from 'app/services/pagereq';
 import { Metadata } from 'app/services/metadata';
@@ -260,28 +259,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (email.length === 0) { redirectErr(8); return; }
   if (pwHash.length < 8) { redirectErr(32); return; }
 
-  // make sure neither the username nor the email exist
-  checkUserExistence(username).then((result: boolean) => {
-    if (result) {
-      res.redirect('/sys/register?errors=128')
-    } else {
-      checkEmailUsage(email).then((result: boolean) => {
-        if (result) {
-          res.redirect('/sys/register?errors=256');
-        } else {
-          // TODO: verify via email
-          res.redirect('/sys/login');
-          onEmailVerify(username, pwHash, email);
-        }
-      }).catch((err: Error) => {
-        console.error(err);
-        res.redirect("/sys/register?errors=512");
-      });
-    }
-  }).catch((err: Error) => {
-   console.error(err);
-   res.redirect("/sys/register?errors=512");
-  });
+  // TODO use the user package instead of reimplementing
 });
 
 // log a user out of the system

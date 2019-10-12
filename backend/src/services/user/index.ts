@@ -22,10 +22,8 @@ import { pbkdf2, randomBytes } from 'app/crypto';
 import { ErrorCode } from 'app/errors';
 import { Nullable, timeout } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
-import { rawQuery, insertReturn } from 'app/sql';
+import { findOne, rawQuery, insertReturn } from 'app/sql';
 import { UserModel } from 'app/sql/models';
-
-import { checkUserExistence, checkEmailUsage } from './existence-check';
 
 // Represents a user with an account on the site.
 // TODO: figure out the best way to incorporate stats into this
@@ -127,6 +125,28 @@ export class User {
     return user_object.validate(password);
   }
 
+  private static async checkExistence(
+    username: string,
+    email: string,
+  ): Promise<{ usernameExists: boolean, emailExists: boolean }> {
+    const model = await findOne<UserModel>(
+      `SELECT name, email FROM users WHERE name = $1 OR email = $2`,
+      [username, email],
+    );
+
+    if (model === null) {
+      return {
+        usernameExists: false,
+        emailExists: false,
+      };
+    }
+
+    return {
+      usernameExists: model.name === username,
+      emailExists: model.email === email,
+    };
+  }
+
   // add a new user to the database
   // NOTE: number returned is an error code
   static async createNewUser(
@@ -134,15 +154,12 @@ export class User {
     email: string,
     password: string,
   ): Promise<number> {
-    // check for user and email existence
-    const [userExists, emailExists] = await Promise.all([
-      checkUserExistence(username),
-      checkEmailUsage(email),
-    ]);
+    const { usernameExists, emailExists } = await User.checkExistence(username, email);
 
-    if (userExists) {
+    if (usernameExists) {
       return ErrorCode.USER_EXISTS;
     }
+
     if (emailExists) {
       return ErrorCode.EMAIL_EXISTS;
     }
