@@ -3,5 +3,6 @@ node_modules/
 package-lock.json
 
 # Local
+certs/
 config/override.json
 data/
