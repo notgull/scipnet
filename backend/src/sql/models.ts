@@ -5,169 +5,169 @@ type Nullable<T> = T | null;
 
 
 export interface AuthorModel {
-    author_type: string;
-
-    created_at: Date;
-
     page_id?: number;
 
     user_id?: number;
 
+    author_type: string;
+
+    created_at: Date;
+
 }
 
 export interface FileModel {
-    description: string;
-
     file_id?: number;
 
     file_name: string;
 
     file_uri: string;
 
+    description: string;
+
     page_id?: number;
 
 }
 
 export interface PageModel {
-    alt_title: Nullable<string>;
+    page_id?: number;
 
     created_at?: Date;
 
-    page_id?: number;
-
     slug: string;
 
-    tags: string[];
-
     title: string;
+
+    alt_title: Nullable<string>;
+
+    tags: string[];
 
 }
 
 export interface ParentModel {
     page_id?: number;
 
-    parented_at: Date;
+    parent_page_id?: number;
 
     parented_by?: number;
 
-    parent_page_id?: number;
+    parented_at: Date;
 
 }
 
 export interface PasswordModel {
-    digest: string;
+    user_id?: number;
 
     hash: Buffer;
+
+    salt: Buffer;
 
     iterations: number;
 
     key_size: number;
 
-    salt: Buffer;
-
-    user_id?: number;
+    digest: string;
 
 }
 
 export interface RatingModel {
     page_id?: number;
 
-    rating: number;
-
     user_id?: number;
+
+    rating: number;
 
 }
 
 export interface RatingsHistoryModel {
-    created_at?: Date;
+    rating_id?: number;
 
     page_id?: number;
 
-    rating: Nullable<number>;
-
-    rating_id?: number;
-
     user_id?: number;
+
+    created_at?: Date;
+
+    rating: Nullable<number>;
 
 }
 
 export interface RevisionModel {
-    changes: object;
+    revision_id?: number;
 
     created_at?: Date;
 
-    git_commit: string;
-
     page_id?: number;
 
-    revision_id?: number;
-
     user_id?: number;
+
+    git_commit: string;
+
+    changes: object;
 
 }
 
 export interface RoleMembershipModel {
-    applied_at: Date;
+    wiki_id?: number;
 
     role_id?: number;
 
     user_id?: number;
 
-    wiki_id?: number;
+    applied_at: Date;
 
 }
 
 export interface RoleModel {
-    name: string;
-
-    permset: number;
-
     role_id?: number;
 
     wiki_id?: number;
 
+    name: string;
+
+    permset: number;
+
 }
 
 export interface UserModel {
-    about?: string;
+    user_id?: number;
 
-    author_page?: string;
+    name: string;
 
     created_at?: Date;
 
     email: string;
 
-    gender?: string;
+    author_page?: string;
+
+    website?: string;
+
+    about?: string;
 
     location?: string;
 
-    name: string;
-
-    user_id?: number;
-
-    website?: string;
+    gender?: string;
 
 }
 
 export interface WikiMembershipModel {
+    wiki_id?: number;
+
+    user_id?: number;
+
     applied_at: Date;
 
     joined_at: Date;
 
-    user_id?: number;
-
-    wiki_id?: number;
-
 }
 
 export interface WikiModel {
-    created_at: Date;
-
-    name: string;
+    wiki_id?: number;
 
     slug: string;
 
-    wiki_id?: number;
+    name: string;
+
+    created_at: Date;
 
 }
 
