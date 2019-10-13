@@ -100,7 +100,7 @@ function beginEditPage(user: User, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
   // if the user does not have permission to edit pages, return
-  if (!(user.hasPermission("editPages"))) {
+  if (!user.hasPermission("editPages")) {
     next(permissionDenied());
     return; 
   }
@@ -108,14 +108,14 @@ function beginEditPage(user: User, args: ArgsMapping, next: PRSCallback) {
   // fetch the metadata
   Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<Metadata>) => {
     // if the metadata is null, we are creating a new page. check for permission
-    if (!pMeta && !(user.hasPermission("createPages"))) {
+    if (!pMeta && !user.hasPermission("createPages")) {
       next(permissionDenied());
       return;
     }
 
     // if the page is locked and we don't have permission, return
     if (pMeta) {
-      if (pMeta.locked_at && !(user.hasPermission("modifyLockedPages"))) {
+      if (pMeta.locked_at && !user.hasPermission("modifyLockedPages")) {
         next(permissionDenied());
         return;
       }
@@ -160,7 +160,7 @@ function removeEditLock(user: User, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
   // if the user does not have edit permissions, they should not be doing this anyways
-  if (!(user.hasPermission("editPages"))) {
+  if (!user.hasPermission("editPages")) {
     next(permissionDenied());
     return;
   }
@@ -213,19 +213,19 @@ function removeEditLock(user: User, args: ArgsMapping, next: PRSCallback) {
 async function changePageAsync(user: User, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
-  if (!(user.hasPermission("editPages"))) {
+  if (!user.hasPermission("editPages")) {
     return permissionDenied();
   }
 
   let pMeta = await Metadata.load_by_slug(args.pagename);
 
   // if the metadata is null, we are creating a new page. check for permission
-  if (!pMeta && !(user.hasPermission("createPages"))) {
+  if (!pMeta && !user.hasPermission("createPages")) {
     return permissionDenied();
   }
 
   // if the page is locked and we don't have permission, return
-  if (pMeta && pMeta.locked_at && !(user.hasPermission("modifyLockedPages"))) {
+  if (pMeta && pMeta.locked_at && !user.hasPermission("modifyLockedPages")) {
     return permissionDenied();
   }
 
@@ -352,7 +352,7 @@ async function tagPageAsync(user: User, args: ArgsMapping): Promise<PRSReturnVal
   let returnVal = genReturnVal();
 
   // check for permission
-  if (!(user.hasPermission("editPages")) || !(user.hasPermission("tagPages"))) {
+  if (!user.hasPermission("editPages") || !user.hasPermission("tagPages")) {
     return permissionDenied();
   }
 
@@ -364,7 +364,7 @@ async function tagPageAsync(user: User, args: ArgsMapping): Promise<PRSReturnVal
   }
 
   // if the page is locked, permission denied
-  if (mObj.locked_at && !(user.hasPermission("modifyLockedPages"))) {
+  if (mObj.locked_at && !user.hasPermission("modifyLockedPages")) {
     return permissionDenied();
   }
 
@@ -523,14 +523,15 @@ export function request(name: string, username: string, args: ArgsMapping, next:
   // also get the user id
   User.loadByUsername(username).then((user: Nullable<User>) => {
     if ((!user) && username) { next(genErrorVal(new Error("Bad user id"))); return; }
-    if (!(user)) console.log("User.loadByUsername gave no matches...");
 
-    if (!args["pagename"] || args["pagename"].length === 0)
+    if (!args["pagename"] || args["pagename"].length === 0) {
       args["pagename"] = "main";
+    }
 
     args['user'] = user;
-    if (user)
+    if (user) {
       args['user_id'] = user.user_id;
+    }
 
     // functions that don't need the username
     if (name === "getRatingModule") { getRatingModule(args, next); return; }
