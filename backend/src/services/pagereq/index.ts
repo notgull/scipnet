@@ -533,11 +533,21 @@ export function request(name: string, username: string, args: ArgsMapping, next:
       args['user_id'] = user.user_id;
     }
 
-    // functions that don't need the username
-    if (name === "getRatingModule") { getRatingModule(args, next); return; }
-    else if (name === "pageHistory") { pageHistory(args, next); return; }
-    else if (name === "getTags") { getTags(args, next); return; }
-    else if (name === "getPageSource") { getPageSource(args, next); return; }
+    // functions that don't need the username 
+    switch (name) {
+      case "getRatingModule":
+        getRatingModule(args, next);
+        return;
+      case "pageHistory":
+        pageHistory(args, next);
+        return;
+      case "getTags":
+        getTags(args, next);
+        return;
+      case "getPageSource":
+        getPageSource(args, next);
+        return;
+    }
 
     if (!user) {
       returnVal.not_logged_in = true;
@@ -545,12 +555,25 @@ export function request(name: string, username: string, args: ArgsMapping, next:
       return;
     }
 
-    // function that do
-    if (name === 'changePage') changePage(user, args, next);
-    else if (name === 'removeEditLock') removeEditLock(user, args, next);
-    else if (name === 'beginEditPage') beginEditPage(user, args, next);
-    else if (name === 'voteOnPage') voteOnPage(user, args, next);
-    else if (name === 'tagPage') tagPage(user, args, next);
-    else throw new Error("Improper PRS request " + name);
+    // functions that do
+    switch (name) {
+      case "changePage":
+        changePage(user, args, next);
+        return;
+      case "removeEditLock":
+        removeEditLock(user, args, next);
+        return;
+      case "beginEditPage":
+        beginEditPage(user, args, next);
+        return;
+      case "voteOnPage":
+        voteOnPage(user, args, next);
+        return;
+      case "tagPage":
+        tagPage(user, args, next);
+        return;
+      default:
+        throw new Error(`Improper PRS request: ${name}`);
+    }
   }).catch((err: Error) => { next(genErrorVal(err)); });
 };
