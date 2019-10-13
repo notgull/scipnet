@@ -87,14 +87,10 @@ export class Permset {
     let value = 0;
     let permission;
 
-
     for (let i = 0; i < NumPermissions; i++) {
       permission = this.permissions[i];
-
       if (this.permissions[i].value) {
-
         value |= (1 << i); 
-
       }
     }
 
