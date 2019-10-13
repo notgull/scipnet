@@ -18,6 +18,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*export type PermissionName = "editPages" |
+                             "createPages" |
+                             "voteOnPages" |
+                             "tagPages" |
+                             "revertRevisions" |
+                             "deletePages" |
+                             "ratePages" |
+                             "lockPages" |
+                             "modifyLockedPages" |
+                             "createEditRoles" |
+                             "promoteRoles";
+*/ // Noting that I tried this but it threw an error with Object.assign()
+
 // a list of applicable permissions
 export interface Permission {
   name: string;
@@ -46,8 +59,6 @@ export const DEFAULT_PERMISSIONS = [
   { permission: { name: "promoteRoles", display_name: "Promote Users to Roles" }, value: false },
 ];
 
-
-
 export const NumPermissions = DEFAULT_PERMISSIONS.length;
 
 // helper functions for big numbers
@@ -75,7 +86,7 @@ export class Permset {
 
   // get a permset from a stored number
   static fromNumber(value: number): Permset {
-    let permset = new Permset();
+    const permset = new Permset();
     for (let i = 0; i < NumPermissions; i++) {
       permset.permissions[i].value = getLargenumVal(value, i); 
     }
@@ -99,10 +110,8 @@ export class Permset {
 
   // get the value of a permissions
   hasPermission(permname: string): boolean {
-    for (let i = 0; i < NumPermissions; i++) {
-      let permission = this.permissions[i];
+    for (const permission of DEFAULT_PERMISSIONS) {
       if (permission.permission.name === permname) {
-        console.log(`Found value for permission ${permission.permission.name}: ${permission.value}`);
         return permission.value;
       }
     }
