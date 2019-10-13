@@ -59,8 +59,8 @@ async function createRole(name: string, perms: Nullable<number>): Promise<Role> 
 async function autocreateAsync(): Promise<number> {
   // create roles for system, admin, and for default users
   let fullPermission = 0xFFFFFFFF;
-  let systemRole = await createRole(Role.defaultRoleName, fullPermission);
-  let defaultRole = await createRole(Role.systemRoleName, null);
+  let systemRole = await createRole(Role.systemRoleName, fullPermission);
+  let defaultRole = await createRole(Role.defaultRoleName, null);
   let adminRole = await createRole(Role.adminRoleName, fullPermission); 
 
   // create system user

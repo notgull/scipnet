@@ -182,6 +182,11 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
   // firstly, validate both whether the user exists and whether the password is correct
   User.loadByUsername(username).then((user: User) => {
+    if (!user) {
+      res.redirect(`/sys/login?errorCode=512`);
+      return;
+    }
+
     user.validate(pwHash).then((result: ErrorCode) => {
       if (result !== ErrorCode.SUCCESS) {
         res.redirect(`/sys/login?errorCode=${result}`);

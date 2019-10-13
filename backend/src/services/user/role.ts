@@ -95,7 +95,8 @@ export class Role {
         permset = permset.getNumber();
       }
     } else {
-      permset = new Permset().getNumber();
+      permset = new Permset();
+      permset = permset.getNumber(); 
     }
 
     let res = await query("INSERT INTO Roles (role_name, permset) VALUES ($1, $2) RETURNING role_id",

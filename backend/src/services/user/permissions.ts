@@ -46,6 +46,8 @@ export const DefaultPermissions = [
   { permission: { name: "promoteRoles", display_name: "Promote Users to Roles" }, value: false },
 ];
 
+
+
 export const NumPermissions = DefaultPermissions.length;
 
 // helper functions for big numbers
@@ -68,16 +70,16 @@ export class Permset {
   permissions: Array<PermissionValuePair>;
 
   constructor() {
-    this.permissions = DefaultPermissions;
+    this.permissions = DefaultPermissions.map(p => Object.assign({}, p)); // deep copy
   }
 
   // get a permset from a stored number
   static fromNumber(value: number): Permset {
-    console.log("== LOADING PERMSET FROM NUMBER ==");
+    //console.log(`=== BITSET is ${(value >>> 0).toString(2)}`);
     let permset = new Permset();
     for (let i = 0; i < NumPermissions; i++) {
-      permset.permissions[i].value = getLargenumVal(value, i);
-      console.log(`PERMISSIONS - Value for ${permset.permissions[i].permission.name} is ${getLargenumVal(value, i)}`);
+      permset.permissions[i].value = getLargenumVal(value, i); 
+      //console.log(`PERMISSIONS - Value for ${permset.permissions[i].permission.name} is ${getLargenumVal(value, i)}`);
     }
     return permset;
   }
@@ -85,9 +87,19 @@ export class Permset {
   // get a storable number
   getNumber(): number {
     let value = 0;
+    let permission;
+
+
     for (let i = 0; i < NumPermissions; i++) {
-      value = setLargenumVal(value, i, this.permissions[i].value);
+      permission = this.permissions[i];
+
+      if (this.permissions[i].value) {
+
+        value |= (1 << i); 
+
+      }
     }
+
     return value;
   }
 

@@ -114,13 +114,12 @@ function beginEditPage(user: User, args: ArgsMapping, next: PRSCallback) {
     }
 
     // if the page is locked and we don't have permission, return
-    console.log(`pMeta.locked_at is ${pMeta.locked_at}`);
-    if (pMeta && pMeta.locked_at && !(user.hasPermission("modifyLockedPages"))) {
-      next(permissionDenied());
-      return;
-    } else if (user.hasPermission("modifyLockedPages")) {
-      console.log(`User ${user.username} has overrided the edit lock`);
-    }
+    if (pMeta) {
+      if (pMeta.locked_at && !(user.hasPermission("modifyLockedPages"))) {
+        next(permissionDenied());
+        return;
+      }
+    } 
 
     // check for an edit lock
     if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== user.username)) {
