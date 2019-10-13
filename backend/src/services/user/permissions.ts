@@ -110,7 +110,7 @@ export class Permset {
 
   // get the value of a permissions
   hasPermission(permname: string): boolean {
-    for (const permission of DEFAULT_PERMISSIONS) {
+    for (const permission of this.permissions) {
       if (permission.permission.name === permname) {
         return permission.value;
       }
