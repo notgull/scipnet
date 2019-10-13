@@ -34,7 +34,7 @@ const randomBytesPromise = promisify(randomBytes);
 // represents a user
 // TODO: figure out the best way to incorporate stats into this
 export class User {
-  public static systemUser: Nullable<User> = null;
+  public static systemUserName: string = "system";
   constructor(
     public user_id: number,
     public username: string,
