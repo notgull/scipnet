@@ -18,8 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export type PermissionName = |
-                             "editPages" |
+/*export type PermissionName = "editPages" |
                              "createPages" |
                              "voteOnPages" |
                              "tagPages" |
@@ -30,7 +29,7 @@ export type PermissionName = |
                              "modifyLockedPages" |
                              "createEditRoles" |
                              "promoteRoles";
-// Noting that I tried this but it threw an error with Object.assign()
+*/ // Noting that I tried this but it threw an error with Object.assign()
 
 // a list of applicable permissions
 export interface Permission {

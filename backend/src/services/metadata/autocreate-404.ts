@@ -66,11 +66,9 @@ async function autocreateAsync(): Promise<number> {
   // create system user
   let systemUser = await User.createNewUser("system", "noreply@scipnet.net", "**DONTLOGINTOTHISACCOUNT**", systemRole, true);
   if (!(systemUser instanceof User)) {
-    console.error("Failed to add system user: already exists");
-    User.systemUser = await User.loadByUsername("system");
+    console.error("Failed to add system user: already exists"); 
     return;
   }
-  User.systemUser = systemUser;
 
   let systemUserId = systemUser.user_id;
   
