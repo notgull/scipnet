@@ -30,7 +30,7 @@ export interface PermissionValuePair {
 }
 
 // add new permissions here
-export const DefaultPermissions = [
+export const DEFAULT_PERMISSIONS = [
   { permission: { name: "editPages", display_name: "Edit Pages" }, value: true },
   { permission: { name: "createPages", display_name: "Create Pages" }, value: true },
   { permission: { name: "voteOnPages", display_name: "Vote on Pages" }, value: true },
@@ -48,7 +48,7 @@ export const DefaultPermissions = [
 
 
 
-export const NumPermissions = DefaultPermissions.length;
+export const NumPermissions = DEFAULT_PERMISSIONS.length;
 
 // helper functions for big numbers
 function getLargenumVal(permset: number, index: number): boolean {
@@ -70,16 +70,14 @@ export class Permset {
   permissions: Array<PermissionValuePair>;
 
   constructor() {
-    this.permissions = DefaultPermissions.map(p => Object.assign({}, p)); // deep copy
+    this.permissions = DEFAULT_PERMISSIONS.map(p => Object.assign({}, p)); // deep copy
   }
 
   // get a permset from a stored number
   static fromNumber(value: number): Permset {
-    //console.log(`=== BITSET is ${(value >>> 0).toString(2)}`);
     let permset = new Permset();
     for (let i = 0; i < NumPermissions; i++) {
       permset.permissions[i].value = getLargenumVal(value, i); 
-      //console.log(`PERMISSIONS - Value for ${permset.permissions[i].permission.name} is ${getLargenumVal(value, i)}`);
     }
     return permset;
   }
