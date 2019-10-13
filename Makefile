@@ -1,7 +1,7 @@
 #
 # Makefile
 #
-# scipnet - SCP Hosting Platform
+# scipnet - Multi-tenant writing wiki software
 # Copyright (C) 2019 not_a_seagull, Ammon Smith
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,17 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
 
+include deepwell/sources.mk
 include frontend/sources.mk
 include backend/sources.mk
 
+BUILD := debug
+
 ARTIFACTS := \
-	ftml-json/target/release/ftml-json \
+	deepwell/target/$(BUILD)/deepwell \
+	ftml-json/target/$(BUILD)/ftml-json \
 	frontend/release/bundle.js \
 	backend/dist/index.js
 
@@ -32,6 +37,22 @@ default: $(ARTIFACTS)
 prepare:
 	make -C frontend prepare
 	make -C backend prepare
+
+deepwell/target/debug/deepwell: $(DEEPWELL_SOURCES)
+	cd deepwell && cargo build
+
+deepwell/target/release/deepwell: $(DEEPWELL_SOURCES)
+	cd deepwell && cargo build --release
+
+backend/src/sql/models.ts: deepwell/target/$(BUILD)/deepwell
+	@# TODO: determine DATABASE_URL from config
+	@# not sure where it would fit in the build pipeline, since this needs
+	@# to happen *before* TS is compiled
+	@[ -n '$(DATABASE_URL)' ] || { echo 'DATABASE_URL is not set!'; exit 1; }
+	$< > $@
+
+ftml-json/target/debug/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
+	cd ftml-json && cargo build
 
 ftml-json/target/release/ftml-json: ftml-json/Cargo.toml ftml-json/src/*
 	cd ftml-json && cargo build --release
@@ -45,6 +66,7 @@ backend/dist/index.js: $(BACKEND_SOURCES)
 clean:
 	make -C frontend clean
 	make -C backend clean
+	rm backend/src/sql/models.ts
 
 clean-all: clean
 	cd ftml-json && cargo clean

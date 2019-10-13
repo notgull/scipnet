@@ -28,19 +28,15 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 
-import { autocreate } from 'app/services/metadata/autocreate-404';
-import * as metadata from 'app/services/metadata';
-import { initialize_pages } from 'app/services/metadata/initialize-database';
-
-import { initialize_users }  from 'app/services/user/initialize-database';
 import { UserTable } from 'app/services/user/usertable';
+import { Password } from 'app/services/auth';
 import { User } from 'app/services/user';
-import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
 import { ArgsMapping } from 'app/services/pagereq';
+import { Metadata } from 'app/services/metadata';
 import { render } from 'app/services/render';
 import { slugify } from 'app/slug';
-import * as service from 'app/old-service';
+import { runservice, runftmlservice } from 'app/old-service';
 import { Nullable } from 'app/utils';
 import { callJsonMethod } from 'app/utils/jsonrpc';
 import { ErrorCode } from 'app/errors';
@@ -67,13 +63,6 @@ function checkDirs(names: Array<string>) {
 // TODO: move init to separate function
 checkDirs(['metadata', 'pages']);
 
-// load up the SQL before we start up
-initialize_users((_o: any) => {
-  initialize_pages((_o: any) => {
-    autocreate((_o: any) => {});
-  });
-});
-
 // initialize node.js app
 const app = express();
 app.use(body_parser.json());
@@ -86,16 +75,9 @@ let ut = new UserTable();
 // need a type to deal with parameters
 type Params = { [key: string]: string };
 
-// get an ip address from a request
-function getIPAddress(req: express.Request): string {
-  //return req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  return req.ip;
-}
-
 // function that puts together login info for user
 function loginInfo(req: express.Request): Nullable<string> {
-  var ip_addr = getIPAddress(req);
-  return ut.check_session(Number(req.cookies.sessionId), ip_addr);
+  return ut.checkSession(Number(req.cookies.sessionId), req.ip);
 }
 
 // function to render a page
@@ -103,7 +85,7 @@ async function render_page_async(req: express.Request, isHTML: boolean, name: st
   if (isHTML) {
     return render('', name, pageTitle, loginInfo(req));
   } else {
-    var md = await metadata.Metadata.load_by_slug(name);
+    var md = await Metadata.load_by_slug(name);
 
     let title = pageTitle;
     if (pageTitle.length === 0)
@@ -147,14 +129,14 @@ const services = [
   },
 ];
 
-let sel_service: any;
-for (let i = 0; i < services.length; i++) {
-  sel_service = services[i];
-  console.log("Modname: " + sel_service.modname);
-  if (sel_service.modname !== "ftml")
-    service.runservice(sel_service.modname, sel_service.config);
-  else
-    service.runftmlservice();
+// TODO fix service execution
+for (const service of services) {
+  console.log(`Modname: ${service.modname}`);
+  if (service.modname !== "ftml") {
+    runservice(service.modname, service.config as any);
+  } else {
+    runftmlservice();
+  }
 }
 
 // special files
@@ -185,57 +167,63 @@ app.get("/sys/login", function(req: express.Request, res: express.Response) {
         (d) => {res.send(d)});
 });
 
-const day_constant = 86400000;
+const dayConstant = 86400000;
 
 // post request - used for logging in
-app.post("/sys/process-login", function(req: express.Request, res: express.Response) {
-  let username = req.body.username;
-  let pwHash = req.body.pwHash;
-  let push_expiry = (req.body.remember === "true");
-  let change_ip = (req.body.change_ip === "true");
-  let newUrl = req.query.new_url || "";
+app.post("/sys/process-login", async function(req: express.Request, res: express.Response) {
+  const { username, password } = req.body;
+  const pushExpiry = (req.body.remember === "true");
+  const changeIp = (req.body.change_ip === "true");
+  const newUrl = req.query.new_url || "";
 
   // firstly, validate both whether the user exists and whether the password is correct
-  User.loadByUsername(username).then((user: User) => {
-    user.validate(pwHash).then((result: ErrorCode) => {
-      if (result !== ErrorCode.SUCCESS) {
-        res.redirect(`/sys/login?errorCode=${result}`);
-      } else {
-        // add user to user table
-        const ipAddr = getIPAddress(req);
-        const expiry = new Date();
-        if (push_expiry) {
-          expiry.setDate(expiry.getDate() + 7);
-        } else {
-          expiry.setDate(expiry.getDate() + 1);
-        }
+  // TODO don't tell the user that the user exists
+  const user = await User.loadByName(username);
+  if (user === null) {
+    res.json({
+      error: ErrorCode.USER_NOT_FOUND,
+    });
+    return;
+  }
 
-        let sessionId = ut.register(user, ipAddr, expiry, change_ip);
-        console.log(`Logged session ${sessionId}`);
-        res.cookie("sessionId", sessionId, { maxAge: 8 * day_constant });
-        res.redirect(`/${newUrl}`);
-      }
-    }).catch((err: Error) => { console.error(err); });
-  }).catch((err: Error) => { console.error(err); });
+  const pwd = await Password.loadById(user.userId);
+  if (!pwd.validate(password)) {
+    res.json({
+      error: ErrorCode.PASSWORD_INCORRECT,
+    });
+    return;
+  }
+
+  // add user to user table
+  const expiry = new Date();
+  if (pushExpiry) {
+    expiry.setDate(expiry.getDate() + 7);
+  } else {
+    expiry.setDate(expiry.getDate() + 1);
+  }
+
+  let sessionId = ut.register(user, req.ip, expiry, changeIp);
+  console.log(`Logged session ${sessionId}`);
+  res.cookie("sessionId", sessionId, { maxAge: 8 * dayConstant });
+  res.redirect(`/${newUrl}`);
 });
 
 // hookup to PRS system
 app.post("/sys/pagereq", function(req: express.Request, res: express.Response) {
-  let ip_addr = getIPAddress(req);
+  console.log(`pagereq: ${JSON.stringify(req.body)}`);
 
-  console.log("PRS Request: " + JSON.stringify(req.body));
-
-  //get username
-  let username = ut.check_session(parseInt(req.body.sessionId, 10), ip_addr);
+  const username = ut.checkSession(parseInt(req.body.sessionId, 10), req.ip);
 
   // pull all parameters from req.body and put them in args
-  let args: ArgsMapping = {};
-  for (var key in req.body)
+  const args: ArgsMapping = {};
+  for (const key in req.body) {
     args[key] = req.body[key];
-  args["username"] = username;
+  }
+
+  args.username = username;
 
   // TODO: replace this with whatever event bus system we come up with
-      callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
+  callJsonMethod("pagereq", args, config.get('services.pagereq.host'), config.get('services.pagereq.port')).then((response: any) => {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
@@ -252,11 +240,6 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
              (d) => {res.send(d);});
 });
 
-function onEmailVerify(username: string, pwHash: string, email: string): void {
-  User.createNewUser(username, email, pwHash).then(() => { console.log("Created user " + username); })
-    .catch((err: Error) => { console.error(`User creation error: ${err}`); });
-};
-
 // process registration
 app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
   let { username, pwHash, email } = req.body;
@@ -269,28 +252,7 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (email.length === 0) { redirectErr(8); return; }
   if (pwHash.length < 8) { redirectErr(32); return; }
 
-  // make sure neither the username nor the email exist
-  checkUserExistence(username).then((result: boolean) => {
-    if (result) {
-      res.redirect('/sys/register?errors=128')
-    } else {
-      checkEmailUsage(email).then((result: boolean) => {
-        if (result) {
-          res.redirect('/sys/register?errors=256');
-        } else {
-          // TODO: verify via email
-          res.redirect('/sys/login');
-          onEmailVerify(username, pwHash, email);
-        }
-      }).catch((err: Error) => {
-        console.error(err);
-        res.redirect("/sys/register?errors=512");
-      });
-    }
-  }).catch((err: Error) => {
-   console.error(err);
-   res.redirect("/sys/register?errors=512");
-  });
+  // TODO use the user package instead of reimplementing
 });
 
 // log a user out of the system
@@ -313,7 +275,7 @@ app.get("/:pageid", function(req, res) {
     return;
   }
 
-  console.log("RENDERING: " + slug);
+  console.log(`RENDERING: ${slug}`);
 
   render_page(req, false, pageid, '',
               (d) => {

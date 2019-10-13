@@ -1,5 +1,5 @@
 #
-# sources.mk
+# diesel.toml
 #
 # scipnet - Multi-tenant writing wiki software
 # Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,11 +18,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-BACKEND_SOURCES := \
-	backend/Makefile \
-	backend/sources.mk \
-	backend/gulpfile.js \
-	backend/package.json \
-	backend/tsconfig.json \
-	backend/src/sql/models.ts \
-	$(shell find backend/src src -name '*.ts' 2> /dev/null)
+# For documentation on how to configure this file,
+# see diesel.rs/guides/configuring-diesel-cli
+
+[print_schema]
+file = "src/schema.rs"

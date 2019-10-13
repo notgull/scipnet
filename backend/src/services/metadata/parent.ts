@@ -19,7 +19,7 @@
  */
 
 import { Nullable } from 'app/utils';
-import { queryPromise as query } from 'app/sql';
+import { rawQuery } from 'app/sql';
 
 // represents an article's parent pages
 export class Parent {
@@ -32,36 +32,47 @@ export class Parent {
   }
 
   // load by the ids of the child and parent
-  static async load_by_id(child_id: number, parent_id: number): Promise<Nullable<Parent>> {
-    let res = await query("SELECT * FROM Parents WHERE article_id=$1 AND parent_article_id=$2",
-                          [child_id, parent_id]);
-    if (res.rowCount === 0) return null;
+  static async loadById(childId: number, parentId: number): Promise<Nullable<Parent>> {
+    const result = await rawQuery(`
+        SELECT *
+        FROM parents
+        WHERE article_id = $1
+        AND parent_article_id=$2
+      `,
+      [childId, parentId],
+    );
 
-    let par = new Parent(child_id, parent_id);
-    return par;
+    if (result.rowCount === 0) {
+      return null;
+    } else {
+      return new Parent(childId, parentId);
+    }
   }
 
-  // load by the ids of the child
-  static async load_array_by_child(child_id: number): Promise<Array<Parent>> {
-    let res = await query("SELECT parent_article_id FROM Parents WHERE article_id=$1", [child_id]);
-    if (res.rowCount === 0) return [];
-    else res = res.rows;
+  static async loadArrayByChild(childId: number): Promise<Array<Parent>> {
+    const result = await rawQuery(
+      `SELECT parent_page_id FROM parents WHERE page_id = $1`,
+      [childId],
+    );
 
-    let parents = [];
-    let row;
-    for (row of res) {
-      let parentInst = new Parent(child_id, row.parent_article_id);
-      parents.push(parentInst);
-    }
-
-    return parents;
+    return result.rows.map(row => new Parent(childId, row.parent_page_id));
   }
 
   // submit a parent object to the database
   async submit(): Promise<void> {
-    const remove_query = "DELETE FROM Parents WHERE article_id=$1 AND parent_article_id=$2;";
-    const insert_query = "INSERT INTO Parents VALUES ($1, $2);";
-    await query(remove_query, [this.child_id, this.parent_id]);
-    await query(insert_query, [this.child_id, this.parent_id]);
+    // TODO update properly
+    // TODO use transaction
+    await rawQuery(`
+        DELETE FROM parents
+          WHERE page_id = $1
+          AND parent_page_id = $2
+      `,
+      [this.child_id, this.parent_id],
+    );
+
+    await rawQuery(
+      `INSERT INTO parents (page_id, parent_page_id) VALUES ($1, $2)`,
+      [this.child_id, this.parent_id],
+    );
   }
-};
+}

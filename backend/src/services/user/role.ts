@@ -20,7 +20,7 @@
 
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
-import { queryPromise as query } from "app/sql";
+import { findOne, insertReturn, rawQuery } from "app/sql";
 
 // helper functions for using perm sets
 function getPermsetVal(permset: number, index: number): boolean {
@@ -74,23 +74,40 @@ export class Role {
   }
 
   // load a role by its role id from the database
-  static async loadById(role_id: number): Promise<Nullable<Role>> {
-    let res = await query("SELECT * FROM Roles WHERE role_id=$1;", [role_id]);
-    if (res.rowCount === 0) return null;
-    return Role.fromRow(res.rows[0]);
+  static async loadById(roleId: number): Promise<Nullable<Role>> {
+    const result = await rawQuery(
+      `SELECT * FROM Roles WHERE role_id = $1`,
+      [roleId],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    } else {
+      return Role.fromRow(result.rows[0]);
+    }
   }
 
   // create a new role in the database
-  static async createNewRole(rolename: string, permset: number, return_role: boolean): Promise<Role | ErrorCode> {
-    let res = await query("INSERT INTO Roles (role_name, permset) VALUES ($1, $2) RETURNING role_id",
-                          [rolename, permset]);
-    let role_id = res.rows[0].role_id;
-    if (return_role) return Role.loadById(role_id);
-    else return ErrorCode.SUCCESS;
+  static async createNewRole(
+    rolename: string,
+    permset: number,
+  ): Promise<number> {
+    const result = await rawQuery(`
+        INSERT INTO roles (role_name, permset)
+        VALUES ($1, $2)
+        RETURNING role_id
+      `,
+      [rolename, permset],
+    );
+
+    return result.rows[0].role_id;
   }
 
   // update role in database
   async updateRole(): Promise<void> {
-    await query("UPDATE Roles SET role_name=$1, permset=$2;", [this.rolename, this.getPermset()]);
+    await rawQuery(
+      `UPDATE roles SET role_name = $1, permset = $2`,
+      [this.rolename, this.getPermset()],
+    );
   }
 };

@@ -1,5 +1,5 @@
 /*
- * services/existence_check.ts
+ * crypto.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,18 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { queryPromise as query } from 'app/sql';
+import { promisify } from 'util';
+import {
+  pbkdf2 as pbkdf2Callback,
+  randomBytes as randomBytesCallback,
+} from 'crypto';
 
-// check to see if a username already exists
-export async function checkUserExistence(user: string): Promise<boolean> {
-  const check_user_sql = "SELECT username FROM Users WHERE username=$1;";
-  let res = await query(check_user_sql, [user]);
-  return res.rowCount !== 0;
-};
-
-// check to see if an email already exists
-export async function checkEmailUsage(email: string): Promise<boolean> {
-  const check_email_sql = "SELECT username FROM Users WHERE email=$1;";
-  let res = await query(check_email_sql, [email]);
-  return res.rowCount !== 0;
-}
+export const pbkdf2 = promisify(pbkdf2Callback);
+export const randomBytes = promisify(randomBytesCallback);

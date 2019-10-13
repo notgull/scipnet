@@ -5,7 +5,14 @@ Platform for multi-tenant writing wikis.
 
 ### Running
 
-Uses Node.JS version 8.10.0
+**Requirements:**
+
+* GNU make
+* node.js version 8.10.0
+* npm compatible with the above
+* Cargo / rustc stable 1.38.0
+* diesel\_cli (installable using `cargo install diesel_cli --features postgres`)
+* Postgres 10 or later
 
 **Setup:**
 
@@ -13,22 +20,17 @@ Initialize submodules:
 ```
 $ git submodule init
 $ git submodule update
+$ cd deepwell
+$ DATABASE_URL=(postgres database url) diesel migration run
 ```
 
-TODO: add section about ssl certs
-
-Initialize database:
-```
-$ bin/setup_db.js | psql
-```
-
-(`sudo -u postgres psql` or similar if you're running Postgres as another user)
+TODO: ~~add section about ssl certs~~ remove ssl certs
 
 **Build:**
 
 ```
-$ npm install
-$ make
+$ make prepare
+$ make BUILD=release
 ```
 
 **Running:**

@@ -30,7 +30,7 @@ import * as simpleGit from 'simple-git/promise';
 import { SimpleGit } from 'simple-git/promise';
 
 import { config } from 'app/config';
-import { queryPromise as query } from 'app/sql';
+import { rawQuery } from 'app/sql';
 import { Revision } from 'app/services/metadata/revision';
 
 export class RevisionsService {
@@ -58,7 +58,7 @@ export class RevisionsService {
     filename = path.join(this.directory, filename);
 
     try {
-      revision.revisionId = (await query(`
+      const result = await rawQuery(`
         INSERT INTO Revisions
             (article_id, user_id, git_commit, description, tags, title, flags, created_at)
           VALUES
@@ -75,7 +75,9 @@ export class RevisionsService {
           revision.flags,
           revision.createdAt,
         ],
-      )).rows[0].revision_id;
+      );
+
+      revision.revisionId = result.rows[0].revision_id;
 
       // note: apparently typescript can't run writeFile yet, so we need a workaround
       await writeFilePromise(filename, newData);
@@ -92,7 +94,7 @@ export class RevisionsService {
       revision.gitCommit = commitSummary.commit;
       console.log(`REVISION GIT COMMIT: ${JSON.stringify(revision.gitCommit)}`);
 
-      await query(`
+      await rawQuery(`
         UPDATE Revisions
           SET git_commit = $1
           WHERE revision_id = $2;

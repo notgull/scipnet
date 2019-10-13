@@ -19,60 +19,49 @@
  */
 
 import { Nullable } from 'app/utils';
-import { queryPromise as query } from 'app/sql';
+import { findMany, rawQuery } from 'app/sql';
+import { AuthorModel } from 'app/sql/models';
 
-// represents an author, as there can be more than one per article
+export type AuthorType =
+  | 'author'
+  | 'rewrite'
+  | 'translator'
+  | 'maintainer'
+  ;
+
+// Represents an author, or a particular contributor to a page.
+// This is distinct from a user, who is just an account.
+// Multiple authors may be associated with a page (e.g. translator, co-author),
+// and a user may be associated multiple times (e.g. original author, rewriter).
 export class Author {
-  article_id: number;
-  user_id: number;
-  author_type: string;
-  created_at: Date;
-  author_id: number;
+  constructor(
+    public pageId: number,
+    public userId: number,
+    public authorType: AuthorType,
+    public createdAt: Date,
+  ) {}
 
-  constructor(article_id: number, user_id: number, role: string) {
-    this.article_id = article_id;
-    this.user_id = user_id;
-    this.author_type = role;
-    this.created_at = new Date();
-    this.author_id = -1;
-  }
+  static async loadAuthorsByPage(pageId: number): Promise<Array<Author>> {
+    const authorModels = await findMany<AuthorModel>(`
+        SELECT user_id, author_type, created_at
+        FROM authors
+        WHERE page_id = $1
+        ORDER BY created_at ASC
+      `,
+      [pageId],
+    );
 
-  // load an author by its author id
-  static async load_by_id(author_id: number): Promise<Nullable<Author>> {
-    let res = await query("SELECT * FROM Authors WHERE author_id=$1;", [author_id]);
-    if (res.rowCount === 0) return null;
-    else res = res.rows[0];
-
-    let authorInst = new Author(res.article_id, res.user_id, res.author_type);
-    authorInst.created_at = res.created_at;
-    authorInst.author_id = res.author_id;
-    return authorInst;
-  }
-
-  // load an array of authors by the article_id
-  static async load_array_by_article(article_id: number): Promise<Array<Author>> {
-    let res = await query("SELECT * FROM Authors WHERE article_id=$1;", [article_id]);
-    if (res.rowCount === 0) return [];
-    else res = res.rows;
-
-    let authors = [];
-    let row;
-    for (row of res) {
-      let authorInst = new Author(article_id, row.user_id, row.diff_link);
-      authorInst.created_at = row.created_at;
-      authorInst.author_id = row.author_id;
-      authors.push(authorInst);
-    }
-
-    return authors;
+    return authorModels.map(({
+        user_id: userId,
+        author_type: authorType,
+        created_at: createdAt,
+      }) => new Author(pageId, userId, authorType as AuthorType, createdAt),
+    );
   }
 
   // submit the author to the database
   async submit(): Promise<void> {
-    await query("DELETE FROM Authors WHERE author_id = $1;", [this.author_id]);
-    await query("INSERT INTO Authors (article_id, user_id, author_type, created_at) VALUES (" +
-              "$1, $2, $3, $4);", [this.article_id, this.user_id, this.author_type, this.created_at]);
-    this.author_id = await query("SELECT author_id FROM Authors WHERE article_id = $1 AND " +
-                               "user_id = $2;", [this.article_id, this.user_id]);
+    await rawQuery("INSERT INTO Authors (article_id, user_id, author_type, created_at) VALUES (" +
+              "$1, $2, $3, $4);", [this.pageId, this.userId, this.authorType, this.createdAt]);
   }
 };

@@ -2,6 +2,9 @@
 node_modules/
 package-lock.json
 
+# Auto-generated
+src/sql/models.ts
+
 # Local
 certs/
 config/override.json

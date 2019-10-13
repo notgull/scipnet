@@ -18,11 +18,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-BACKEND_SOURCES := \
-	backend/Makefile \
-	backend/sources.mk \
-	backend/gulpfile.js \
-	backend/package.json \
-	backend/tsconfig.json \
-	backend/src/sql/models.ts \
-	$(shell find backend/src src -name '*.ts' 2> /dev/null)
+DEEPWELL_SOURCES := \
+	deepwell/Cargo.toml \
+	deepwell/diesel.toml \
+	$(shell find deepwell/migrations -name '*.sql' 2> /dev/null) \
+	$(wildcard deepwell/templates/*) \
+	$(shell find deepwell/src -name '*.rs' 2> /dev/null)

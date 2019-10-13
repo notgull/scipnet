@@ -24,7 +24,7 @@ import * as path from 'path';
 
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
-import { queryPromise as query } from 'app/sql';
+import { rawQuery } from 'app/sql';
 
 // represents a revision made to a page by a user
 export class Revision {
@@ -48,7 +48,7 @@ export class Revision {
 
   // load revision by id
   static async loadById(revisionId: number): Promise<Nullable<Revision>> {
-    const result = await query(`
+    const result = await rawQuery(`
       SELECT
         article_id, user_id, git_commit, description, tags, flags, title, created_at
       FROM Revisions
@@ -79,7 +79,7 @@ export class Revision {
 
   // load array of revisions by the article
   static async load_array_by_article(article_id: number): Promise<Array<Revision>> {
-    const result = await query(
+    const result = await rawQuery(
       `SELECT * FROM Revisions WHERE article_id = $1 ORDER BY created_at;`,
       [article_id],
     );

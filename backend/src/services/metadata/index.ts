@@ -39,7 +39,7 @@ import * as pg from 'pg';
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
 import { getFormattedDate } from 'app/utils/date';
-import { queryPromise as query } from 'app/sql';
+import { rawQuery } from 'app/sql';
 
 import { Rating } from './rating'
 import { Revision } from './revision';
@@ -70,7 +70,6 @@ export class Metadata {
   title: string;
   ratings: Array<Rating>;
   authors: Array<Author>;
-  author: Nullable<Author>;
   editlock: Nullable<EditLock>;
   tags: Array<string>;
   revisions: Array<Revision>;
@@ -85,7 +84,6 @@ export class Metadata {
     this.title = "";
     this.ratings = [];
     this.authors = [];
-    this.author = null;
     this.editlock = null;
     this.tags = [];
     this.revisions = [];
@@ -125,18 +123,13 @@ export class Metadata {
     mObj.ratings = await Rating.load_array_by_article(res.article_id);
 
     // load authors
-    mObj.authors = await Author.load_array_by_article(res.article_id);
-    if (mObj.authors.length > 1) {
-      mObj.author = null;
-    } else {
-      mObj.author = mObj.authors[0];
-    }
+    mObj.authors = await Author.loadAuthorsByPage(res.article_id);
 
     // load revisions
     mObj.revisions = await Revision.load_array_by_article(res.article_id);
 
     // load parents
-    mObj.parents = await Parent.load_array_by_child(res.article_id);
+    mObj.parents = await Parent.loadArrayByChild(res.article_id);
 
     // TODO: load files once we have that system up and running
     return mObj;
@@ -144,50 +137,72 @@ export class Metadata {
 
   // load metadata by its slug
   static async load_by_slug(slug: string): Promise<Nullable<Metadata>> {
-    let res = await query("SELECT * FROM Pages WHERE slug=$1;", [slug]);
-    if (res.rowCount === 0) {
+    const result = await rawQuery(
+      `SELECT * FROM pages WHERE slug = $1`,
+      [slug],
+    );
+
+    if (result.rowCount === 0) {
       return null;
     } else {
-      res = res.rows[0];
+      return Metadata.load_metadata_from_row(result);
     }
-
-    return Metadata.load_metadata_from_row(res);
   }
 
   static async load_by_id(article_id: number): Promise<Nullable<Metadata>> {
-    let res = await query("SELECT * FROM Pages WHERE article_id=$1;", [article_id]);
-    if (res.row_count === 0) {
+    const result = await rawQuery(
+      `SELECT * FROM pages WHERE article_id = $1`,
+      [article_id],
+    );
+
+    if (result.rowCount === 0) {
       return null;
     } else {
-      res = res.rows[0];
+      return Metadata.load_metadata_from_row(result.rows[0]);
     }
-
-    return Metadata.load_metadata_from_row(res);
   }
 
   // save metadata to database
-  async submit(save_dependencies: boolean = false): Promise<void> {
+  async submit(saveDependencies: boolean = false): Promise<void> {
     console.log("Submitting metadata");
 
     let editlock: Nullable<string> = null;
-    if (this.editlock)
+    if (this.editlock) {
       editlock = this.editlock.editlock_id;
-      const upsert = "INSERT INTO Pages (slug, title, tags, editlock_id, discuss_page_link, locked_at) VALUES (" +
-                 "$1, $2, $3, $4, $5, $6::timestamp) " +
-               "ON CONFLICT (slug) DO UPDATE SET slug=$1, title=$2, tags=$3, editlock_id=$4, discuss_page_link=$5, " +
-                 "locked_at=$6::timestamp;";
-    await query(upsert, [this.slug, this.title, this.tags, editlock, this.discuss_page_link, this.locked_at]);
+    }
 
-    if (save_dependencies) {
-      // save the dependencies
+    const result = await rawQuery(`
+        INSERT INTO pages
+          (slug, title, tags, editlock_id, discuss_page_link, locked_at)
+        VALUES ($1, $2, $3, $4, $5, $6::timestamp)
+          ON CONFLICT (slug)
+          DO UPDATE
+            SET
+              slug=$1,
+              title=$2,
+              tags=$3,
+              editlock_id=$4,
+              discuss_page_link=$5,
+              locked_at=$6::timestamp
+        RETURNING page_id
+      `,
+      [
+        this.slug,
+        this.title,
+        this.tags,
+        editlock,
+        this.discuss_page_link,
+        this.locked_at,
+      ],
+    );
+
+    if (saveDependencies) {
       // TODO wrap in a transaction
       await Promise.all(this.ratings.map(async vote => vote.submit()));
       await Promise.all(this.authors.map(async author => author.submit()));
       await Promise.all(this.parents.map(async parent => parent.submit()));
     }
 
-    let article_id = await query("SELECT article_id FROM Pages WHERE slug=$1;", [this.slug]);
-    if (article_id.rowLength === 0) throw new Error("Unable to get user id after saving to database");
-    else this.article_id = article_id.rows[0].article_id;
+    return result.rows[0].page_id;
   }
 };

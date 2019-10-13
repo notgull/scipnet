@@ -1,12 +1,12 @@
+dist: xenial
 language: rust
 rust: stable
 
-os:
-  - linux
-  - osx
-
 env:
-  - NODE_VERSION='8.10.0'
+  - DATABASE_URL=postgres://overseer:blackmoon@localhost/deepwell NODE_VERSION='8.10.0'
+
+services:
+  - postgresql
 
 cache:
   - cargo
@@ -14,14 +14,26 @@ cache:
   - directories:
     - /home/travis/build/Nu-SCPTheme/scipnet/ftml-json/target
 
+addons:
+  postgresql: '10'
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
+
 before_script:
   - git submodule init
   - git submodule update
   - nvm install $NODE_VERSION
   - (cd frontend && npm install)
   - (cd backend && npm install)
+  - psql -c "CREATE USER overseer PASSWORD 'blackmoon';" -U postgres
+  - psql -c "CREATE DATABASE deepwell OWNER overseer;" -U postgres
+  - which diesel || cargo install diesel_cli --no-default-features --features postgres
 
-script: make
+script:
+  - (cd deepwell && diesel migration run)
+  - make
 
 notifications:
   - email:

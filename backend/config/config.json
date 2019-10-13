@@ -1,10 +1,17 @@
 {
     "files.data.directory": "local-data",
 
-    "database.username": "scipnet",
-    "database.password": "GoodPassword222",
-    "database.name": "scipnet",
-    "database.host": "127.0.0.1",
+    "database.username": "overseer",
+    "database.password": "blackmoon",
+    "database.name": "deepwell",
+    "database.host": "::1",
+    "database.timeout": 500,
+    "database.max_threads": "6",
+
+    "auth.salt_length": 32,
+    "auth.iterations": 1500000,
+    "auth.key_length": 128,
+    "auth.digest": "sha512",
 
     "services.scipnet.port": 8000,
     "services.ftml.host": "::1",
