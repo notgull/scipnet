@@ -57,13 +57,15 @@ export interface ScipnetRequest {
   ip: string
 };
 export interface ScipnetResponse {
+  currentHeader?: ScipnetStringMap,
+
   redirect(url: string): void,
-  send(data: string | Buffer, code?: number): void,
-  type(mimeType: string): void
+  send(data: string | Buffer, code?: number),
+  type(mimeType: string)
 };
 
 export type SyncScipnetHandle = (req: ScipnetRequest, res: ScipnetResponse) => void;
-export type AsyncScipnetHandle = (req: ScipnetRequest, res: ScipnetResponse) => Promise<void>;
+export type AsyncScipnetHandle = async (req: ScipnetRequest, res: ScipnetResponse) => void;
 export type ScipnetHandle = SyncScipnetHandle | AsyncScipnetHandle;
 
 export type ScipnetFunctionMap = { [key: string]: ScipnetHandle };
