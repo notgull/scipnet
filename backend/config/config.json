@@ -12,5 +12,10 @@
     "services.pagereq.host": "::1",
     "services.pagereq.port": 7243,
 
-    "ui.editor.lock_timeout": 900
+    "ui.editor.lock_timeout": 900,
+
+    "ssl.keys.public": "certs/scpwiki.pem",
+    "ssl.keys.private": "certs/scpwiki.key",
+
+    "files.images.favicon": "../images/icon.ico"
 }

@@ -38,7 +38,10 @@ export type ConfigKey =
   | 'services.ftml.port'
   | 'services.pagereq.host'
   | 'services.pagereq.port'
-  | 'ui.editor.lock_timeout';
+  | 'ui.editor.lock_timeout'
+  | 'ssl.keys.public'
+  | 'ssl.keys.private'
+  | 'files.images.favicon';
 
 function loadJson(file: string, optional: boolean = false): RawConfig {
   try {
