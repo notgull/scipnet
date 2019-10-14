@@ -26,7 +26,7 @@ import * as path from 'path';
 import { config } from 'app/config';
 import { ServiceConfig } from 'app/old-service-wrapper';
 
-const module_root = 'dist';
+const module_root = 'dist/services';
 
 export interface ServiceInfo {
   process: ChildProcess;
@@ -43,7 +43,7 @@ export function runservice(modname: string, serv_config: ServiceConfig): Service
     throw new Error("Service not found: " + module_service);
   }
 
-  return {process: fork(path.join(process.cwd(), "dist/service_wrapper.js"),
+  return {process: fork(path.join(process.cwd(), "dist/old-service-wrapper.js"),
                         [module_service, JSON.stringify(serv_config)]),
           port: serv_config.hosts[0].port,
         ip_addr: serv_config.hosts[0].address}

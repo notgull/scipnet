@@ -23,9 +23,15 @@ import * as nunjucks from 'nunjucks';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
 
+import { promisify } from 'util';
+
+const readFilePromise = promisify(fs.readFile);
+
 import { config } from 'app/config';
 import { Nullable } from 'app/utils';
 import { getUserId, getUsername } from 'app/services/user/utils';
+import { User } from 'app/services/user';
+
 import {
   add_editlock,
   check_editlock,
@@ -82,14 +88,41 @@ function genErrorVal(err: Error): PRSReturnVal {
   return returnVal;
 }
 
-// request an edit for the page
-function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
+function permissionDenied(): PRSReturnVal {
   let returnVal = genReturnVal();
+  returnVal.error = "Permission denied";
+  returnVal.errorCode = -2;
+  return returnVal;
+}
+
+// request an edit for the page
+function beginEditPage(user: User, args: ArgsMapping, next: PRSCallback) {
+  let returnVal = genReturnVal();
+
+  // if the user does not have permission to edit pages, return
+  if (!user.hasPermission("editPages")) {
+    next(permissionDenied());
+    return; 
+  }
 
   // fetch the metadata
   Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<Metadata>) => {
+    // if the metadata is null, we are creating a new page. check for permission
+    if (!pMeta && !user.hasPermission("createPages")) {
+      next(permissionDenied());
+      return;
+    }
+
+    // if the page is locked and we don't have permission, return
+    if (pMeta) {
+      if (pMeta.locked_at && !user.hasPermission("modifyLockedPages")) {
+        next(permissionDenied());
+        return;
+      }
+    } 
+
     // check for an edit lock
-    if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== username)) {
+    if (pMeta && (pMeta.editlock && pMeta.editlock.is_valid() && pMeta.editlock.username !== user.username)) {
       returnVal.error = "Page is locked by " + pMeta.editlock.username;
       returnVal.errorCode = 1;
       next(returnVal);
@@ -97,7 +130,7 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
     }
 
     // set an edit lock, if possible
-    let el = add_editlock(args.pagename, username);
+    let el = add_editlock(args.pagename, user.username);
 
     // if necessary, set the editlock in the metadata to it
     if (pMeta) {
@@ -123,8 +156,14 @@ function beginEditPage(username: string, args: ArgsMapping, next: PRSCallback) {
 };
 
 // cancel an edit lock
-function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) {
+function removeEditLock(user: User, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
+
+  // if the user does not have edit permissions, they should not be doing this anyways
+  if (!user.hasPermission("editPages")) {
+    next(permissionDenied());
+    return;
+  }
 
   Metadata.load_by_slug(args.pagename).then((pMeta: Nullable<Metadata>) => {
     // get the edit lock
@@ -145,7 +184,7 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
     }
 
     // if the edit lock belongs to the user, remove it
-    if (el.username === username) {
+    if (el.username === user.username) {
       remove_editlock(el.slug);
 
       // if necessary, set the editlock on the metadata to none
@@ -171,15 +210,29 @@ function removeEditLock(username: string, args: ArgsMapping, next: PRSCallback) 
 
 // save an edit
 // NOTE: making this async because it's easier to glob the id for the metadata
-async function changePageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
+async function changePageAsync(user: User, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
 
+  if (!user.hasPermission("editPages")) {
+    return permissionDenied();
+  }
+
   let pMeta = await Metadata.load_by_slug(args.pagename);
+
+  // if the metadata is null, we are creating a new page. check for permission
+  if (!pMeta && !user.hasPermission("createPages")) {
+    return permissionDenied();
+  }
+
+  // if the page is locked and we don't have permission, return
+  if (pMeta && pMeta.locked_at && !user.hasPermission("modifyLockedPages")) {
+    return permissionDenied();
+  }
 
   // before anything, check to see if there's an editlock
   // this shouldn't be an issue for normal usage, just if someone is messing with the PRS
   let el = check_editlock(args.pagename);
-  if (el && el.username !== username) {
+  if (el && el.username !== user.username) {
     returnVal.errorCode = 1;
     returnVal.error = "Page is locked by " + el.username;
     returnVal.editlockBlocker = el.username;
@@ -215,14 +268,14 @@ async function changePageAsync(username: string, args: ArgsMapping): Promise<PRS
   pMeta.revisions.push(revision);
 
   await pMeta.submit(true);
-  await revisionsService.commit(revision, dataLoc, data);
+  await revisionsService.commit(revision, args.pagename, data);
 
   returnVal.result = true;
   return returnVal;
 };
 
-function changePage(username: string, args: ArgsMapping, next: PRSCallback) {
-  changePageAsync(username, args).then((returnVal) => { next(returnVal); }).catch((err) => {
+function changePage(user: User, args: ArgsMapping, next: PRSCallback) {
+  changePageAsync(user, args).then((returnVal) => { next(returnVal); }).catch((err) => {
     next(genErrorVal(err));
   });
 }
@@ -267,7 +320,7 @@ async function pageHistoryAsync(args: ArgsMapping): Promise<PRSReturnVal> {
     history[i] = nunjucks.renderString(history_row, {
       rev_number: revision.revisionId,
       buttons: "V S R",
-      flags: "N",
+      flags: revision.flags,
       author: await getUsername(revision.userId),
       date: revision.createdAt.toLocaleDateString("en-US"),
       comments: "",
@@ -295,14 +348,24 @@ function pageHistory(args: ArgsMapping, next: PRSCallback) {
 }
 
 // set the tags on the page (creating a new revision in the process)
-async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSReturnVal> {
+async function tagPageAsync(user: User, args: ArgsMapping): Promise<PRSReturnVal> {
   let returnVal = genReturnVal();
+
+  // check for permission
+  if (!user.hasPermission("editPages") || !user.hasPermission("tagPages")) {
+    return permissionDenied();
+  }
 
   let mObj = await Metadata.load_by_slug(args.pagename);
   if (!mObj) {
     returnVal.error = "Page does not exist";
     returnVal.errorCode = 4;
     return returnVal;
+  }
+
+  // if the page is locked, permission denied
+  if (mObj.locked_at && !user.hasPermission("modifyLockedPages")) {
+    return permissionDenied();
   }
 
   if (!args.tags) {
@@ -317,21 +380,23 @@ async function tagPageAsync(username: string, args: ArgsMapping): Promise<PRSRet
   mObj.submit(false);
 
   let dataLoc = path.join(dataDir, args.pagename);
-
-  // TODO revisionsService.commit() with filename
+  let data = await readFilePromise(dataLoc);
+  await revisionsService.commit(revision, args.pagename, data);
 
   returnVal.result = true;
   return returnVal;
 }
 
-function tagPage(username: string, args: ArgsMapping, next: PRSCallback) {
-  tagPageAsync(username, args).then((retval: PRSReturnVal) => { next(retval); })
+function tagPage(user: User, args: ArgsMapping, next: PRSCallback) {
+  tagPageAsync(user, args).then((retval: PRSReturnVal) => { next(retval); })
     .catch((err: Error) => { next(genErrorVal(err)); });
 }
 
 // vote on a page
-function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
+function voteOnPage(user: User, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
+
+  // TODO: check permissions
 
   Metadata.load_by_slug(args.pagename).then((mObj: Metadata) => {
     if (!mObj) {
@@ -355,7 +420,7 @@ function voteOnPage(username: string, args: ArgsMapping, next: PRSCallback) {
     for (let i = 0; i < mObj.ratings.length; i++) {
       if (Number(mObj.ratings[i].user_id) === Number(args.user_id)) {
         mObj.ratings[i].rate = args.rating;
-      found = true;
+        found = true;
         break;
       }
     }
@@ -392,7 +457,7 @@ function getTags(args: ArgsMapping, next: PRSCallback) {
 }
 
 // get rating
-function getRating(username: string, args: ArgsMapping, next: PRSCallback) {
+function getRating(user: User, args: ArgsMapping, next: PRSCallback) {
   let returnVal = genReturnVal();
 
   Metadata.load_by_slug(args.pagename).then((pMeta: Metadata) => {
@@ -456,32 +521,59 @@ export function request(name: string, username: string, args: ArgsMapping, next:
   let returnVal = genReturnVal();
 
   // also get the user id
-  getUserId(username).then((user_id: Nullable<number>) => {
-    if ((!user_id) && username) { next(genErrorVal(new Error("Bad user id"))); return; }
+  User.loadByUsername(username).then((user: Nullable<User>) => {
+    if ((!user) && username) { next(genErrorVal(new Error("Bad user id"))); return; }
 
-    if (!args["pagename"] || args["pagename"].length === 0)
+    if (!args["pagename"] || args["pagename"].length === 0) {
       args["pagename"] = "main";
+    }
 
-    args['user_id'] = user_id;
+    args['user'] = user;
+    if (user) {
+      args['user_id'] = user.user_id;
+    }
 
-    // functions that don't need the username
-    if (name === "getRatingModule") { getRatingModule(args, next); return; }
-    else if (name === "pageHistory") { pageHistory(args, next); return; }
-    else if (name === "getTags") { getTags(args, next); return; }
-    else if (name === "getPageSource") { getPageSource(args, next); return; }
+    // functions that don't need the username 
+    switch (name) {
+      case "getRatingModule":
+        getRatingModule(args, next);
+        return;
+      case "pageHistory":
+        pageHistory(args, next);
+        return;
+      case "getTags":
+        getTags(args, next);
+        return;
+      case "getPageSource":
+        getPageSource(args, next);
+        return;
+    }
 
-    if (!username) {
+    if (!user) {
       returnVal.not_logged_in = true;
       next(returnVal);
       return;
     }
 
-    // function that do
-    if (name === 'changePage') changePage(username, args, next);
-    else if (name === 'removeEditLock') removeEditLock(username, args, next);
-    else if (name === 'beginEditPage') beginEditPage(username, args, next);
-    else if (name === 'voteOnPage') voteOnPage(username, args, next);
-    else if (name === 'tagPage') tagPage(username, args, next);
-    else throw new Error("Improper PRS request " + name);
+    // functions that do
+    switch (name) {
+      case "changePage":
+        changePage(user, args, next);
+        return;
+      case "removeEditLock":
+        removeEditLock(user, args, next);
+        return;
+      case "beginEditPage":
+        beginEditPage(user, args, next);
+        return;
+      case "voteOnPage":
+        voteOnPage(user, args, next);
+        return;
+      case "tagPage":
+        tagPage(user, args, next);
+        return;
+      default:
+        throw new Error(`Improper PRS request: ${name}`);
+    }
   }).catch((err: Error) => { next(genErrorVal(err)); });
 };

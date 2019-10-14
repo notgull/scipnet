@@ -35,6 +35,7 @@ import { initialize_pages } from 'app/services/metadata/initialize-database';
 import { initialize_users }  from 'app/services/user/initialize-database';
 import { UserTable } from 'app/services/user/usertable';
 import { User } from 'app/services/user';
+import { Role } from 'app/services/user/role';
 import { checkUserExistence, checkEmailUsage } from 'app/services/user/existence-check';
 
 import { ArgsMapping } from 'app/services/pagereq';
@@ -50,22 +51,6 @@ const version = require(path.join(process.cwd(), 'package.json')).version;
 console.log(`SCPWiki v${version}`);
 
 const port = config.get('services.scipnet.port');
-
-// create folders before sql initialization
-function checkDirs(names: Array<string>) {
-  const baseDirectory = config.get('files.data.directory');
-
-  for (const name of names) {
-    const directory = path.join(baseDirectory, name);
-
-    if (!(fs.existsSync(directory))) {
-      fs.mkdirSync(directory, { recursive: true });
-    }
-  }
-}
-
-// TODO: move init to separate function
-checkDirs(['metadata', 'pages']);
 
 // load up the SQL before we start up
 initialize_users((_o: any) => {
@@ -197,6 +182,11 @@ app.post("/sys/process-login", function(req: express.Request, res: express.Respo
 
   // firstly, validate both whether the user exists and whether the password is correct
   User.loadByUsername(username).then((user: User) => {
+    if (!user) {
+      res.redirect(`/sys/login?errorCode=512`);
+      return;
+    }
+
     user.validate(pwHash).then((result: ErrorCode) => {
       if (result !== ErrorCode.SUCCESS) {
         res.redirect(`/sys/login?errorCode=${result}`);
@@ -252,13 +242,14 @@ app.get("/sys/register", function(req: express.Request, res: express.Response) {
              (d) => {res.send(d);});
 });
 
-function onEmailVerify(username: string, pwHash: string, email: string): void {
-  User.createNewUser(username, email, pwHash).then(() => { console.log("Created user " + username); })
-    .catch((err: Error) => { console.error(`User creation error: ${err}`); });
+async function onEmailVerify(username: string, pwHash: string, email: string): Promise<void> {
+  let role = await Role.loadDefaultRole();
+  await User.createNewUser(username, email, pwHash, role); 
+  console.log(`Created new user ${username}`);
 };
 
 // process registration
-app.post("/sys/process-register", function(req: express.Request, res: express.Response) {
+app.post("/sys/process-register", async function(req: express.Request, res: express.Response) {
   let { username, pwHash, email } = req.body;
 
   function redirectErr(errCode: number) { res.redirect("/sys/register?errors=" + errCode); }
@@ -270,27 +261,24 @@ app.post("/sys/process-register", function(req: express.Request, res: express.Re
   if (pwHash.length < 8) { redirectErr(32); return; }
 
   // make sure neither the username nor the email exist
-  checkUserExistence(username).then((result: boolean) => {
+  try {
+    let result = await checkUserExistence(username);
     if (result) {
       res.redirect('/sys/register?errors=128')
     } else {
-      checkEmailUsage(email).then((result: boolean) => {
-        if (result) {
-          res.redirect('/sys/register?errors=256');
-        } else {
-          // TODO: verify via email
-          res.redirect('/sys/login');
-          onEmailVerify(username, pwHash, email);
-        }
-      }).catch((err: Error) => {
-        console.error(err);
-        res.redirect("/sys/register?errors=512");
-      });
+      result = await checkEmailUsage(email);
+      if (result) {
+        res.redirect('/sys/register?errors=256');
+      } else {
+        // TODO: verify via email
+        res.redirect('/sys/login');
+        await onEmailVerify(username, pwHash, email);
+      }
     }
-  }).catch((err: Error) => {
-   console.error(err);
-   res.redirect("/sys/register?errors=512");
-  });
+  } catch (e) {
+    console.log(`User creation error: ${e}`);
+    res.redirect('/sys/register?errors=512');
+  }
 });
 
 // log a user out of the system

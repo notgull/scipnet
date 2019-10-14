@@ -30,7 +30,7 @@ export function initialize_users(next: (n: number) => any) {
                            "karma INTEGER NOT NULL," +
                            "join_date TIMESTAMP NOT NULL," +
                            "status INTEGER NOT NULL," +
-//                           "role_id INTEGER REFERENCES Roles(role_id)," +
+                           "role_id INTEGER REFERENCES Roles(role_id)," +
                            "website TEXT," +
                            "about TEXT," +
                            "city TEXT," +

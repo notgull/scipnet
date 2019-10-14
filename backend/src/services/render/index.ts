@@ -75,7 +75,7 @@ export async function render(
       return render("_404", '', title, loginInfo, await Metadata.load_by_slug('_404'));
     }
 
-    let src = fs.readFileSync(filepath) + "";
+    let src = fs.readFileSync(filepath).toString(); 
     content = await renderFtml(modName, src, metadata);
   } else {
     content = fs.readFileSync(htmlFileName).toString();

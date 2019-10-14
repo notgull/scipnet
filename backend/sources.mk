@@ -23,4 +23,4 @@ BACKEND_SOURCES := \
 	backend/gulpfile.js \
 	backend/package.json \
 	backend/tsconfig.json \
-	backend/src/**/*
+	$(shell find backend src -name '*.ts' 2> /dev/null)

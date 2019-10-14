@@ -23,6 +23,8 @@ import { ErrorCode } from "app/errors";
 import { getFormattedDate } from "app/utils/date";
 import { Nullable, timeout } from "app/utils";
 import { queryPromise as query } from "app/sql";
+import { Role } from "app/services/user/role";
+import { PermissionName } from 'app/services/user/permissions';
 
 import { pbkdf2, randomBytes } from "crypto";
 import { promisify } from "util";
@@ -33,6 +35,7 @@ const randomBytesPromise = promisify(randomBytes);
 // represents a user
 // TODO: figure out the best way to incorporate stats into this
 export class User {
+  public static systemUserName: string = "system";
   constructor(
     public user_id: number,
     public username: string,
@@ -44,7 +47,14 @@ export class User {
     public city: Nullable<string>,
     public avatar: string,
     public gender: Nullable<string>,
+    public role: Role
   ) {}
+
+  // tell if the user has permission to do something
+  hasPermission(permname: PermissionName): boolean {
+    console.log(`this.role = ${this.role}`);
+    return this.role.hasPermission(permname);
+  }
 
   // helper function: hash a password
   static async hashPassword(password: string, salt: Buffer): Promise<string> {
@@ -76,7 +86,7 @@ export class User {
   }
 
   // create a user from an object that has user-like properties (most likely an SQL row)
-  static fromRow(row: any): User {
+  static async fromRow(row: any): Promise<User> {
     return new User(row.user_id,
                     row.username,
                     row.email,
@@ -86,11 +96,12 @@ export class User {
                     row.about,
                     row.city,
                     row.avatar,
-                    row.gender);
+                    row.gender,
+                    await Role.loadById(row.role_id));
   }
 
   // load a user by its ID
-  static async loadById(user_id: Number): Promise<Nullable<User>> {
+  static async loadById(user_id: number): Promise<Nullable<User>> {
     let res = await query("SELECT * FROM Users WHERE user_id=$1;", [user_id]);
     if (res.rowCount === 0) return null;
     else return User.fromRow(res.rows[0]);
@@ -103,30 +114,26 @@ export class User {
     else return User.fromRow(res.rows[0]);
   }
 
-  // helper function- validate a user by its id or username
-  static async validateCredentials(user: Number | string, password: string): Promise<ErrorCode> {
-    let user_object: User;
-    if (user instanceof Number) user_object = await User.loadById(user);
-    else user_object = await User.loadByUsername(user);
-
-    return user_object.validate(password);
-  }
-
   // add a new user to the database
   // NOTE: number returned is an error code
   static async createNewUser(username: string,
                              email: string,
                              password: string,
+                             role: Role | number,
                              return_user: boolean = false): Promise<ErrorCode | User> {
     // check for user and email existence
     let results = await Promise.all([checkUserExistence(username), checkEmailUsage(email)]);
     if (results[0]) return ErrorCode.USER_EXISTS;
     else if (results[1]) return ErrorCode.EMAIL_EXISTS;
 
+    if (role instanceof Role) {
+      role = role.roleId;
+    }
+
     // insert user into database
-    const addUserSql = "INSERT INTO Users (username, email, karma, join_date, status, avatar) " +
-                       "VALUES ($1, $2, 0, $3::timestamp, 0, '') RETURNING user_id;";
-    let res = await query(addUserSql, [username, email, getFormattedDate(new Date())]);
+    const addUserSql = "INSERT INTO Users (username, email, karma, join_date, status, avatar, role_id) " +
+                       "VALUES ($1, $2, 0, $3::timestamp, 0, '', $4) RETURNING user_id;";
+    let res = await query(addUserSql, [username, email, getFormattedDate(new Date()), role]);
     let user_id = res.rows[0].user_id;
 
     // generate salt and password hash
@@ -148,8 +155,8 @@ export class User {
   // update a user in its database with new details
   async submit(): Promise<void> {
     const updateUserSql = "UPDATE Users SET username=$1, email=$2, karma=$3, website=$4, about=$5," +
-                          "city=$6, avatar=$7, gender=$8 WHERE user_id=$9;";
+                          "city=$6, avatar=$7, gender=$8, role_id=$9 WHERE user_id=$10;";
     await query(updateUserSql, [this.username, this.email, this.karma, this.website, this.about,
-                                this.city, this.avatar, this.gender, this.user_id]);
+                                this.city, this.avatar, this.gender, this.role.roleId, this.user_id]);
   }
 }
