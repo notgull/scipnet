@@ -20,7 +20,7 @@
 
 import { ErrorCode } from 'app/errors';
 import { Nullable } from 'app/utils';
-import { Permset } from 'app/services/user/permissions';
+import { Permset, PermissionName } from 'app/services/user/permissions';
 import { queryPromise as query } from "app/sql";
 
 // represents a role- e.g. moderator, admin, etc.
@@ -47,7 +47,7 @@ export class Role {
   }
 
   // tell if a role has permission to do something
-  hasPermission(permname: string): boolean {
+  hasPermission(permname: PermissionName): boolean {
     return this.permset.hasPermission(permname);
   }
 

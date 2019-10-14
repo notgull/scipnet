@@ -24,6 +24,7 @@ import { getFormattedDate } from "app/utils/date";
 import { Nullable, timeout } from "app/utils";
 import { queryPromise as query } from "app/sql";
 import { Role } from "app/services/user/role";
+import { PermissionName } from 'app/services/user/permissions';
 
 import { pbkdf2, randomBytes } from "crypto";
 import { promisify } from "util";
@@ -50,7 +51,7 @@ export class User {
   ) {}
 
   // tell if the user has permission to do something
-  hasPermission(permname: string): boolean {
+  hasPermission(permname: PermissionName): boolean {
     console.log(`this.role = ${this.role}`);
     return this.role.hasPermission(permname);
   }

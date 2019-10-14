@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*export type PermissionName = "editPages" |
+export type PermissionName = "editPages" |
                              "createPages" |
                              "voteOnPages" |
                              "tagPages" |
@@ -29,11 +29,11 @@
                              "modifyLockedPages" |
                              "createEditRoles" |
                              "promoteRoles";
-*/ // Noting that I tried this but it threw an error with Object.assign()
+// Noting that I tried this but it threw an error with Object.assign()
 
 // a list of applicable permissions
 export interface Permission {
-  name: string;
+  name: PermissionName;
   display_name: string;
 }
 
@@ -43,7 +43,7 @@ export interface PermissionValuePair {
 }
 
 // add new permissions here
-export const DEFAULT_PERMISSIONS = [
+export const DEFAULT_PERMISSIONS: Array<PermissionValuePair> = [
   { permission: { name: "editPages", display_name: "Edit Pages" }, value: true },
   { permission: { name: "createPages", display_name: "Create Pages" }, value: true },
   { permission: { name: "voteOnPages", display_name: "Vote on Pages" }, value: true },
@@ -83,7 +83,10 @@ export class Permset {
   constructor() {
     this.permissions = DEFAULT_PERMISSIONS.map(p => {
       const value = {
-        permission: p.permission,
+        permission: {
+          name: p.permission.name,
+          display_name: p.permission.display_name,
+        },
         value: p.value
       };
       return value;
@@ -115,7 +118,7 @@ export class Permset {
   }
 
   // get the value of a permissions
-  hasPermission(permname: string): boolean {
+  hasPermission(permname: PermissionName): boolean {
     for (const permission of this.permissions) {
       if (permission.permission.name === permname) {
         return permission.value;
@@ -125,7 +128,7 @@ export class Permset {
   }
 
   // set the value of a permission
-  setPermission(permname: string, value: boolean) {
+  setPermission(permname: PermissionName, value: boolean) {
     for (let i = 0; i < NumPermissions; i++) {
       let permission = this.permissions[i];
       if (permission.permission.name === permname) {
