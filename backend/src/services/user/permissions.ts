@@ -81,7 +81,13 @@ export class Permset {
   permissions: Array<PermissionValuePair>;
 
   constructor() {
-    this.permissions = DEFAULT_PERMISSIONS.map(p => Object.assign({}, p)); // deep copy
+    this.permissions = DEFAULT_PERMISSIONS.map(p => {
+      const value = {
+        permission: p.permission,
+        value: p.value
+      };
+      return value;
+    });
   }
 
   // get a permset from a stored number
