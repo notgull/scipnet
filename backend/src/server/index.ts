@@ -57,6 +57,9 @@ export interface ScipnetRequest {
   ip: string
 };
 export interface ScipnetResponse {
+  currentHeader?: ScipnetStringMap,
+
+  cookie(name: string, value: string, age: number): void,
   redirect(url: string): void,
   send(data: string | Buffer, code?: number): void,
   type(mimeType: string): void
@@ -77,7 +80,8 @@ const faviconHandle: ScipnetHandle = async function(req: ScipnetRequest, res: Sc
 // helper function for parsing cookies
 function parseCookies(req: http.ClientRequest): ScipnetStringMap {
   let list: ScipnetStringMap = {};
-  let rc = req.headers.cookie;
+  let rc = req.getHeader("cookie");
+  if (!(rc instanceof String)) { throw new Error("Need to handle cookie edge cases"); }
 
   if (rc) {
     rc.split(';').forEach(function(cookie: string) {
@@ -125,151 +129,164 @@ export class ScipnetHttpsApp {
 
   // call a scipnet handle
   async executeHandle(handle: ScipnetHandle, req: ScipnetRequest, res: ScipnetResponse): Promise<void> {
-    if (handle instanceof SyncScipnetHandle) {
-      handle(req, res);
-    } else {
+    if (handle instanceof (async () => {}).constructor) {
       await handle(req, res);
+    } else {
+      handle(req, res);
     }
   }
 
   // make it callable
-  async (req: http.ClientRequest, res: http.ServerResponse) => {
-    // get the url
-    let accessedUrl = req.url;
-    if (acessedUrl[0] === "/") {
-      accessedUrl = accessedUrl.substr(1);
-    }
+  getServer(): (req: any, res: any) => Promise<void> {
+    const scoped_this = this;
 
-    let urlParts = accessedUrl.split("/");
-    const accessedPage = urlParts[0];
+    return async function(req: any, res: any): Promise<void> {
+      // get the url
+      let accessedUrl = req.url;
+      if (accessedUrl[0] === "/") {
+        accessedUrl = accessedUrl.substr(1);
+      }
 
-    // determine if we are accessing a /sys/ page
-    urlParts.splice(0, 1);
-    let sysUrl = "";
-    if (accessedPage === "sys") {
-      sysUrl = urlParts[0];
+      let urlParts = accessedUrl.split("/");
+      const accessedPage = urlParts[0];
+
+      // determine if we are accessing a /sys/ page
       urlParts.splice(0, 1);
-    }
-
-    // define request and response objects
-    let sReq: ScipnetRequest = { 
-      method: req.method;
-      ip: req.getHeader("x-forwarded-for") || req.connection.remoteAddress
-    };  
-    let sRes: ScipnetResponse = {
-      currentHeader: {
-        "Content-Type": "text/html"
-      },
-      redirect: function(url: string)  {
-        currentHeader["Location"] = url;
-        res.writeHead(302, currentHeader);
-        res.end();
-      },
-
-      send: function(data: Buffer | string, code: number = 200) {
-        if (data instanceof Buffer) {
-          data = data.toString();
-        }
-
-        currentHeader["Content-Length"] = Buffer.byteLength(data);
-        res.writeHead(code, currentHeader);
-        res.end(data);
-      },
-
-      type: function(mimeType: string) {
-        currentHeader["Content-Type"] = mimeType;
-      }
-    };
-
-    // add cookies
-    sReq.cookies = parseCookies(req);    
-
-    // add params from url
-    let params: ScipnetMap = {};
-    let param: any;
-    let unmodifiedParam: any;
-    if (params.length > 1) {
-      for (let i = 0; i < params.length; i += 2) { // iterate two at a time
-        // determine value of param
-        param = urlParts[i + 1];
-        if (!param) { break; } // TODO: handle this edge case better
-        unmodifiedParam = param;      
-
-        // TODO: I feel like there's a more simple way of doing this
-        param = parseInt(param);
-        if (param === NaN) {
-          if (param === "true") {
-            param = true;
-          } else if (param === "false") {
-            param = false;
-          } else {
-            param = unmodifiedParam;
-          }
-        }
-
-        params[urlParts[i]] = param;
-      }
-    }
-    sReq.params = params;
-
-    // at this point, we should be able to access the request's body
-    let body = "";
-    req.on("data", chunk => { body += chunk.toString(); });
-    req.on("end", () => {
-      // body is likely to be encoded via url encoding; however, there is a chance for JSON encoding
-      try {
-        sReq.body = querystring.parse(body);
-      } catch(e) {
-        sReq.body = JSON.parse(body);
-      }
-
-      // now that all of the parameters are loaded we can see which handle we need to execute
+      let sysUrl = "";
       if (accessedPage === "sys") {
-        if (sReq.method === "GET") {
-          switch (sysPage) {
-            case "bundle.js":
-              await this.executeHandle(this.bundleHandle, sReq, sRes);
-              return;
-            case "images":
-              await this.executeHandle(this.imageHandles[urlParts[0]], sReq, sRes);
-              return;
-            case "fonts":
-              await this.executeHandle(this.fontHandles[urlParts[0]], sReq, sRes);
-              return;
-            case "login":
-              await this.executeHandle(this.loginHandle, sReq, sRes);
-              return;
-            case "register":
-              await this.executeHandle(this.registerHandle, sReq, sRes);
-              return;
-            default:
-              sReq.redirect("/");
-              return;
-          }
-        } else if (sReq.method === "POST") {
-          switch (sysPage) {
-            case "pagereq":
-              await this.executeHandle(this.pagereqHandle, sReq, sRes);
-              return;
-            case "process-login":
-              await this.executeHandle(this.processLoginHandle, sReq, sRes);
-              return;
-            case "process-register":
-              await this.executeHandle(this.processRegisterHandle, sReq, sRes);
-              return;
-            default:
-              sReq.send("Unable to find desired POST target", 404);
-              return;
-          } 
-        } else {
-          sReq.send(`Method ${sReq.method} is not supported`, 404);
-        }
-      } else if (accessedPage === "") {
-        await this.executeHandle(this.mainHandle, sReq, sRes);
-      } else {
-        sReq.body.pageid = accessedPage;
-        await this.executeHandle(this.pageHandle, sReq, sRes);
+        sysUrl = urlParts[0];
+        urlParts.splice(0, 1);
       }
-    });
-  };
+
+      // define request and response objects
+      let sReq: ScipnetRequest = { 
+        method: req.method,
+        ip: req.getHeader("x-forwarded-for") || req.connection.remoteAddress
+      };  
+      let sRes: ScipnetResponse = {
+        currentHeader: {
+          "Content-Type": "text/html"
+        },
+
+        cookie: function(cookieName: string, cookieValue: string, age: number) {
+          // TODO: set cookie
+        },
+         
+        redirect: function(url: string)  {
+          sRes.currentHeader["Location"] = url;
+          res.writeHead(302, sRes.currentHeader);
+          res.end();
+        },
+
+        send: function(data: Buffer | string, code: number = 200) {
+          if (data instanceof Buffer) {
+            data = data.toString();
+          }
+
+          sRes.currentHeader["Content-Length"] = `${Buffer.byteLength(data)}`;
+          res.writeHead(code, sRes.currentHeader);
+          res.end(data);
+        },
+
+        type: function(mimeType: string) {
+          sRes.currentHeader["Content-Type"] = mimeType;
+        }
+      };
+
+      // add cookies
+      sReq.cookies = parseCookies(req);    
+
+      // add params from url
+      let params: ScipnetMap = {};
+      let param: any;
+      let unmodifiedParam: any;
+      if (params.length > 1) {
+        for (let i = 0; i < params.length; i += 2) { // iterate two at a time
+          // determine value of param
+          param = urlParts[i + 1];
+          if (!param) { break; } // TODO: handle this edge case better
+          unmodifiedParam = param;      
+
+          // TODO: I feel like there's a more simple way of doing this
+          param = parseInt(param);
+          if (param === NaN) {
+            if (param === "true") {
+              param = true;
+            } else if (param === "false") {
+              param = false;
+            } else {
+              param = unmodifiedParam;
+            }
+          }
+
+          params[urlParts[i]] = param;
+        }
+      }
+      sReq.params = params;
+
+      // may God forgive me for what I'm about to do
+      const that: ScipnetHttpsApp = scoped_this;
+
+      // at this point, we should be able to access the request's body
+      let body = "";
+
+      req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+      req.on("end", async () => {
+        // body is likely to be encoded via url encoding; however, there is a chance for JSON encoding
+        try {
+          sReq.body = querystring.parse(body);
+        } catch(e) {
+          sReq.body = JSON.parse(body);
+        }
+
+        // now that all of the parameters are loaded we can see which handle we need to execute
+        if (accessedPage === "sys") {
+          if (sReq.method === "GET") {
+            switch (sysUrl) {
+              case "bundle.js":
+                await that.executeHandle(that.bundleHandle, sReq, sRes);
+                return;
+              case "images":
+                await that.executeHandle(that.imageHandles[urlParts[0]], sReq, sRes);
+                return;
+              case "fonts":
+                await that.executeHandle(that.fontHandles[urlParts[0]], sReq, sRes);
+                return;
+              case "login":
+                await that.executeHandle(that.loginHandle, sReq, sRes);
+                return;
+              case "register":
+                await that.executeHandle(that.registerHandle, sReq, sRes);
+                return;
+              default:
+                sRes.redirect("/");
+                return;
+            }
+          } else if (sReq.method === "POST") {
+            switch (sysUrl) {
+              case "pagereq":
+                await that.executeHandle(that.pagereqHandle, sReq, sRes);
+                return;
+              case "process-login":
+                await that.executeHandle(that.processLoginHandle, sReq, sRes);
+                return;
+              case "process-register":
+                await that.executeHandle(that.processRegisterHandle, sReq, sRes);
+                return;
+              default:
+                sRes.send("Unable to find desired POST target", 404);
+                return;
+            } 
+          } else {
+            sRes.send(`Method ${sReq.method} is not supported`, 404);
+          }
+        } else if (accessedPage === "") {
+          await that.executeHandle(that.mainHandle, sReq, sRes);
+        } else {
+          sReq.body.pageid = accessedPage;
+          await that.executeHandle(that.pageHandle, sReq, sRes);
+        }
+      });
+    };
+  }
 }
