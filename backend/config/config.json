@@ -17,5 +17,8 @@
     "ssl.keys.public": "certs/scpwiki.pem",
     "ssl.keys.private": "certs/scpwiki.key",
 
-    "files.images.favicon": "../images/icon.ico"
+    "files.images.favicon": "../images/icon.ico",
+    "files.scripts.bundle": "../frontend/release/bundle.js",
+    "files.pages.login": "../templates/login.j2",
+    "files.pages.register": "../templates/register.j2"
 }

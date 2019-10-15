@@ -29,20 +29,7 @@ import * as querystring from "querystring";
 
 import { config } from "app/config";
 import { Nullable } from "app/utils";
-
-// load ssl certifications
-type SslCerts = {
-  key: Buffer,
-  cert: Buffer
-};
-
-const readFilePromise = promisify(fs.readFile);
-
-// load SSL certifications
-export async function getSslCerts(): Promise<SslCerts> { 
-  return { key: await readFilePromise(config.get("ssl.keys.private")),
-           cert: await readFilePromise(config.get("ssl.keys.public")) };
-}
+import { Usertable } from "app/services/user/usertable";
 
 // types for the required functions
 export type ScipnetStringMap = { [key: string]: string };
@@ -65,8 +52,8 @@ export interface ScipnetResponse {
   type(mimeType: string): void
 };
 
-export type SyncScipnetHandle = (req: ScipnetRequest, res: ScipnetResponse) => void;
-export type AsyncScipnetHandle = (req: ScipnetRequest, res: ScipnetResponse) => Promise<void>;
+export type SyncScipnetHandle = (req: ScipnetRequest, res: ScipnetResponse, ut?: Usertable) => void;
+export type AsyncScipnetHandle = (req: ScipnetRequest, res: ScipnetResponse, ut?: Usertable) => Promise<void>;
 export type ScipnetHandle = SyncScipnetHandle | AsyncScipnetHandle;
 
 export type ScipnetFunctionMap = { [key: string]: ScipnetHandle };
@@ -111,6 +98,8 @@ export class ScipnetHttpsApp {
   processRegisterHandle: Nullable<ScipnetHandle>;
   pagereqHandle: Nullable<ScipnetHandle>;
 
+  usertable: Usertable;
+
   constructor() {
     this.basicPageHandle = null;
     this.faviconHandle = faviconHandle;
@@ -125,15 +114,13 @@ export class ScipnetHttpsApp {
     this.registerHandle = null;
     this.processRegisterHandle = null;
     this.pagereqHandle = null;
+
+    this.usertable = new Usertable();
   }
 
   // call a scipnet handle
-  async executeHandle(handle: ScipnetHandle, req: ScipnetRequest, res: ScipnetResponse): Promise<void> {
-    if (handle instanceof (async () => {}).constructor) {
-      await handle(req, res);
-    } else {
-      handle(req, res);
-    }
+  async executeHandle(handle: ScipnetHandle, req: ScipnetRequest, res: ScipnetResponse): Promise<void> { 
+    await handle(req, res, this.usertable); 
   }
 
   // make it callable

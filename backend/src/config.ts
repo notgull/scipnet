@@ -41,7 +41,10 @@ export type ConfigKey =
   | 'ui.editor.lock_timeout'
   | 'ssl.keys.public'
   | 'ssl.keys.private'
-  | 'files.images.favicon';
+  | 'files.images.favicon'
+  | "files.scripts.bundle"
+  | "files.pages.login"
+  | "files.pages.register";
 
 function loadJson(file: string, optional: boolean = false): RawConfig {
   try {
