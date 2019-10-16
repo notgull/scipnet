@@ -1,5 +1,5 @@
 /*
- * index.ts
+ * server/package.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,17 +18,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as path from "path";
+import { populateApp as frontendPA } from "app/server/frontend";
+import { populateApp as fontsImagesPA } from "app/server/fonts-and-images";
+import { populateApp as loginPA } from "app/server/login";
+import { populateApp as renderPA } from "app/services/render/handler";
+import { populateApp as pagereqPA } from "app/services/pagereq/handler";
+import { ScipnetJsonApp } from "app/server";
 
-import { createServer } from "app/server/package";
-import { config } from "app/config";
-
-// get version
-const version = require(path.join(process.cwd(), 'package.json')).version;
-console.log(`SCPWiki v${version}`);
-
-// TODO: check, then launch a service if the option is provided
-
-// launch main server
-const server = createServer();
-server.runServer();
+// create a server with all necessary functions
+export function createServer(): ScipnetJsonApp {
+  let app = new ScipnetJsonApp();
+  frontendPA(app);
+  fontsImagesPA(app);
+  loginPA(app);
+  renderPA(app);
+  pagereqPA(app);
+  return app;
+}
