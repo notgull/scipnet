@@ -22,7 +22,7 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as jaysom from "jayson/promise";
+import * as jayson from "jayson/promise";
 import * as path from "path";
 
 import { promisify } from "util";
@@ -30,7 +30,9 @@ import * as querystring from "querystring";
 
 import { config } from "app/config";
 import { Nullable } from "app/utils";
-import { Usertable } from "app/services/user/usertable";
+import { UserTable } from "app/services/user/usertable";
+
+const readFilePromise = promisify(fs.readFile);
 
 // types for the required functions
 export type ScipnetStringMap = { [key: string]: string };
@@ -40,21 +42,27 @@ export interface ScipnetInformation {
   cookies?: ScipnetStringMap, // cookies
   params?: ScipnetMap, // /url/params/like/this
 
-  method: string,
   ip: string
 };
-export interface ScipnetOutput = {
+export interface ScipnetCookie {
+  name: string,
+  value: string | number,
+  maxAge: number
+};
+export interface ScipnetOutput {
+  _cookie: Array<ScipnetCookie>,
   _redirect: Nullable<string>,
   _send: Nullable<string | Buffer>,
   _type: string,
 
-  redirect: (url: string),
-  send: (data: string | Buffer),
-  type(mimeType: string),
+  cookie: (name: string, value: string | number, maxAge: number) => void,
+  redirect: (url: string) => void,
+  send: (data: string | Buffer) => void,
+  type: (mimeType: string) => void,
 };
 
-export type SyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: Usertable) => any;
-export type AsyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: Usertable) => Promise<any>;
+export type SyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: UserTable) => any;
+export type AsyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: UserTable) => Promise<any>;
 export type ScipnetHandle = SyncScipnetHandle | AsyncScipnetHandle;
 
 export type ScipnetFunctionMap = { [key: string]: ScipnetHandle };
@@ -62,7 +70,7 @@ export type ScipnetFunctionMap = { [key: string]: ScipnetHandle };
 // some basic handles
 const faviconHandle: ScipnetHandle = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<string> {
   const faviconSource = await readFilePromise(config.get("files.images.favicon"));
-  return faviconSource;
+  return faviconSource.toString();
 };
 
 export class ScipnetJsonApp { 
@@ -83,7 +91,7 @@ export class ScipnetJsonApp {
   processRegisterHandle: Nullable<ScipnetHandle>;
   pagereqHandle: Nullable<ScipnetHandle>;
 
-  usertable: Usertable;
+  usertable: UserTable;
 
   constructor() {
     this.basicPageHandle = null;
@@ -100,14 +108,14 @@ export class ScipnetJsonApp {
     this.processRegisterHandle = null;
     this.pagereqHandle = null;
 
-    this.usertable = new Usertable();
+    this.usertable = new UserTable();
   }
 
   // wrapper for scipnet handles
   wrapHandle(handle: ScipnetHandle): (args: any) => Promise<any> { 
     const scopedThis = this;
 
-    return async function(args: any): Promise<any> {
+    return async function(params: any): Promise<any> {
       // get function information
       const inf: ScipnetInformation = {
         body: params.body,
@@ -116,10 +124,14 @@ export class ScipnetJsonApp {
         ip: params.ip
       };
       let output: ScipnetOutput = {
+        _cookie: [],
         _send: null,
         _redirect: null,
         _type: "text/html",
   
+        cookie: function(name: string, value: string | number, maxAge: number) {
+          output._cookie.push({name: name, value: value, maxAge: maxAge});
+        },
         redirect: function(url: string) {
           output._redirect = url;
         },
@@ -140,7 +152,8 @@ export class ScipnetJsonApp {
         data: data,
         type: output._type,
         send: output._send,
-        redirect: output._redirect
+        redirect: output._redirect,
+        cookie: output._cookie
       };
     };
   }
@@ -157,24 +170,26 @@ export class ScipnetJsonApp {
       "sys/process-register": this.wrapHandle(this.processRegisterHandle),
       "sys/pagereq": this.wrapHandle(this.pagereqHandle)
     };
-    for (const font of this.fontHandles) {
+    for (const font in this.fontHandles) {
       rpcFunctions[`/sys/fonts/${font}`] = this.wrapHandle(this.fontHandles[font]);
     }
-    for (const image of this.imageHandles) {
+    for (const image in this.imageHandles) {
       rpcFunctions[`/sys/images/${image}`] = this.wrapHandle(this.imageHandles[image]);
     }
 
-    const wrappedPageHandle = this.wrapHandle(this.
+    const wrappedPageHandle = this.wrapHandle(this.pageHandle);
 
     // create the server itself
-    const server = jayson.server(rpcFunctions, {
+    const server = new jayson.Server(rpcFunctions, {
       router: function(method: string, params: any): jayson.Method {
         // do by-name routing first
         if (typeof(this._methods[method]) === "function") return this._methods[method];
 
         // look for page
         params.pageid = method;
-        return wrappedPageHandle;
+        return new jayson.Method((args: any, done: (res: any) => any) => {
+          wrappedPageHandle(args).then(done).catch((err: Error) => { throw err; });
+        });
       }
     }); 
 

@@ -18,12 +18,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { ErrorCode } from "app/errors";
+import { Role } from "app/services/user/role";
 import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
 import { User } from "app/services/user";
-import { Usertable } from "app/services/user/usertable";
+import { checkUserExistence, checkEmailUsage } from "app/services/user/existence-check";
+import { UserTable } from "app/services/user/usertable";
+
+async function onEmailVerify(username: string, pwHash: string, email: string): Promise<void> {
+  let role = await Role.loadDefaultRole();
+  await User.createNewUser(username, email, pwHash, role);
+  console.log(`Created new user ${username}`);
+};
 
 export function populateApp(app: ScipnetJsonApp) {
-  app.processLoginHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: Usertable): Promise<any> {
+  app.processLoginHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<any> {
     let { username, pwHash } = req.body;
     let pushExpiry = (req.body.remember === "true");
     let changeIp = (req.body.changeIp === "true");
@@ -53,7 +62,7 @@ export function populateApp(app: ScipnetJsonApp) {
     }
   }; 
 
-  app.processRegisterHandle = async (req: ScipnetInformation, res: ScipnetOutput): Promise<any> {
+  app.processRegisterHandle = async function(req: ScipnetInformation, res: ScipnetOutput): Promise<any> {
       let { username, pwHash, email } = req.body;
 
       function redirectErr(errCode: number) { res.redirect("/sys/register?errors=" + errCode); }

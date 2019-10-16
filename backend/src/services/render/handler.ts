@@ -24,16 +24,18 @@
 
 import { config } from "app/config";
 import { Metadata } from "app/services/metadata";
+import { Nullable } from "app/utils";
 import { render } from "app/services/render";
 import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
-import { Usertable } from "app/services/user/usertable";
+import { slugify } from "app/slug";
+import { UserTable } from "app/services/user/usertable";
 
 // render a page from a request and a usertable
 async function renderPage(req: ScipnetInformation, 
                           isHTML: boolean,
                           name: string, 
                           pageTitle: string,
-                          usertable: Usertable): Promise<Nullable<string>> {
+                          usertable: UserTable): Promise<Nullable<string>> {
   const loginInfo = usertable.check_session(Number(req.cookies.sessionId), req.ip);
   if (isHTML) {
     return render("", name, pageTitle, loginInfo);
@@ -52,7 +54,7 @@ async function renderPage(req: ScipnetInformation,
 }
 
 export function populateApp(app: ScipnetJsonApp) {
-  app.pageHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
+  app.pageHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<void> {
     const pageid = req.params["pageid"];
     
     let slug = slugify(pageid);
@@ -64,15 +66,15 @@ export function populateApp(app: ScipnetJsonApp) {
     res.send(await renderPage(req, false, pageid, "", ut));
   };
 
-  app.mainHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
-    res.send(await renderPage(req, false, "main", "", ut);
+  app.mainHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<void> {
+    res.send(await renderPage(req, false, "main", "", ut));
   };
 
-  app.loginHandle = async(req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
+  app.loginHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<void> {
     res.send(await renderPage(req, true, config.get("files.pages.login"), "Login", ut));
   };
 
-  app.registerHandle = async(req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
+  app.registerHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<void> {
     res.send(await renderPage(req, true, config.get("files.pages.register"), "Register", ut));
   };
 }

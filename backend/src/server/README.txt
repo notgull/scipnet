@@ -25,3 +25,4 @@ Return value will be:
 * send - either null or a string containing HTML data to be displayed in the browser
 * redirect - either null or a url to redirect to
 * type - the MIME type for the "send" value's output
+* cookie - an array on objects with values "name", "value", and "maxAge", representing cookies to be set
