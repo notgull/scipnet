@@ -149,13 +149,13 @@ export class ScipnetJsonApp {
   runServer() {
     // create parameters for the server
     let rpcFunctions: ScipnetFunctionMap = {
-      "/favicon.ico": this.wrapHandle(this.faviconHandle),
-      "/": this.wrapHandle(this.mainHandle),
-      "/sys/login": this.wrapHandle(this.loginHandle),
-      "/sys/register": this.wrapHandle(this.registerHandle),
-      "/sys/process-login": this.wrapHandle(this.processLoginHandle),
-      "/sys/process-register": this.wrapHandle(this.processRegisterHandle),
-      "/sys/pagereq": this.wrapHandle(this.pagereqHandle)
+      "favicon.ico": this.wrapHandle(this.faviconHandle),
+      "main": this.wrapHandle(this.mainHandle),
+      "sys/login": this.wrapHandle(this.loginHandle),
+      "sys/register": this.wrapHandle(this.registerHandle),
+      "sys/process-login": this.wrapHandle(this.processLoginHandle),
+      "sys/process-register": this.wrapHandle(this.processRegisterHandle),
+      "sys/pagereq": this.wrapHandle(this.pagereqHandle)
     };
     for (const font of this.fontHandles) {
       rpcFunctions[`/sys/fonts/${font}`] = this.wrapHandle(this.fontHandles[font]);
@@ -171,14 +171,9 @@ export class ScipnetJsonApp {
       router: function(method: string, params: any): jayson.Method {
         // do by-name routing first
         if (typeof(this._methods[method]) === "function") return this._methods[method];
-        
-        if (method[0] !== "/") { 
-          method = `/${method}`;
-        }
 
         // look for page
-        const methodParts = method.split("/");
-        params.pageid = methodParts[methodParts.length - 1];
+        params.pageid = method;
         return wrappedPageHandle;
       }
     }); 

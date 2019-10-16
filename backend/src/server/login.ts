@@ -54,6 +54,35 @@ export function populateApp(app: ScipnetJsonApp) {
   }; 
 
   app.processRegisterHandle = async (req: ScipnetInformation, res: ScipnetOutput): Promise<any> {
+      let { username, pwHash, email } = req.body;
+
+      function redirectErr(errCode: number) { res.redirect("/sys/register?errors=" + errCode); }
+
+      // check to ensure that there aren't any errors
+      if (username.length === 0) { redirectErr(4); return; }
+      if (pwHash.length === 0) { redirectErr(16); return; }
+      if (email.length === 0) { redirectErr(8); return; }
+      if (pwHash.length < 8) { redirectErr(32); return; }
+
+      // make sure neither the username nor the email exist
+      try {
+        let result = await checkUserExistence(username);
+        if (result) {
+          res.redirect('/sys/register?errors=128')
+        } else {
+          result = await checkEmailUsage(email);
+          if (result) {
+            res.redirect('/sys/register?errors=256');
+          } else {
+            // TODO: verify via email
+            res.redirect('/sys/login');
+            await onEmailVerify(username, pwHash, email);
+          }
+        }
+      } catch (e) {
+        console.log(`User creation error: ${e}`);
+        res.redirect('/sys/register?errors=512');
+      }
 
   };
 }
