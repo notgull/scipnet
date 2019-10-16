@@ -22,11 +22,3 @@ before_script:
   - (cd backend && npm install)
 
 script: make
-
-notifications:
-  - email:
-    recipients:
-      - ammon.i.smith@gmail.com
-      - not_a_seagull048@gmail.com
-    on_success: change
-    on_failure: always
