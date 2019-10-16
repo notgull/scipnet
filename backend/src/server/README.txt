@@ -24,3 +24,4 @@ Return value will be:
 * data - JSON object containing data from the procedure
 * send - either null or a string containing HTML data to be displayed in the browser
 * redirect - either null or a url to redirect to
+* type - the MIME type for the "send" value's output

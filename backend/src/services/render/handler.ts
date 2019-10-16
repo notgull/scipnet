@@ -25,11 +25,11 @@
 import { config } from "app/config";
 import { Metadata } from "app/services/metadata";
 import { render } from "app/services/render";
-import { ScipnetHttpsApp, ScipnetRequest, ScipnetResponse } from "app/server";
+import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
 import { Usertable } from "app/services/user/usertable";
 
 // render a page from a request and a usertable
-async function renderPage(req: ScipnetRequest, 
+async function renderPage(req: ScipnetInformation, 
                           isHTML: boolean,
                           name: string, 
                           pageTitle: string,
@@ -51,8 +51,8 @@ async function renderPage(req: ScipnetRequest,
   }
 }
 
-export function populateApp(app: ScipnetHttpsApp) {
-  app.pageHandle = async (req: ScipnetRequest, res: ScipnetResponse, ut: Usertable) => Promise<void> {
+export function populateApp(app: ScipnetJsonApp) {
+  app.pageHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
     const pageid = req.params["pageid"];
     
     let slug = slugify(pageid);
@@ -64,15 +64,15 @@ export function populateApp(app: ScipnetHttpsApp) {
     res.send(await renderPage(req, false, pageid, "", ut));
   };
 
-  app.mainHandle = async (req: ScipnetRequest, res: ScipnetResponse, ut: Usertable) => Promise<void> {
+  app.mainHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
     res.send(await renderPage(req, false, "main", "", ut);
   };
 
-  app.loginHandle = async(req: ScipnetRequest, res: ScipnetResponse, ut: Usertable) => Promise<void> {
+  app.loginHandle = async(req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
     res.send(await renderPage(req, true, config.get("files.pages.login"), "Login", ut));
   };
 
-  app.registerHandle = async(req: ScipnetRequest, res: ScipnetResponse, ut: Usertable) => Promise<void> {
+  app.registerHandle = async(req: ScipnetInformation, res: ScipnetOutput, ut: Usertable) => Promise<void> {
     res.send(await renderPage(req, true, config.get("files.pages.register"), "Register", ut));
   };
 }

@@ -23,14 +23,15 @@ import { readFile } from "fs";
 import { promisify } from "util";
 
 import { config } from "app/config";
-import { ScipnetHttpsApp, ScipnetRequest, ScipnetResponse } from "app/server";
+import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
 
 const readFilePromise = promisify(readFile);
 
-export function populateApp(app: ScipnetHttpsApp) {
-  app.bundleHandle = async (req: ScipnetRequest, res: ScipnetResponse) => Promise<void> {
+export function populateApp(app: ScipnetJsonApp) {
+  app.bundleHandle = async (inf: ScipnetInformation, res: ScipnetOutput) => Promise<void> {
     let script = await readFilePromise(config.get("files.scripts.bundle"));
     res.type("application/javascript");
     res.send(script);
+    return { success: true };
   };
 }

@@ -46,9 +46,11 @@ export interface ScipnetInformation {
 export interface ScipnetOutput = {
   _redirect: Nullable<string>,
   _send: Nullable<string | Buffer>,
+  _type: string,
 
   redirect: (url: string),
   send: (data: string | Buffer),
+  type(mimeType: string),
 };
 
 export type SyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: Usertable) => any;
@@ -116,6 +118,7 @@ export class ScipnetJsonApp {
       let output: ScipnetOutput = {
         _send: null,
         _redirect: null,
+        _type: "text/html",
   
         redirect: function(url: string) {
           output._redirect = url;
@@ -126,12 +129,16 @@ export class ScipnetJsonApp {
           } else {
             output._send = data;
           }
+        },
+        type: function(mimeType: string) {
+          output._type = mimeType;
         }
       };
 
       const data = await handle(inf, output, scopedThis.usertable);
       return {
         data: data,
+        type: output._type,
         send: output._send,
         redirect: output._redirect
       };

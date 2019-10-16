@@ -21,11 +21,11 @@
 import { readFile } from "fs";
 import { promisify } from "util";
 
-import { ScipnetHttpsApp, ScipnetFunctionMap, ScipnetRequest, ScipnetResponse } from 'app/server';
+import { ScipnetJsonApp, ScipnetFunctionMap, ScipnetInformation, ScipnetOutput } from 'app/server';
 
 const readFilePromise = promisify(readFile);
 
-export function populateApp(app: ScipnetHttpsApp) {
+export function populateApp(app: ScipnetJsonApp) {
   let fonts = [
     "font-bauhaus.css",
     "itc-bauhaus-lt-demi.ttf",
@@ -34,9 +34,10 @@ export function populateApp(app: ScipnetHttpsApp) {
   
   let fontHandles: ScipnetFunctionMap = {};
   for (const font of fonts) {
-    fontHandles[font] = async function(req: ScipnetRequest, res: ScipnetResponse): Promise<void> {
-      res.type("text/css");
-      res.send(await readFilePromise(`../css/${font}`));
+    fontHandles[font] = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<any> {
+      out.type("text/css");
+      out.send(await readFilePromise(`../css/${font}`));
+      return { success: true };
     };
   }
   app.fontHandles = fontHandles;
@@ -46,9 +47,10 @@ export function populateApp(app: ScipnetHttpsApp) {
   ];
   let imageHandles: ScipnetFunctionMap = {};
   for (const image of images) {
-    imageHandles[image] = async function(req: ScipnetRequest, res: ScipnetResponse): Promise<void> {
-      res.type("image/png");
-      res.send(await readFilePromise(`../images/${image}`));
+    imageHandles[image] = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<any> {
+      out.type("image/png");
+      out.send(await readFilePromise(`../images/${image}`));
+      return { success: true };
     };
   }
   app.imageHandles = imageHandles;  

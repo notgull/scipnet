@@ -18,12 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ScipnetHttpsApp, ScipnetRequest, ScipnetResponse } from "app/server";
+import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
 import { User } from "app/services/user";
 import { Usertable } from "app/services/user/usertable";
 
-export function populateApp(app: ScipnetHttpsApp) {
-  app.processLoginHandle = async (req: ScipnetRequest, res: ScipnetResponse, ut: Usertable): Promise<void> {
+export function populateApp(app: ScipnetJsonApp) {
+  app.processLoginHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: Usertable): Promise<any> {
     let { username, pwHash } = req.body;
     let pushExpiry = (req.body.remember === "true");
     let changeIp = (req.body.changeIp === "true");
@@ -53,7 +53,7 @@ export function populateApp(app: ScipnetHttpsApp) {
     }
   }; 
 
-  app.processRegisterHandle = async (req: ScipnetRequest, res: ScipnetResponse): Promise<void> {
+  app.processRegisterHandle = async (req: ScipnetInformation, res: ScipnetOutput): Promise<any> {
 
   };
 }
