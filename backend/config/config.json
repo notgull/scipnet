@@ -19,6 +19,7 @@
 
     "files.images.favicon": "../images/icon.ico",
     "files.scripts.bundle": "../frontend/release/bundle.js",
+    "files.scripts.modroot": "dist/services",
     "files.pages.login": "../templates/login.j2",
     "files.pages.register": "../templates/register.j2"
 }

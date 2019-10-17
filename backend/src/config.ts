@@ -43,6 +43,7 @@ export type ConfigKey =
   | 'ssl.keys.private'
   | 'files.images.favicon'
   | "files.scripts.bundle"
+  | "files.scripts.modroot"
   | "files.pages.login"
   | "files.pages.register";
 
