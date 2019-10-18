@@ -30,6 +30,7 @@ import { ActiveSessions } from "app/services/user/usertable";
 // types for the required functions
 export type ScipnetStringMap = { [key: string]: string };
 export type ScipnetMap = { [key: string]: any };
+
 export interface ScipnetInformation {
   body?: ScipnetMap; // POST request body
   cookies?: ScipnetStringMap; // cookies
@@ -37,10 +38,19 @@ export interface ScipnetInformation {
 
   ip: string;
 };
+
 export interface ScipnetCookie {
   name: string;
   value: string | number;
   maxAge: number;
+};
+
+export interface ScipnetReturnValue {
+  data: any;
+  type: string,
+  send: string,
+  redirect: string,
+  cookie: Array<ScipnetCookie>
 };
 
 export class ScipnetOutput {
@@ -131,7 +141,7 @@ export class ScipnetJsonApp {
   }
 
   // wrapper for scipnet handles
-  wrapHandle(handle: ScipnetHandle): (args: any) => Promise<any> { 
+  wrapHandle(handle: ScipnetHandle): (args: any) => Promise<ScipnetReturnValue> { 
     const scopedThis = this;
 
     return async function(params: any): Promise<any> {
