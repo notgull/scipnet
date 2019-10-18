@@ -10,7 +10,7 @@ scipnet is a JSON-RPC-2.0 server that will response to the following commands:
 * sys/fonts/* - loads a font
 * sys/images/* - loads an image
 * main - loads the main page
-* {slug} - loads a page by its slug
+* page - loads a page by its slug (needs param pageid)
 
 Params should contain the following:
 

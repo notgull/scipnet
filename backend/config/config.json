@@ -14,12 +14,8 @@
 
     "ui.editor.lock_timeout": 900,
 
-    "ssl.keys.public": "certs/scpwiki.pem",
-    "ssl.keys.private": "certs/scpwiki.key",
-
     "files.images.favicon": "../images/icon.ico",
     "files.scripts.bundle": "../frontend/release/bundle.js",
-    "files.scripts.modroot": "dist/services",
     "files.pages.login": "../templates/login.j2",
     "files.pages.register": "../templates/register.j2"
 }

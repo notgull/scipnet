@@ -31,23 +31,27 @@ import { slugify } from "app/slug";
 import { UserTable } from "app/services/user/usertable";
 
 // render a page from a request and a usertable
-async function renderPage(req: ScipnetInformation, 
-                          isHTML: boolean,
-                          name: string, 
-                          pageTitle: string,
-                          usertable: UserTable): Promise<Nullable<string>> {
+async function renderPage(
+  req: ScipnetInformation, 
+  isHTML: boolean,
+  name: string, 
+  pageTitle: string,
+  usertable: UserTable
+): Promise<Nullable<string>> {
   const loginInfo = usertable.check_session(Number(req.cookies.sessionId), req.ip);
   if (isHTML) {
     return render("", name, pageTitle, loginInfo);
   } else {
-    var md = await Metadata.load_by_slug(name);
+    const md = await Metadata.load_by_slug(name);
 
     let title = pageTitle;
-    if (pageTitle.length === 0)
-      if (md)
+    if (pageTitle.length === 0) {
+      if (md) {
         title = md.title;
-      else
+      } else {
         title = "404";
+      }
+    }
 
     return render(name, "", title, loginInfo, md);
   }
@@ -55,13 +59,7 @@ async function renderPage(req: ScipnetInformation,
 
 export function populateApp(app: ScipnetJsonApp) {
   app.pageHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<void> {
-    const pageid = req.params["pageid"];
-    
-    let slug = slugify(pageid);
-    if (slug !== pageid) {
-      res.redirect(`/${slug}`);
-      return;
-    }
+    const pageid = req.params["pageid"]; 
 
     res.send(await renderPage(req, false, pageid, "", ut));
   };

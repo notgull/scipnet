@@ -1,5 +1,5 @@
 /*
- * server/package.ts
+ * promises.ts
  *
  * scipnet - Multi-tenant writing wiki software
  * Copyright (C) 2019 not_a_seagull, Ammon Smith
@@ -18,20 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { populateApp as frontendPA } from "app/server/frontend";
-import { populateApp as fontsImagesPA } from "app/server/fonts-and-images";
-import { populateApp as loginPA } from "app/server/login";
-import { populateApp as renderPA } from "app/services/render/handler";
-import { populateApp as pagereqPA } from "app/services/pagereq/handler";
-import { ScipnetJsonApp } from "app/server";
+import { 
+  readdir as readdirCB, 
+  readFile as readFileCB 
+} from "fs";
+import { promisify } from "util";
 
-// create a server with all necessary functions
-export async function createServer(): Promise<ScipnetJsonApp> {
-  let app = new ScipnetJsonApp();
-  frontendPA(app);
-  await fontsImagesPA(app);
-  loginPA(app);
-  renderPA(app);
-  pagereqPA(app);
-  return app;
-}
+export const readdir = promisify(readdirCB);
+export const readFile = promisify(readFileCB);

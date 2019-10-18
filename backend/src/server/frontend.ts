@@ -19,17 +19,13 @@
  */
 
 // this file simply loads the frontend bundle script
-import { readFile } from "fs";
-import { promisify } from "util";
-
 import { config } from "app/config";
+import { readFile } from "app/utils/promises";
 import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
-
-const readFilePromise = promisify(readFile);
 
 export function populateApp(app: ScipnetJsonApp) {
   app.bundleHandle = async function(inf: ScipnetInformation, res: ScipnetOutput): Promise<any> {
-    let script = await readFilePromise(config.get("files.scripts.bundle"));
+    let script = await readFile(config.get("files.scripts.bundle"));
     res.type("application/javascript");
     res.send(script);
     return { success: true };

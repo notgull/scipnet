@@ -48,18 +48,19 @@ export function populateApp(app: ScipnetJsonApp) {
     const result = await user.validate(pwHash);
     if (result !== ErrorCode.SUCCESS) {
       res.redirect(`/sys/login/errorcode/${result}`);
-    } else {
-      const expiry = new Date();
-      if (pushExpiry) {
-        expiry.setDate(expiry.getDate() + 7);
-      } else {
-        expiry.setDate(expiry.getDate() + 1);
-      }
-
-      const sessionId = ut.register(user, req.ip, expiry, changeIp);
-      res.cookie("sessionId", sessionId, 8 * 86400000);
-      res.redirect(`/${newUrl}`);
+      return;
     }
+
+    const expiry = new Date();
+    if (pushExpiry) {
+      expiry.setDate(expiry.getDate() + 7);
+    } else {
+      expiry.setDate(expiry.getDate() + 1);
+    }
+
+    const sessionId = ut.register(user, req.ip, expiry, changeIp);
+    res.cookie("sessionId", sessionId, 8 * 86400000);
+    res.redirect(`/${newUrl}`)
   }; 
 
   app.processRegisterHandle = async function(req: ScipnetInformation, res: ScipnetOutput): Promise<any> {
@@ -78,20 +79,21 @@ export function populateApp(app: ScipnetJsonApp) {
         let result = await checkUserExistence(username);
         if (result) {
           res.redirect('/sys/register?errors=128')
-        } else {
-          result = await checkEmailUsage(email);
-          if (result) {
-            res.redirect('/sys/register?errors=256');
-          } else {
-            // TODO: verify via email
-            res.redirect('/sys/login');
-            await onEmailVerify(username, pwHash, email);
-          }
+          return;
         }
+          
+        result = await checkEmailUsage(email);
+        if (result) {
+          res.redirect('/sys/register?errors=256');
+          return;
+        }
+
+        // TODO: verify via email
+        res.redirect('/sys/login');
+        await onEmailVerify(username, pwHash, email);
       } catch (e) {
         console.log(`User creation error: ${e}`);
         res.redirect('/sys/register?errors=512');
       }
-
   };
 }

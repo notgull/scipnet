@@ -18,40 +18,32 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { readFile } from "fs";
-import { promisify } from "util";
+import * as path from "path";
 
-import { ScipnetJsonApp, ScipnetFunctionMap, ScipnetInformation, ScipnetOutput } from 'app/server';
+import { readdir, readFile } from "app/utils/promises";
+import { 
+  ScipnetJsonApp, 
+  ScipnetFunctionMap, 
+  ScipnetInformation, 
+  ScipnetOutput 
+} from "app/server";
 
-const readFilePromise = promisify(readFile);
-
-export function populateApp(app: ScipnetJsonApp) {
-  let fonts = [
-    "font-bauhaus.css",
-    "itc-bauhaus-lt-demi.ttf",
-    "itc-bauhaus-lt-demi.eot"
-  ];
+async function dynamicResourceLoad(dir: string, mimeType: string) {
+  const fileList = await readdir(dir);
   
-  let fontHandles: ScipnetFunctionMap = {};
-  for (const font of fonts) {
-    fontHandles[font] = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<any> {
-      out.type("text/css");
-      out.send(await readFilePromise(`../css/${font}`));
+  let handles: ScipnetFunctionMap = {};
+  for (const file of fileList) {
+    handles[file] = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<any> {
+      out.type(mimeType); // TODO: this is a HORRIBLE idea. add dynamic MIME types at some point
+      out.send(await readFile(path.join(dir, file)));
       return { success: true };
-    };
+    }
   }
-  app.fontHandles = fontHandles;
 
-  let images = [
-    "background.png"
-  ];
-  let imageHandles: ScipnetFunctionMap = {};
-  for (const image of images) {
-    imageHandles[image] = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<any> {
-      out.type("image/png");
-      out.send(await readFilePromise(`../images/${image}`));
-      return { success: true };
-    };
-  }
-  app.imageHandles = imageHandles;  
+  return handles;
+}
+
+export async function populateApp(app: ScipnetJsonApp): Promise<void> { 
+  app.fontHandles = await dynamicResourceLoad("../css", "text/css");
+  app.imageHandles = await dynamicResourceLoad("../images", "image/png");
 }

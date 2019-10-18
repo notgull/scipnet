@@ -19,46 +19,62 @@
  */
 
 // server software - runs on top of https server
-import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
 import * as jayson from "jayson/promise";
 import * as path from "path";
 
-import { promisify } from "util";
-import * as querystring from "querystring";
-
 import { config } from "app/config";
 import { Nullable } from "app/utils";
+import { readFile } from "app/utils/promises";
 import { UserTable } from "app/services/user/usertable";
-
-const readFilePromise = promisify(fs.readFile);
 
 // types for the required functions
 export type ScipnetStringMap = { [key: string]: string };
 export type ScipnetMap = { [key: string]: any };
 export interface ScipnetInformation {
-  body?: ScipnetMap, // POST request body
-  cookies?: ScipnetStringMap, // cookies
-  params?: ScipnetMap, // /url/params/like/this
+  body?: ScipnetMap; // POST request body
+  cookies?: ScipnetStringMap; // cookies
+  params?: ScipnetMap; // /url/params/like/this
 
-  ip: string
+  ip: string;
 };
 export interface ScipnetCookie {
-  name: string,
-  value: string | number,
-  maxAge: number
+  name: string;
+  value: string | number;
+  maxAge: number;
 };
-export interface ScipnetOutput {
-  _cookie: Array<ScipnetCookie>,
-  _redirect: Nullable<string>,
-  _send: Nullable<string | Buffer>,
-  _type: string,
 
-  cookie: (name: string, value: string | number, maxAge: number) => void,
-  redirect: (url: string) => void,
-  send: (data: string | Buffer) => void,
-  type: (mimeType: string) => void,
+export class ScipnetOutput {
+  cookie_: Array<ScipnetCookie>;
+  redirect_: Nullable<string>;
+  send_: Nullable<string | Buffer>;
+  type_: string;
+
+  public ScipnetOutput() {
+    this.cookie_ = [];
+    this.redirect_ = null;
+    this.send_ = null;
+    this.type_ = "text/html";
+  }
+
+  cookie(name: string, value: string | number, maxAge: number) {
+    this.cookie_.push({name: name, value: value, maxAge: maxAge});
+  }
+    
+  redirect(url: string) {
+    this.redirect_ = url;
+  }
+        
+  send(data: string | Buffer) {
+    if (data instanceof Buffer) {
+      this.send_ = data.toString();
+    } else {
+      this.send_ = data;
+    }
+  }
+
+  type(mimeType: string) {
+    this.type_ = mimeType;
+  }
 };
 
 export type SyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: UserTable) => any;
@@ -68,8 +84,11 @@ export type ScipnetHandle = SyncScipnetHandle | AsyncScipnetHandle;
 export type ScipnetFunctionMap = { [key: string]: ScipnetHandle };
 
 // some basic handles
-const faviconHandle: ScipnetHandle = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<string> {
-  const faviconSource = await readFilePromise(config.get("files.images.favicon"));
+const faviconHandle: ScipnetHandle = async function(
+  inf: ScipnetInformation, 
+  out: ScipnetOutput
+): Promise<string> {
+  const faviconSource = await readFile(config.get("files.images.favicon"));
   return faviconSource.toString();
 };
 
@@ -123,37 +142,15 @@ export class ScipnetJsonApp {
         cookies: params.cookies,
         ip: params.ip
       };
-      let output: ScipnetOutput = {
-        _cookie: [],
-        _send: null,
-        _redirect: null,
-        _type: "text/html",
-  
-        cookie: function(name: string, value: string | number, maxAge: number) {
-          output._cookie.push({name: name, value: value, maxAge: maxAge});
-        },
-        redirect: function(url: string) {
-          output._redirect = url;
-        },
-        send: function(data: string | Buffer) {
-          if (data instanceof Buffer) {
-            output._send = data.toString();
-          } else {
-            output._send = data;
-          }
-        },
-        type: function(mimeType: string) {
-          output._type = mimeType;
-        }
-      };
+      let output = new ScipnetOutput();
 
       const data = await handle(inf, output, scopedThis.usertable);
       return {
         data: data,
-        type: output._type,
-        send: output._send,
-        redirect: output._redirect,
-        cookie: output._cookie
+        type: output.type_,
+        send: output.send_,
+        redirect: output.redirect_,
+        cookie: output.cookie_
       };
     };
   }
@@ -168,7 +165,8 @@ export class ScipnetJsonApp {
       "sys/register": this.wrapHandle(this.registerHandle),
       "sys/process-login": this.wrapHandle(this.processLoginHandle),
       "sys/process-register": this.wrapHandle(this.processRegisterHandle),
-      "sys/pagereq": this.wrapHandle(this.pagereqHandle)
+      "sys/pagereq": this.wrapHandle(this.pagereqHandle),
+      "page": this.wrapHandle(this.pageHandle)
     };
     for (const font in this.fontHandles) {
       rpcFunctions[`/sys/fonts/${font}`] = this.wrapHandle(this.fontHandles[font]);
@@ -180,18 +178,7 @@ export class ScipnetJsonApp {
     const wrappedPageHandle = this.wrapHandle(this.pageHandle);
 
     // create the server itself
-    const server = new jayson.Server(rpcFunctions, {
-      router: function(method: string, params: any): jayson.Method {
-        // do by-name routing first
-        if (typeof(this._methods[method]) === "function") return this._methods[method];
-
-        // look for page
-        params.pageid = method;
-        return new jayson.Method((args: any, done: (res: any) => any) => {
-          wrappedPageHandle(args).then(done).catch((err: Error) => { throw err; });
-        });
-      }
-    }); 
+    const server = new jayson.Server(rpcFunctions); 
 
     server.http().listen(config.get("services.scipnet.port"));
   }

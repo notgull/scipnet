@@ -30,16 +30,19 @@ export function populateApp(app: ScipnetJsonApp) {
     const username = ut.check_session(parseInt(req.body.sessionId, 10), req.ip);
     
     let args: ArgsMapping = {};
-    for (var key in req.body) {
+    for (const key in req.body) {
       args[key] = req.body[key];
     }
-    args["username"] = username;
+    args.username = username;
 
     // TODO: replace with whatever event system we end up with
-    const response = await callJsonMethod("pagereq", 
-                                          args, 
-                                          config.get("services.pagereq.host"), 
-                                          config.get("services.pagereq.port"));
+    const response = await callJsonMethod(
+      "pagereq", 
+      args, 
+      config.get("services.pagereq.host"), 
+      config.get("services.pagereq.port")
+    );
+
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
