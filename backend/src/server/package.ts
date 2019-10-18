@@ -18,11 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { populateApp as frontendPA } from "app/server/frontend";
-import { populateApp as fontsImagesPA } from "app/server/fonts-and-images";
-import { populateApp as loginPA } from "app/server/login";
-import { populateApp as renderPA } from "app/services/render/handler";
-import { populateApp as pagereqPA } from "app/services/pagereq/handler";
+import frontendPA from "app/server/frontend";
+import fontsImagesPA from "app/server/fonts-and-images";
+import loginPA from "app/server/login";
+import renderPA from "app/services/render/handler";
+import pagereqPA from "app/services/pagereq/handler";
 import { ScipnetJsonApp } from "app/server";
 
 // create a server with all necessary functions

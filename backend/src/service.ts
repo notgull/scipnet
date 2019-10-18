@@ -20,7 +20,7 @@
 
 // registry of services, as well as functions for executing those services
 import * as fs from "fs";
-import * as jayson from "jayson";
+import { Server as JaysonServer } from "jayson";
 import * as path from "path";
 
 import { config } from "app/config";
@@ -52,7 +52,7 @@ export function runService(modname: string) {
   const { host, port } = serviceInfo[modname];
 
   // run server
-  const server = new jayson.Server(service);
+  const server = new JaysonServer(service);
   console.log(`Launching module ${modname}`);
   server.http().listen(port); // TODO: does host really matter?
 }

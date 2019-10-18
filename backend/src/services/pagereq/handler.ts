@@ -25,14 +25,12 @@ import { config } from "app/config";
 import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";  
 import { ActiveSessions } from "app/services/user/usertable";
 
-export function populateApp(app: ScipnetJsonApp) {
+export default function populateApp(app: ScipnetJsonApp) {
   app.pagereqHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<any> => {
     const username = ut.check_session(parseInt(req.body.sessionId, 10), req.ip);
     
     let args: ArgsMapping = {};
-    for (const key in req.body) {
-      args[key] = req.body[key];
-    }
+    Object.assign(args, req.body);
     args.username = username;
 
     // TODO: replace with whatever event system we end up with

@@ -43,7 +43,7 @@ async function dynamicResourceLoad(dir: string, mimeType: string) {
   return handles;
 }
 
-export async function populateApp(app: ScipnetJsonApp): Promise<void> { 
+export default async function populateApp(app: ScipnetJsonApp): Promise<void> { 
   app.fontHandles = await dynamicResourceLoad("../css", "text/css");
   app.imageHandles = await dynamicResourceLoad("../images", "image/png");
 }

@@ -14,8 +14,5 @@
 
     "ui.editor.lock_timeout": 900,
 
-    "files.images.favicon": "../images/icon.ico",
-    "files.scripts.bundle": "../frontend/release/bundle.js",
-    "files.pages.login": "../templates/login.j2",
-    "files.pages.register": "../templates/register.j2"
+    "files.images.favicon": "../images/icon.ico"
 }

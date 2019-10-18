@@ -57,7 +57,10 @@ async function renderPage(
   }
 }
 
-export function populateApp(app: ScipnetJsonApp) {
+const loginLocation = "../templates/login.j2";
+const registerLocation = "../templates/reister.j2";
+
+export default function populateApp(app: ScipnetJsonApp) {
   app.pageHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<void> {
     const pageid = req.params["pageid"]; 
 
@@ -69,11 +72,11 @@ export function populateApp(app: ScipnetJsonApp) {
   };
 
   app.loginHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<void> {
-    res.send(await renderPage(req, true, config.get("files.pages.login"), "Login", ut));
+    res.send(await renderPage(req, true, loginLocation, "Login", ut));
   };
 
   app.registerHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<void> {
-    res.send(await renderPage(req, true, config.get("files.pages.register"), "Register", ut));
+    res.send(await renderPage(req, true, registerLocation, "Register", ut));
   };
 }
 

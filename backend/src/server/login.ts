@@ -31,7 +31,7 @@ async function onEmailVerify(username: string, pwHash: string, email: string): P
   console.log(`Created new user ${username}`);
 };
 
-export function populateApp(app: ScipnetJsonApp) {
+export default function populateApp(app: ScipnetJsonApp) {
   app.processLoginHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<any> {
     let { username, pwHash } = req.body;
     let pushExpiry = (req.body.remember === "true");
