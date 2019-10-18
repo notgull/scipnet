@@ -67,7 +67,7 @@ export class ScipnetOutput {
   }
 
   cookie(name: string, value: string | number, maxAge: number) {
-    this.cookie_.push({name: name, value: value, maxAge: maxAge});
+    this.cookie_.push({ name, value, maxAge });
   }
     
   redirect(url: string) {
