@@ -29,7 +29,7 @@ export interface UserIdPair {
   ip_addrs: Array<string>
 }
 
-export class UserTable {
+export class ActiveSessions {
   userset: Array<UserIdPair>;
   prevId: number;
 
@@ -113,5 +113,3 @@ export class UserTable {
     }
   }
 }
-
-export const global_usertable = new UserTable();

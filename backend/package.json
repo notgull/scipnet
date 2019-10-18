@@ -33,6 +33,7 @@
   "scripts": {
     "gulp": "node node_modules/gulp/bin/gulp.js",
     "server": "NODE_PATH=dist node dist/index.js",
+    "pagereq": "NODE_PATH=dist node dist/index.js pagereq",
     "reset_db": "NODE_PATH=dist node bin/reset_db.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
