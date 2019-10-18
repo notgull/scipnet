@@ -23,7 +23,7 @@ import { Role } from "app/services/user/role";
 import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
 import { User } from "app/services/user";
 import { checkUserExistence, checkEmailUsage } from "app/services/user/existence-check";
-import { UserTable } from "app/services/user/usertable";
+import { ActiveSessions } from "app/services/user/usertable";
 
 async function onEmailVerify(username: string, pwHash: string, email: string): Promise<void> {
   let role = await Role.loadDefaultRole();
@@ -32,7 +32,7 @@ async function onEmailVerify(username: string, pwHash: string, email: string): P
 };
 
 export function populateApp(app: ScipnetJsonApp) {
-  app.processLoginHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<any> {
+  app.processLoginHandle = async function(req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<any> {
     let { username, pwHash } = req.body;
     let pushExpiry = (req.body.remember === "true");
     let changeIp = (req.body.changeIp === "true");

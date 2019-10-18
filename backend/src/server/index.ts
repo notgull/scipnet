@@ -25,7 +25,7 @@ import * as path from "path";
 import { config } from "app/config";
 import { Nullable } from "app/utils";
 import { readFile } from "app/utils/promises";
-import { UserTable } from "app/services/user/usertable";
+import { ActiveSessions } from "app/services/user/usertable";
 
 // types for the required functions
 export type ScipnetStringMap = { [key: string]: string };
@@ -72,13 +72,13 @@ export class ScipnetOutput {
     }
   }
 
-  type(mimeType: string) {
+  mime(mimeType: string) {
     this.type_ = mimeType;
   }
 };
 
-export type SyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: UserTable) => any;
-export type AsyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: UserTable) => Promise<any>;
+export type SyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: ActiveSessions) => any;
+export type AsyncScipnetHandle = (inf: ScipnetInformation, out: ScipnetOutput, ut?: ActiveSessions) => Promise<any>;
 export type ScipnetHandle = SyncScipnetHandle | AsyncScipnetHandle;
 
 export type ScipnetFunctionMap = { [key: string]: ScipnetHandle };
@@ -110,7 +110,7 @@ export class ScipnetJsonApp {
   processRegisterHandle: Nullable<ScipnetHandle>;
   pagereqHandle: Nullable<ScipnetHandle>;
 
-  usertable: UserTable;
+  usertable: ActiveSessions;
 
   constructor() {
     this.basicPageHandle = null;
@@ -127,7 +127,7 @@ export class ScipnetJsonApp {
     this.processRegisterHandle = null;
     this.pagereqHandle = null;
 
-    this.usertable = new UserTable();
+    this.usertable = new ActiveSessions();
   }
 
   // wrapper for scipnet handles

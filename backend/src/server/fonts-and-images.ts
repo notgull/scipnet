@@ -31,10 +31,10 @@ import {
 async function dynamicResourceLoad(dir: string, mimeType: string) {
   const fileList = await readdir(dir);
   
-  let handles: ScipnetFunctionMap = {};
+  const handles: ScipnetFunctionMap = {};
   for (const file of fileList) {
     handles[file] = async function(inf: ScipnetInformation, out: ScipnetOutput): Promise<any> {
-      out.type(mimeType); // TODO: this is a HORRIBLE idea. add dynamic MIME types at some point
+      out.mime(mimeType); // TODO: this is a HORRIBLE idea. add dynamic MIME types at some point
       out.send(await readFile(path.join(dir, file)));
       return { success: true };
     }

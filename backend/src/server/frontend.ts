@@ -26,7 +26,7 @@ import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";
 export function populateApp(app: ScipnetJsonApp) {
   app.bundleHandle = async function(inf: ScipnetInformation, res: ScipnetOutput): Promise<any> {
     let script = await readFile(config.get("files.scripts.bundle"));
-    res.type("application/javascript");
+    res.mime("application/javascript");
     res.send(script);
     return { success: true };
   };

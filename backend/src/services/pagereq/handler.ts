@@ -23,10 +23,10 @@ import { ArgsMapping } from "app/services/pagereq";
 import { callJsonMethod } from "app/utils/jsonrpc";
 import { config } from "app/config";
 import { ScipnetJsonApp, ScipnetInformation, ScipnetOutput } from "app/server";  
-import { UserTable } from "app/services/user/usertable";
+import { ActiveSessions } from "app/services/user/usertable";
 
 export function populateApp(app: ScipnetJsonApp) {
-  app.pagereqHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: UserTable): Promise<any> => {
+  app.pagereqHandle = async (req: ScipnetInformation, res: ScipnetOutput, ut: ActiveSessions): Promise<any> => {
     const username = ut.check_session(parseInt(req.body.sessionId, 10), req.ip);
     
     let args: ArgsMapping = {};
@@ -46,7 +46,6 @@ export function populateApp(app: ScipnetJsonApp) {
     let result = response.result;
     if (result.errorCode === -1) {
       console.error(result.error);
-      result.error = "An internal error occurred. Please contact a site administrator.";
     }
 
     return result;
