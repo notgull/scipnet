@@ -7,4 +7,9 @@ npm run pagereq &
 cd ..
 ./ftml-json/target/release/ftml-json ftml-json/misc/config.toml &
 
+cd kant-router
+cargo run --release -- misc/config.toml 
+cd ..
+
+
 # TODO: deepwell, et cetera

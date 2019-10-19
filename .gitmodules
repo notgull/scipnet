@@ -1,3 +1,6 @@
 [submodule "ftml-json"]
 	path = ftml-json
 	url = https://github.com/Nu-SCPTheme/ftml-json
+[submodule "kant-router"]
+	path = kant-router
+	url = https://github.com/Nu-SCPTheme/kant-router.git
